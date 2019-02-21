@@ -11,6 +11,8 @@
 #include <limits>
 #include <queue>
 
+#define AREA_MAX 0.70
+
 Analysis::Analysis(FileQueue* input, const std::vector<FileQueue*>& outputs) :
 	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET),
 	m_input(input),
@@ -59,16 +61,19 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 	if (cv::pointPolygonTest(contours[idx], minLoc, false) < 0.0)
 		return false;
 	
-	// Allocate particle
-	par = cv::makePtr<Particle>();
-	
 	// Draw filled contour
-	par->img = cv::Mat::zeros(imgTh.size(), CV_8UC1);
-	cv::drawContours(par->img, contours, idx, 255, cv::FILLED);
+	cv::Mat imgPar = cv::Mat::zeros(imgTh.size(), CV_8UC1);
+	cv::drawContours(imgPar, contours, idx, 255, cv::FILLED);
 	
-	// Calculate properties
-	double area = cv::countNonZero(par->img);
+	// Calculate area and perimeter
+	double area = cv::countNonZero(imgPar);
+	if (area > AREA_MAX*segm->rect.width*segm->rect.height)
+		return false;
 	double perim = cv::arcLength(contours[idx], true);
+	
+	// Save properties
+	par = cv::makePtr<Particle>();
+	par->img = imgPar;
 	par->effpsz = m_cfg->hologram().psz / Math::Mz(m_cfg->hologram().dist, segm->z);
 	par->x = par->effpsz * (segm->rect.x + center.x - m_cfg->img().border.width);
 	par->y = par->effpsz * (segm->rect.y + center.y - m_cfg->img().border.height);

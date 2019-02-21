@@ -119,7 +119,6 @@ void Recon::process(cv::Ptr<File> file)
 			}
 		}
 	}
-
 end:
 	m_log.debug("Segments: %d, Contours: %d", count, ncontours);
 }
