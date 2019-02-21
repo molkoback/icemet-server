@@ -97,6 +97,12 @@ void Config::load(const char* fn)
 		m_particle.dnrMin = node["particle_dnr_min"].as<int>();
 		m_particle.dnrMax = node["particle_dnr_max"].as<int>();
 		
+		m_diamCorr.enabled = node["diam_correction"].as<bool>();
+		m_diamCorr.D0 = node["diam_correction_start"].as<float>();
+		m_diamCorr.D1 = node["diam_correction_end"].as<float>();
+		m_diamCorr.f0 = node["diam_correction_start_factor"].as<float>();
+		m_diamCorr.f1 = node["diam_correction_end_factor"].as<float>();
+		
 		m_ocl.device = node["ocl_device"].as<std::string>();
 	}
 	catch (std::exception& e) {

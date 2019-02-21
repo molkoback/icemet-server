@@ -8,6 +8,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <queue>
 
@@ -28,7 +29,7 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 	double f = m_cfg->particle().thFact;
 	int th = med - f*(med-min);
 	
-	// Threshold
+	// Apply threshold
 	cv::Mat imgTh;
 	cv::threshold(segm->img, imgTh, th, 255, cv::THRESH_BINARY_INV);
 	
@@ -71,14 +72,26 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 		return false;
 	double perim = cv::arcLength(contours[idx], true);
 	
-	// Save properties
+	// Allocate particle
 	par = cv::makePtr<Particle>();
 	par->img = imgPar;
 	par->effpsz = m_cfg->hologram().psz / Math::Mz(m_cfg->hologram().dist, segm->z);
+	
+	// Calculate diameter and apply correction
+	double diam = par->effpsz * Math::equivdiam(area);
+	double D0 = m_cfg->diamCorr().D0;
+	double D1 = m_cfg->diamCorr().D1;
+	if (m_cfg->diamCorr().enabled && diam < D1 && diam > D0) {
+		double f0 = m_cfg->diamCorr().f0;
+		double f1 = m_cfg->diamCorr().f1;
+		diam *= (diam-D0) * (f1-f0) / (D1-D0) + f0;
+	}
+	
+	// Save properties
 	par->x = par->effpsz * (segm->rect.x + center.x - m_cfg->img().border.width);
 	par->y = par->effpsz * (segm->rect.y + center.y - m_cfg->img().border.height);
 	par->z = segm->z;
-	par->diam = par->effpsz * Math::equivdiam(area);
+	par->diam = diam;
 	par->circularity = Math::heywood(perim, area);
 	par->dnr = max - min;
 	return true;

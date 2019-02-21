@@ -69,6 +69,14 @@ typedef struct _particle_param {
 	unsigned char dnrMax;
 } ParticleParam;
 
+typedef struct _diameter_correction {
+	bool enabled;
+	float D0;
+	float D1;
+	float f0;
+	float f1;
+} DiameterCorrection;
+
 typedef struct _ocl_param {
 	std::string device;
 } OCLParam;
@@ -85,6 +93,7 @@ private:
 	HologramParam m_hologram;
 	SegmentParam m_segment;
 	ParticleParam m_particle;
+	DiameterCorrection m_diamCorr;
 	OCLParam m_ocl;
 	
 	fs::path strToPath(const std::string& str) const;
@@ -106,6 +115,7 @@ public:
 	const HologramParam& hologram() const { return m_hologram; }
 	const SegmentParam& segment() const { return m_segment; }
 	const ParticleParam& particle() const { return m_particle; }
+	const DiameterCorrection& diamCorr() const { return m_diamCorr; }
 	const OCLParam& ocl() const { return m_ocl; }
 	
 	static Config* getDefaultPtr();
