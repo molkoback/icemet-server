@@ -1,0 +1,72 @@
+# ICEMET Server config
+#
+
+# Logging
+# 10 = debug
+# 20 = info
+# 30 = warning
+# 40 = error
+# 50 = critical
+log_level: 20
+
+# Folders
+path_watch: "~/.icemet/watch"
+path_results: "~/.icemet/results"
+
+# Output file types
+type_results: "bmp"
+type_results_lossy: "jpg"
+
+# SQL server
+sql_host: "127.0.0.1"
+sql_port: 3306
+sql_user: "icemet"
+sql_passwd: ""
+sql_database: "icemet"
+sql_table_particles: "particles"
+sql_table_stats: "stats"
+
+# Preprocessing
+img_x: 200
+img_y: 0
+img_w: 2048
+img_h: 2048
+bgsub_stack_len: 7
+
+# Reconstruction
+holo_z_start: 8.3e-3
+holo_z_end: 38.6e-3
+holo_z_step: 0.020e-3
+holo_distance: 56.4e-3
+holo_pixel_size: 3.45e-6
+holo_lambda: 660e-9
+recon_step: 100
+segment_th_factor: 0.60 # th = X * median_Ipp
+segment_n_max: 1000
+segment_size_min: 2
+segment_size_max: 200
+segment_pad: 10
+img_ignore_x: 100
+img_ignore_y: 100
+
+# Analysis
+particle_th_factor: 0.35 # th = median_Ipp - X*(median_Ipp-min_Isegm)
+diam_correction: false
+diam_correction_start: 5.0e-6
+diam_correction_end: 12.0e-6
+diam_correction_start_factor: 0.7
+diam_correction_end_factor: 1.0
+
+# Statistics
+particle_z_min: 9.3e-3
+particle_z_max: 37.6e-3
+particle_diam_min: 5.0e-6
+particle_diam_max: 200.0e-6
+particle_diam_step: 1.0e-6
+particle_circularity_min: 0.0
+particle_circularity_max: 1.1
+particle_dnr_min: 45
+particle_dnr_max: 255
+
+# OpenCL
+ocl_device: "NVIDIA:GPU:0"
