@@ -16,6 +16,29 @@ Saver::Saver(FileQueue* input) :
 	m_log.info("Results %s", m_cfg->paths().results.string().c_str());
 }
 
+void Saver::moveOriginal(const cv::Ptr<File>& file)
+{
+	fs::path src(file->path());
+	fs::path dst = file->path(m_cfg->paths().original, src.extension());
+	if (fs::exists(dst))
+		fs::remove(dst);
+	fs::rename(src, dst);
+}
+
+void Saver::processEmpty(const cv::Ptr<File>& file)
+{
+	// Preproc
+	if (file->preproc.u) {
+		fs::create_directories(file->dir(m_cfg->paths().preproc));
+		fs::path dst = file->path(m_cfg->paths().preproc, m_cfg->types().results);
+		cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
+	}
+	
+	// Original
+	fs::create_directories(file->dir(m_cfg->paths().original));
+	moveOriginal(file);
+}
+
 void Saver::process(const cv::Ptr<File>& file)
 {
 	// Create preview
@@ -47,18 +70,12 @@ void Saver::process(const cv::Ptr<File>& file)
 	for (size_t i = 0; i < file->segments.size(); i++) {
 		dst = file->path(m_cfg->paths().recon, m_cfg->types().results, i+1);
 		cv::imwrite(dst.string(), file->segments[i]->img);
-}
+	}
 	for (size_t i = 0; i < file->particles.size(); i++) {
 		dst = file->path(m_cfg->paths().threshold, m_cfg->types().results, i+1);
 		cv::imwrite(dst.string(), file->particles[i]->img);
 	}
-	
-	// Move the file from watch directory.
-	fs::path src(file->path());
-	dst = file->path(m_cfg->paths().original, src.extension());
-	if (fs::exists(dst))
-		fs::remove(dst);
-	fs::rename(src, dst);
+	moveOriginal(file);
 	
 	// Write SQL
 	for (unsigned int i = 0; i < file->particles.size(); i++) {
@@ -85,7 +102,10 @@ bool Saver::cycle()
 		cv::Ptr<File> file = files.front();
 		m_log.debug("Saving %s", file->name().c_str());
 		Measure m;
-		process(file);
+		if (file->empty())
+			processEmpty(file);
+		else
+			process(file);
 		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		m_log.info("Done %s", file->name().c_str());
 		files.pop();

@@ -10,6 +10,8 @@ class Saver : Worker {
 protected:
 	FileQueue* m_input;
 	
+	void moveOriginal(const cv::Ptr<File>& file);
+	void processEmpty(const cv::Ptr<File>& file);
 	void process(const cv::Ptr<File>& file);
 	bool cycle();
 

@@ -64,6 +64,7 @@ bool Watcher::cycle()
 			mat.getUMat(cv::ACCESS_READ).copyTo(file->original);
 			
 			// Push to output queue
+			file->setEmpty(false);
 			m_log.debug("Found %s", file->name().c_str());
 			m_output->pushWait(file);
 			m_prev = file;

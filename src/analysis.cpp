@@ -149,7 +149,10 @@ void Analysis::process(cv::Ptr<File> file)
 	
 	file->segments = segmentsUnique;
 	file->particles = particlesUnique;
-	m_log.debug("Particles: %d", (int)file->particles.size());
+	int count = file->particles.size();
+	if (!count)
+		file->setEmpty(true);
+	m_log.debug("Particles: %d", count);
 }
 
 bool Analysis::cycle()
@@ -161,10 +164,12 @@ bool Analysis::cycle()
 	// Process
 	while (!files.empty()) {
 		cv::Ptr<File> file = files.front();
-		m_log.debug("Analysing %s", file->name().c_str());
-		Measure m;
-		process(file);
-		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		if (!file->empty()) {
+			m_log.debug("Analysing %s", file->name().c_str());
+			Measure m;
+			process(file);
+			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		}
 		for (const auto& output : m_outputs)
 			output->pushWait(file);
 		files.pop();

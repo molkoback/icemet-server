@@ -144,7 +144,6 @@ void Stats::process(const cv::Ptr<File>& file)
 			count++;
 		}
 	}
-	m_frames++;
 	m_log.debug("Valid particles: %d", count);
 }
 
@@ -157,10 +156,13 @@ bool Stats::cycle()
 	// Process
 	while (!files.empty()) {
 		cv::Ptr<File> file = files.front();
-		m_log.debug("Analysing %s", file->name().c_str());
-		Measure m;
-		process(file);
-		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		if (!file->empty()) {
+			m_log.debug("Analysing %s", file->name().c_str());
+			Measure m;
+			process(file);
+			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		}
+		m_frames++;
 		files.pop();
 	}
 	msleep(1);

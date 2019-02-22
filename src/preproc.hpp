@@ -13,9 +13,11 @@ class Preproc : Worker {
 protected:
 	FileQueue* m_input;
 	FileQueue* m_output;
-	std::queue<cv::Ptr<File>> m_wait;
+	size_t m_stackLen;
 	cv::Ptr<cv::icemet::BGSubStack> m_stack;
+	std::queue<cv::Ptr<File>> m_wait; // Length: m_stackLen/2 + 1
 	
+	int dynRange(const cv::UMat& img);
 	void process(cv::Ptr<File> file);
 	bool cycle();
 

@@ -120,6 +120,8 @@ void Recon::process(cv::Ptr<File> file)
 		}
 	}
 end:
+	if (!count)
+		file->setEmpty(true);
 	m_log.debug("Segments: %d, Contours: %d", count, ncontours);
 }
 
@@ -132,10 +134,12 @@ bool Recon::cycle()
 	// Process
 	while (!files.empty()) {
 		cv::Ptr<File> file = files.front();
-		m_log.debug("Reconstructing %s", file->name().c_str());
-		Measure m;
-		process(file);
-		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		if (!file->empty()) {
+			m_log.debug("Reconstructing %s", file->name().c_str());
+			Measure m;
+			process(file);
+			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		}
 		m_output->pushWait(file);
 		files.pop();
 	}

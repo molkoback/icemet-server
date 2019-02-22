@@ -81,13 +81,13 @@ public:
 	std::vector<cv::Ptr<Particle>> particles;
 	
 	unsigned int sensor() const { return m_sensor; }
-	void setSensor(int sensor) { m_sensor = sensor; }
+	void setSensor(unsigned int sensor) { m_sensor = sensor; }
 	DateTime dt() const { return m_dt; }
 	void setDt(DateTime dt) { m_dt = dt; }
 	unsigned int frame() const { return m_frame; }
-	void setFrame(int frame) { m_frame = frame; }
+	void setFrame(unsigned int frame) { m_frame = frame; }
 	bool empty() const { return m_empty; }
-	void setEmpty(int empty) { m_empty = empty; }
+	void setEmpty(bool empty) { m_empty = empty; }
 	
 	std::string name() const;
 	void setName(const std::string& str);
