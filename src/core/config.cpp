@@ -83,7 +83,7 @@ void Config::load(const char* fn)
 		m_segment.thFact = node["segment_th_factor"].as<float>();
 		m_segment.nMax = node["segment_n_max"].as<int>();
 		m_segment.sizeMin = node["segment_size_min"].as<int>();
-		m_segment.sizeMax = node["segment_size_max"].as<int>();
+		m_segment.sizeSmall = node["segment_size_small"].as<int>();
 		m_segment.pad = node["segment_pad"].as<int>();
 		
 		m_particle.zMin = node["particle_z_min"].as<float>();

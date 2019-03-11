@@ -44,7 +44,7 @@ recon_step: 100
 segment_th_factor: 0.60 # th = X * median_Ipp
 segment_n_max: 1000
 segment_size_min: 2
-segment_size_max: 200
+segment_size_small: 4
 segment_pad: 10
 img_ignore_x: 100
 img_ignore_y: 100

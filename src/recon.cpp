@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <queue>
 
-#define SEGM_SIZE_SMALL 5
-
 Recon::Recon(FileQueue* input, FileQueue* output) :
 	Worker(COLOR_GREEN "RECON" COLOR_RESET),
 	m_input(input),
@@ -37,13 +35,15 @@ void Recon::process(cv::Ptr<File> file)
 	
 	int segmNMax = m_cfg->segment().nMax;
 	int segmSizeMin = m_cfg->segment().sizeMin;
-	int segmSizeMax = m_cfg->segment().sizeMax;
+	int segmSizeSmall = m_cfg->segment().sizeSmall;
 	int pad = m_cfg->segment().pad;
 	
 	float z0 = m_cfg->hologram().z0;
 	float z1 = m_cfg->hologram().z1;
 	float ldz = m_cfg->hologram().dz;
 	float dz = m_cfg->hologram().step*ldz;
+	
+	int th = m_cfg->segment().thFact * file->param.med;
 	
 	// Set image
 	m_hologram->set(file->preproc);
@@ -58,15 +58,8 @@ void Recon::process(cv::Ptr<File> file)
 		m_hologram->recon(m_stack, imgMin, lz0, lz1, ldz);
 		
 		// Threshold
-		float med = file->param.med;
-		float f = m_cfg->segment().thFact;
-		int th = f*med;
 		cv::UMat imgTh;
-		cv::threshold(
-			cv::UMat(imgMin, crop), imgTh,
-			th, 255,
-			cv::THRESH_BINARY_INV
-		);
+		cv::threshold(cv::UMat(imgMin, crop), imgTh, th, 255, cv::THRESH_BINARY_INV);
 		
 		// Find all contours and process them
 		std::vector<std::vector<cv::Point>> contours;
@@ -82,15 +75,13 @@ void Recon::process(cv::Ptr<File> file)
 		ncontours += contours.size();
 		for (const auto& cnt : contours) {
 			cv::Rect rect = cv::boundingRect(cnt);
-			
-			// Make sure that the rect is valid
-			if (rect.width < segmSizeMin || rect.height < segmSizeMin ||
-			    rect.width > segmSizeMax || rect.height > segmSizeMax)
+			if (rect.width < segmSizeMin || rect.height < segmSizeMin)
 				continue;
 			
+			// Select our focus method
 			cv::icemet::FocusMethod method = (
-				rect.width > SEGM_SIZE_SMALL ||
-				rect.height > SEGM_SIZE_SMALL
+				rect.width > segmSizeSmall ||
+				rect.height > segmSizeSmall
 			) ? cv::icemet::FOCUS_STD : cv::icemet::FOCUS_MIN;
 			
 			// Grow rect
@@ -119,9 +110,9 @@ void Recon::process(cv::Ptr<File> file)
 			}
 		}
 	}
-end:
 	if (!count)
 		file->setEmpty(true);
+end:
 	m_log.debug("Segments: %d, Contours: %d", count, ncontours);
 }
 
