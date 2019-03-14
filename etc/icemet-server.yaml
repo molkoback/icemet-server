@@ -34,6 +34,8 @@ img_h: 2048
 bgsub_stack_len: 7
 
 # Reconstruction
+filt_lowpass: false
+filt_lowpass_f: 80000
 holo_z_start: 8.3e-3
 holo_z_end: 38.6e-3
 holo_z_step: 0.020e-3

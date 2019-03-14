@@ -15,6 +15,7 @@ protected:
 	FileQueue* m_output;
 	cv::Ptr<cv::icemet::Hologram> m_hologram;
 	std::vector<cv::UMat> m_stack;
+	cv::UMat m_lpf;
 	
 	void process(cv::Ptr<File> file);
 	bool cycle();

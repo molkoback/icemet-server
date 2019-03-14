@@ -22,6 +22,10 @@ Recon::Recon(FileQueue* input, FileQueue* output) :
 	// Allocate image stack
 	for (int i = 0; i < m_cfg->hologram().step; i++)
 		m_stack.emplace_back(m_cfg->img().size, CV_8UC1);
+	
+	// Create filters
+	if (m_cfg->lpf().enabled)
+		m_lpf = m_hologram->createLPF(m_cfg->lpf().f);
 }
 
 void Recon::process(cv::Ptr<File> file)
@@ -43,10 +47,12 @@ void Recon::process(cv::Ptr<File> file)
 	float ldz = m_cfg->hologram().dz;
 	float dz = m_cfg->hologram().step*ldz;
 	
-	int th = m_cfg->segment().thFact * file->param.med;
+	int th = m_cfg->segment().thFact * file->param.bgVal;
 	
-	// Set image
-	m_hologram->set(file->preproc);
+	// Set our image and apply filters
+	m_hologram->setImg(file->preproc);
+	if (m_lpf.u)
+		m_hologram->applyFilter(m_lpf);
 	
 	// Reconstruct whole range in steps
 	int count = 0;

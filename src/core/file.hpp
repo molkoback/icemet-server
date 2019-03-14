@@ -58,6 +58,10 @@ typedef struct _particle {
 	}
 } Particle;
 
+typedef struct _file_param {
+	unsigned char bgVal;
+} FileParam;
+
 class File {
 private:
 	unsigned int m_sensor;
@@ -72,9 +76,7 @@ public:
 	File(unsigned int m_sensor, DateTime dt, unsigned int frame, bool empty);
 	File(const File& f);
 	
-	struct {
-		unsigned char med;
-	} param;
+	FileParam param;
 	cv::UMat original;
 	cv::UMat preproc;
 	std::vector<cv::Ptr<Segment>> segments;

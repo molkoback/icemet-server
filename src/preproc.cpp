@@ -61,7 +61,7 @@ void Preproc::process(cv::Ptr<File> file)
 			if (dynRange(fileDone->preproc) < PREPROC_EMPTY_TH)
 				fileDone->setEmpty(true);
 			else
-				fileDone->param.med =  Math::median(fileDone->preproc);
+				fileDone->param.bgVal =  Math::median(fileDone->preproc);
 		}
 		else {
 			fileDone->setEmpty(true);

@@ -22,6 +22,7 @@ Config::Config(const Config& cfg) :
 	m_dbInfo(cfg.m_dbInfo),
 	m_img(cfg.m_img),
 	m_bgsub(cfg.m_bgsub),
+	m_lpf(cfg.m_lpf),
 	m_hologram(cfg.m_hologram),
 	m_segment(cfg.m_segment),
 	m_particle(cfg.m_particle),
@@ -71,6 +72,9 @@ void Config::load(const char* fn)
 		m_img.border.height = node["img_ignore_y"].as<int>();
 		
 		m_bgsub.stackLen = node["bgsub_stack_len"].as<int>();
+		
+		m_lpf.enabled = node["filt_lowpass"].as<bool>();
+		m_lpf.f = node["filt_lowpass_f"].as<float>();
 		
 		m_hologram.z0 = node["holo_z_start"].as<float>();
 		m_hologram.z1 = node["holo_z_end"].as<float>();

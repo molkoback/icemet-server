@@ -38,6 +38,11 @@ typedef struct _bgsub_param {
 	int stackLen;
 } BGSubParam;
 
+typedef struct _filter_param {
+	bool enabled;
+	float f;
+} FilterParam;
+
 typedef struct _hologram_param {
 	float z0;
 	float z1;
@@ -90,6 +95,7 @@ private:
 	DatabaseInfo m_dbInfo;
 	ImageParam m_img;
 	BGSubParam m_bgsub;
+	FilterParam m_lpf;
 	HologramParam m_hologram;
 	SegmentParam m_segment;
 	ParticleParam m_particle;
@@ -112,6 +118,7 @@ public:
 	const DatabaseInfo& dbInfo() const { return m_dbInfo; }
 	const ImageParam& img() const { return m_img; }
 	const BGSubParam& bgsub() const { return m_bgsub; }
+	const FilterParam lpf() const { return m_lpf; }
 	const HologramParam& hologram() const { return m_hologram; }
 	const SegmentParam& segment() const { return m_segment; }
 	const ParticleParam& particle() const { return m_particle; }

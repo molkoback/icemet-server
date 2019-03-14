@@ -25,9 +25,9 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 	double min, max;
 	cv::Point minLoc, maxLoc;
 	cv::minMaxLoc(segm->img, &min, &max, &minLoc, &maxLoc);
-	double med = file->param.med;
+	double bg = file->param.bgVal;
 	double f = m_cfg->particle().thFact;
-	int th = med - f*(med-min);
+	int th = bg - f*(bg-min);
 	
 	// Apply threshold
 	cv::Mat imgTh;
