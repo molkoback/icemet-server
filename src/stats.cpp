@@ -41,7 +41,7 @@ void Stats::resetStats(const DateTime& dt)
 	m_dt.MS = 0;
 }
 
-void Stats::createStats(StatsRow& row)
+void Stats::createStats(StatsRow& row) const
 {
 	unsigned int particles = m_particles.rows;
 	if (!particles) {
@@ -101,17 +101,17 @@ void Stats::createStats(StatsRow& row)
 	row = {0, m_dt, lwc, mvd, conc, m_frames, particles};
 }
 
-bool Stats::particleValid(const cv::Ptr<Particle>& par)
+bool Stats::particleValid(const cv::Ptr<Particle>& par) const
 {
 	return (
 		par->z >= m_cfg->particle().zMin &&
 		par->z <= m_cfg->particle().zMax &&
 		par->diam >= m_cfg->particle().diamMin &&
 		par->diam <= m_cfg->particle().diamMax &&
-		par->circularity >= m_cfg->particle().circularityMin &&
-		par->circularity <= m_cfg->particle().circularityMax &&
-		par->dnr >= m_cfg->particle().dnrMin &&
-		par->dnr <= m_cfg->particle().dnrMax
+		par->circularity >= m_cfg->particle().circMin &&
+		par->circularity <= m_cfg->particle().circMax &&
+		par->dynRange >= m_cfg->particle().dynRangeMin &&
+		par->dynRange <= m_cfg->particle().dynRangeMax
 	);
 }
 

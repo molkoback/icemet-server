@@ -36,23 +36,26 @@ typedef struct _segment {
 typedef struct _particle {
 	float x, y, z;
 	float diam;
+	float diamCorr;
 	float circularity;
-	unsigned char dnr;
-	float effpsz;
+	unsigned char dynRange;
+	float effPxSz;
 	cv::Mat img;
 	
 	_particle() {}
-	_particle(float x_, float y_, float z_, float diam_, float circularity_, unsigned char dnr_, float effpsz_, const cv::UMat& img_) :
+	_particle(float x_, float y_, float z_, float diam_, float diamCorr_, float circularity_, unsigned char dynRange_, float effPxSz_, const cv::UMat& img_) :
 		x(x_), y(y_), z(z_),
-		diam(diam_), circularity(circularity_),
-		dnr(dnr_), effpsz(effpsz_)
+		diam(diam_), diamCorr(diamCorr_),
+		circularity(circularity_),
+		dynRange(dynRange_), effPxSz(effPxSz_)
 	{
 		img_.copyTo(img);
 	}
 	_particle(const _particle& p) :
 		x(p.x), y(p.y), z(p.z),
-		diam(p.diam), circularity(p.circularity),
-		dnr(p.dnr), effpsz(p.effpsz)
+		diam(p.diam), diamCorr(p.diamCorr),
+		circularity(p.circularity),
+		dynRange(p.dynRange), effPxSz(p.effPxSz)
 	{
 		p.img.copyTo(img);
 	}

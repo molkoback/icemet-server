@@ -68,10 +68,10 @@ typedef struct _particle_param {
 	float diamMin;
 	float diamMax;
 	float diamStep;
-	float circularityMin;
-	float circularityMax;
-	unsigned char dnrMin;
-	unsigned char dnrMax;
+	float circMin;
+	float circMax;
+	unsigned char dynRangeMin;
+	unsigned char dynRangeMax;
 } ParticleParam;
 
 typedef struct _diameter_correction {

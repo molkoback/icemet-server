@@ -96,10 +96,10 @@ void Config::load(const char* fn)
 		m_particle.diamMin = node["particle_diam_min"].as<float>();
 		m_particle.diamMax = node["particle_diam_max"].as<float>();
 		m_particle.diamStep = node["particle_diam_step"].as<float>();
-		m_particle.circularityMin = node["particle_circularity_min"].as<float>();
-		m_particle.circularityMax = node["particle_circularity_max"].as<float>();
-		m_particle.dnrMin = node["particle_dnr_min"].as<int>();
-		m_particle.dnrMax = node["particle_dnr_max"].as<int>();
+		m_particle.circMin = node["particle_circularity_min"].as<float>();
+		m_particle.circMax = node["particle_circularity_max"].as<float>();
+		m_particle.dynRangeMin = node["particle_dnr_min"].as<int>();
+		m_particle.dynRangeMax = node["particle_dnr_max"].as<int>();
 		
 		m_diamCorr.enabled = node["diam_correction"].as<bool>();
 		m_diamCorr.D0 = node["diam_correction_start"].as<float>();

@@ -16,8 +16,8 @@ protected:
 	DateTime m_dt;
 	
 	void resetStats(const DateTime& dt=DateTime());
-	void createStats(StatsRow& row);
-	bool particleValid(const cv::Ptr<Particle>& par);
+	void createStats(StatsRow& row) const;
+	bool particleValid(const cv::Ptr<Particle>& par) const;
 	void process(const cv::Ptr<File>& file);
 	bool cycle();
 

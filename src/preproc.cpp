@@ -21,7 +21,7 @@ Preproc::Preproc(FileQueue* input, FileQueue* output) :
 	m_stack = cv::icemet::BGSubStack::create(m_cfg->img().size, m_stackLen);
 }
 
-int Preproc::dynRange(const cv::UMat& img)
+int Preproc::dynRange(const cv::UMat& img) const
 {
 	double minVal, maxVal;
 	minMaxLoc(img, &minVal, &maxVal);

@@ -17,7 +17,7 @@ protected:
 	cv::Ptr<cv::icemet::BGSubStack> m_stack;
 	std::queue<cv::Ptr<File>> m_wait; // Length: m_stackLen/2 + 1
 	
-	int dynRange(const cv::UMat& img);
+	int dynRange(const cv::UMat& img) const;
 	void process(cv::Ptr<File> file);
 	bool cycle();
 

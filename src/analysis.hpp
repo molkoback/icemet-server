@@ -13,7 +13,7 @@ protected:
 	FileQueue* m_input;
 	std::vector<FileQueue*> m_outputs;
 	
-	bool analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par);
+	bool analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par) const;
 	void process(cv::Ptr<File> file);
 	bool cycle();
 

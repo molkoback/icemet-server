@@ -16,7 +16,7 @@ Saver::Saver(FileQueue* input) :
 	m_log.info("Results %s", m_cfg->paths().results.string().c_str());
 }
 
-void Saver::moveOriginal(const cv::Ptr<File>& file)
+void Saver::moveOriginal(const cv::Ptr<File>& file) const
 {
 	fs::path src(file->path());
 	fs::path dst = file->path(m_cfg->paths().original, src.extension());
@@ -25,7 +25,7 @@ void Saver::moveOriginal(const cv::Ptr<File>& file)
 	fs::rename(src, dst);
 }
 
-void Saver::processEmpty(const cv::Ptr<File>& file)
+void Saver::processEmpty(const cv::Ptr<File>& file) const
 {
 	// Preproc
 	if (file->preproc.u) {
@@ -39,7 +39,7 @@ void Saver::processEmpty(const cv::Ptr<File>& file)
 	moveOriginal(file);
 }
 
-void Saver::process(const cv::Ptr<File>& file)
+void Saver::process(const cv::Ptr<File>& file) const
 {
 	// Create preview
 	cv::UMat preview = cv::UMat::zeros(m_cfg->img().size, CV_8UC1);
@@ -85,7 +85,8 @@ void Saver::process(const cv::Ptr<File>& file)
 			0, file->dt(),
 			file->sensor(), file->frame(), i+1,
 			par->x, par->y, par->z,
-			par->diam, par->circularity, par->dnr, par->effpsz,
+			par->diam, par->diamCorr,
+			par->circularity, par->dynRange, par->effPxSz,
 			segm->rect
 		});
 	}

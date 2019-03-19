@@ -32,9 +32,10 @@ typedef struct _particle_row {
 	unsigned int particle;
 	float x, y, z;
 	float diam;
+	float diamCorr;
 	float circularity;
-	unsigned char dnr;
-	float effpsz;
+	unsigned char dynRange;
+	float effPxSz;
 	cv::Rect sub;
 } ParticleRow;
 

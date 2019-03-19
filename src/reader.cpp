@@ -29,13 +29,14 @@ bool Reader::cycle()
 		
 		// Create particle
 		cv::Ptr<Particle> par = cv::makePtr<Particle>();
-		par->effpsz = row.effpsz;
+		par->effPxSz = row.effPxSz;
 		par->x = row.x;
 		par->y = row.y;
 		par->z = row.z;
 		par->diam = row.diam;
+		par->diamCorr = row.diamCorr;
 		par->circularity = row.circularity;
-		par->dnr = row.dnr;
+		par->dynRange = row.dynRange;
 		m_file->particles.push_back(par);
 		m_id = row.id+1;
 	}

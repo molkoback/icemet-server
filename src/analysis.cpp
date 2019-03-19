@@ -19,7 +19,7 @@ Analysis::Analysis(FileQueue* input, const std::vector<FileQueue*>& outputs) :
 	m_input(input),
 	m_outputs(outputs) {}
 
-bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par)
+bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par) const
 {
 	// Calculate threshold
 	double min, max;
@@ -75,25 +75,28 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 	// Allocate particle
 	par = cv::makePtr<Particle>();
 	par->img = imgPar;
-	par->effpsz = m_cfg->hologram().psz / Math::Mz(m_cfg->hologram().dist, segm->z);
+	par->effPxSz = m_cfg->hologram().psz / Math::Mz(m_cfg->hologram().dist, segm->z);
 	
 	// Calculate diameter and apply correction
-	double diam = par->effpsz * Math::equivdiam(area);
+	double diam = par->effPxSz * Math::equivdiam(area);
+	double diamCorr = 1.0;
 	double D0 = m_cfg->diamCorr().D0;
 	double D1 = m_cfg->diamCorr().D1;
 	if (m_cfg->diamCorr().enabled && diam < D1 && diam > D0) {
 		double f0 = m_cfg->diamCorr().f0;
 		double f1 = m_cfg->diamCorr().f1;
-		diam *= (diam-D0) * (f1-f0) / (D1-D0) + f0;
+		diamCorr = (diam-D0) * (f1-f0) / (D1-D0) + f0;
+		diam *= diamCorr;
 	}
 	
 	// Save properties
-	par->x = par->effpsz * (segm->rect.x + center.x - m_cfg->img().border.width);
-	par->y = par->effpsz * (segm->rect.y + center.y - m_cfg->img().border.height);
+	par->x = par->effPxSz * (segm->rect.x + center.x - m_cfg->img().border.width);
+	par->y = par->effPxSz * (segm->rect.y + center.y - m_cfg->img().border.height);
 	par->z = segm->z;
 	par->diam = diam;
+	par->diamCorr = diamCorr;
 	par->circularity = Math::heywood(perim, area);
-	par->dnr = max - min;
+	par->dynRange = max - min;
 	return true;
 }
 
@@ -133,7 +136,7 @@ void Analysis::process(cv::Ptr<File> file)
 			if ((segm->rect & segmOld->rect).area() > 0) {
 				// Compare score or dynamic
 				if ((segm->method == segmOld->method && segm->score > segmOld->score) ||
-				    (segm->method != segmOld->method && par->dnr > parOld->dnr)) {
+				    (segm->method != segmOld->method && par->dynRange > parOld->dynRange)) {
 					segmentsUnique[j] = segm;
 					particlesUnique[j] = par;
 				}
