@@ -11,8 +11,7 @@
 static const char* createDBQuery = "CREATE DATABASE %s;";
 static const char* createParticleTableQuery = "CREATE TABLE %s ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
-"DateTime DATETIME NOT NULL,"
-"DateTimeMS SMALLINT UNSIGNED NOT NULL,"
+"DateTime DATETIME(3) NOT NULL,"
 "Sensor TINYINT UNSIGNED NOT NULL,"
 "Frame INT UNSIGNED NOT NULL,"
 "Particle INT UNSIGNED NOT NULL,"
@@ -41,9 +40,9 @@ static const char* createStatsTableQuery = "CREATE TABLE %s ("
 "PRIMARY KEY (ID)"
 ");";
 static const char* insertParticleQuery = "INSERT INTO %s ("
-"ID, DateTime, DateTimeMS, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH"
+"ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH"
 ")VALUES("
-"NULL, '%s', %u, %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
+"NULL, '%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
 ");";
 static const char* insertStatsQuery = "INSERT INTO %s ("
 "ID, DateTime, LWC, MVD, Conc, Frames, Particles"
@@ -51,7 +50,7 @@ static const char* insertStatsQuery = "INSERT INTO %s ("
 "NULL, '%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u"
 ");";
 static const char* selectParticlesQuery = "SELECT "
-"ID, DateTime, DateTimeMS, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH "
+"ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH "
 "FROM %s WHERE ID>=%u ORDER BY ID ASC LIMIT " MAX_ROWS ";";
 
 static Database* dbDefault = NULL;
@@ -170,7 +169,7 @@ void Database::writeParticle(const ParticleRow& row)
 {
 	query(
 		insertParticleQuery, m_dbInfo.particleTable.c_str(),
-		row.dt.str().c_str(), row.dt.MS,
+		row.dt.str().c_str(),
 		row.sensor, row.frame, row.particle,
 		row.x, row.y, row.z,
 		row.diam, row.diamCorr,
@@ -197,14 +196,13 @@ void Database::readParticles(std::vector<ParticleRow>& rows, unsigned int minId)
 	for (int i = 0; i < nrows; i++) {
 		MYSQL_ROW row = mysql_fetch_row(res);
 		DateTime dt(row[1]);
-		dt.MS = std::stoi(row[2]);
 		rows.push_back({
 			(unsigned int)std::stoi(row[0]), dt,
-			(unsigned int)std::stoi(row[3]), (unsigned int)std::stoi(row[4]), (unsigned int)std::stoi(row[5]),
-			std::stof(row[6]), std::stof(row[7]), std::stof(row[8]),
-			std::stof(row[9]), std::stof(row[10]), 
-			std::stof(row[11]), (unsigned char)std::stoi(row[12]), std::stof(row[13]),
-			cv::Rect(std::stoi(row[14]), std::stoi(row[15]), std::stoi(row[16]), std::stoi(row[17]))
+			(unsigned int)std::stoi(row[2]), (unsigned int)std::stoi(row[3]), (unsigned int)std::stoi(row[4]),
+			std::stof(row[5]), std::stof(row[6]), std::stof(row[7]),
+			std::stof(row[8]), std::stof(row[9]), 
+			std::stof(row[10]), (unsigned char)std::stoi(row[11]), std::stof(row[12]),
+			cv::Rect(std::stoi(row[13]), std::stoi(row[14]), std::stoi(row[15]), std::stoi(row[16]))
 		});
 	}
 	mysql_free_result(res);

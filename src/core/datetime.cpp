@@ -22,7 +22,7 @@ DateTime::DateTime(const std::string& str)
 		H = std::stoi(str.substr(11, 2));
 		M = std::stoi(str.substr(14, 2));
 		S = std::stoi(str.substr(17, 2));
-		MS = 0;
+		MS = std::stoi(str.substr(20, 3));
 	}
 	catch (std::exception& e) {
 		throw std::invalid_argument("Invalid datetime");
@@ -31,7 +31,7 @@ DateTime::DateTime(const std::string& str)
 
 std::string DateTime::str() const
 {
-	return strfmt("%04d-%02d-%02d %02d:%02d:%02d", y, m, d, H, M, S);
+	return strfmt("%04d-%02d-%02d %02d:%02d:%02d.%03d", y, m, d, H, M, S, MS);
 }
 
 bool operator==(const DateTime& dt1, const DateTime& dt2)
