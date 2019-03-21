@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <queue>
 
+#define FOCUS_POINTS 20
+
 Recon::Recon(FileQueue* input, FileQueue* output) :
 	Worker(COLOR_GREEN "RECON" COLOR_RESET),
 	m_input(input),
@@ -60,7 +62,7 @@ void Recon::process(cv::Ptr<File> file)
 	for (float lz0 = z0; lz0 < z1; lz0 += dz) {
 		cv::UMat imgMin(size, CV_8UC1, cv::Scalar(255));
 		float lz1 = std::min(lz0 + dz, z1);
-		int n = roundf((lz1 - lz0) / ldz);
+		int last = roundf((lz1 - lz0) / ldz) - 1;
 		m_hologram->recon(m_stack, imgMin, lz0, lz1, ldz);
 		
 		// Threshold
@@ -99,7 +101,7 @@ void Recon::process(cv::Ptr<File> file)
 			// Focus
 			int idx = 0;
 			double score = 0.0;
-			cv::icemet::Hologram::focus(m_stack, rect, idx, score, method, n);
+			cv::icemet::Hologram::focus(m_stack, rect, idx, score, method, 0, last, FOCUS_POINTS);
 			
 			// Create segment
 			cv::Ptr segm = cv::makePtr<Segment>();
