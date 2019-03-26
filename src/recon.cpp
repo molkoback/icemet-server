@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <queue>
 
-#define FOCUS_POINTS 20
-
 Recon::Recon(FileQueue* input, FileQueue* output) :
 	Worker(COLOR_GREEN "RECON" COLOR_RESET),
 	m_input(input),
@@ -39,6 +37,7 @@ void Recon::process(cv::Ptr<File> file)
 		size.width-2*border.width, size.height-2*border.height
 	);
 	
+	int focusPoints = m_cfg->hologram().focusPoints;
 	int segmNMax = m_cfg->segment().nMax;
 	int segmSizeMin = m_cfg->segment().sizeMin;
 	int segmSizeSmall = m_cfg->segment().sizeSmall;
@@ -101,7 +100,11 @@ void Recon::process(cv::Ptr<File> file)
 			// Focus
 			int idx = 0;
 			double score = 0.0;
-			cv::icemet::Hologram::focus(m_stack, rect, idx, score, method, 0, last, FOCUS_POINTS);
+			cv::icemet::Hologram::focus(
+				m_stack, rect,
+				idx, score, method,
+				0, last, focusPoints
+			);
 			
 			// Create segment
 			cv::Ptr segm = cv::makePtr<Segment>();

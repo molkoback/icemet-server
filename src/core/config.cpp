@@ -83,6 +83,7 @@ void Config::load(const char* fn)
 		m_hologram.psz = node["holo_pixel_size"].as<float>();
 		m_hologram.lambda = node["holo_lambda"].as<float>();
 		m_hologram.step = node["recon_step"].as<int>();
+		m_hologram.focusPoints = node["focus_points"].as<int>();
 		
 		m_segment.thFact = node["segment_th_factor"].as<float>();
 		m_segment.nMax = node["segment_n_max"].as<int>();
