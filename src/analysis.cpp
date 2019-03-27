@@ -14,10 +14,8 @@
 
 #define AREA_MAX 0.70
 
-Analysis::Analysis(FileQueue* input, const std::vector<FileQueue*>& outputs) :
-	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET),
-	m_input(input),
-	m_outputs(outputs) {}
+Analysis::Analysis() :
+	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET) {}
 
 bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par) const
 {
@@ -162,7 +160,7 @@ bool Analysis::cycle()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_input->collect(files);
+	m_data->recon.collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -173,15 +171,21 @@ bool Analysis::cycle()
 			process(file);
 			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		}
-		for (const auto& output : m_outputs)
-			output->pushWait(file);
+		m_data->analysisSaver.pushWait(file);
+		m_data->analysisStats.pushWait(file);
 		files.pop();
+	}
+	
+	if (!m_cfg->args().waitNew && m_data->recon.done()) {
+		m_data->analysisSaver.close();
+		m_data->analysisStats.close();
+		return false;
 	}
 	msleep(1);
 	return true;
 }
 
-void Analysis::start(FileQueue* input, const std::vector<FileQueue*>& outputs)
+void Analysis::start()
 {
-	Analysis(input, outputs).run();
+	Analysis().run();
 }

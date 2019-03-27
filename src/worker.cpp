@@ -6,6 +6,7 @@ Worker::Worker(const std::string& name) :
 	m_name(name),
 	m_log(name),
 	m_cfg(Config::getDefaultPtr()),
+	m_data(Data::getDefaultPtr()),
 	m_db(Database::getDefaultPtr()) {}
 
 void Worker::run()

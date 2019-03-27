@@ -11,8 +11,6 @@
 
 class Preproc : Worker {
 protected:
-	FileQueue* m_input;
-	FileQueue* m_output;
 	size_t m_stackLen;
 	cv::Ptr<cv::icemet::BGSubStack> m_stack;
 	std::queue<cv::Ptr<File>> m_wait; // Length: m_stackLen/2 + 1
@@ -22,8 +20,8 @@ protected:
 	bool cycle();
 
 public:
-	Preproc(FileQueue* input, FileQueue* output);
-	static void start(FileQueue* input, FileQueue* output);
+	Preproc();
+	static void start();
 };
 
 #endif

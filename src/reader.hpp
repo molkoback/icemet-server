@@ -8,15 +8,14 @@
 
 class Reader : Worker {
 protected:
-	FileQueue* m_output;
 	unsigned int m_id;
 	cv::Ptr<File> m_file;
 	
 	bool cycle();
 
 public:
-	Reader(FileQueue* output);
-	static void start(FileQueue* output);
+	Reader();
+	static void start();
 };
 
 #endif

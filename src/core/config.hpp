@@ -9,6 +9,14 @@
 
 #include <string>
 
+typedef struct _arguments {
+	std::string cfgFile;
+	bool waitNew;
+	bool statsOnly;
+	
+	_arguments() : cfgFile(std::string()), waitNew(true), statsOnly(false) {}
+} Arguments;
+
 typedef struct _log_param {
 	LogLevel level;
 } LogParam;
@@ -89,6 +97,7 @@ typedef struct _ocl_param {
 
 class Config {
 private:
+	Arguments m_args;
 	LogParam m_log;
 	Paths m_paths;
 	Types m_types;
@@ -112,6 +121,9 @@ public:
 	
 	void load(const char* fn);
 	
+	void setArgs(const Arguments& args) { m_args = args; }
+	
+	const Arguments& args() const { return m_args; }
 	const LogParam& log() const { return m_log; }
 	const Paths& paths() const { return m_paths; }
 	const Types& types() const { return m_types; }

@@ -2,9 +2,8 @@
 
 #include "util/sleep.hpp"
 
-Reader::Reader(FileQueue* output) :
+Reader::Reader() :
 	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET),
-	m_output(output),
 	m_id(0),
 	m_file(NULL) {}
 
@@ -12,7 +11,10 @@ bool Reader::cycle()
 {
 	std::vector<ParticleRow> rows;
 	m_db->readParticles(rows, m_id);
-	
+	if (!m_cfg->args().waitNew && rows.empty()) {
+		m_data->analysisStats.close();
+		return false;
+	}
 	for (const auto& row : rows) {
 		File tmp = File(row.sensor, row.dt, row.frame, false);
 		
@@ -23,7 +25,7 @@ bool Reader::cycle()
 		// File complete
 		else if (tmp != *m_file) {
 			m_log.debug("Read %s", m_file->name().c_str());
-			m_output->pushWait(m_file);
+			m_data->analysisStats.pushWait(m_file);
 			m_file = cv::makePtr<File>(tmp);
 		}
 		
@@ -44,7 +46,7 @@ bool Reader::cycle()
 	return true;
 }
 
-void Reader::start(FileQueue* output)
+void Reader::start()
 {
-	Reader(output).run();
+	Reader().run();
 }

@@ -2,7 +2,6 @@
 #define FILE_H
 
 #include "core/datetime.hpp"
-#include "core/safequeue.hpp"
 
 #include <opencv2/core.hpp>
 #include <opencv2/icemet.hpp>
@@ -62,7 +61,10 @@ typedef struct _particle {
 } Particle;
 
 typedef struct _file_param {
-	unsigned char bgVal;
+	unsigned char bgVal; // Background value of the preprocessed file
+	bool last;           // Quit after processing this file
+	
+	_file_param() : last(false) {}
 } FileParam;
 
 class File {
@@ -110,7 +112,5 @@ public:
 	friend bool operator>(const File& f1, const File& f2);
 	friend bool operator>=(const File& f1, const File& f2);
 };
-
-typedef SafeQueue<cv::Ptr<File>> FileQueue;
 
 #endif

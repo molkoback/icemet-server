@@ -5,7 +5,8 @@
 #include "saver.hpp"
 #include "stats.hpp"
 #include "watcher.hpp"
-#include "worker.hpp"
+#include "core/data.hpp"
+#include "core/database.hpp"
 #include "util/log.hpp"
 #include "util/strfmt.hpp"
 
@@ -24,7 +25,8 @@ static const char* helpStr =
 "Options:\n"
 "  -h                Print this help message and exit\n"
 "  -V                Print version info and exit\n"
-"  -s                Stats only. Particles will be fetched from the database.\n";
+"  -s                Stats only. Particles will be fetched from the database.\n"
+"  -Q                Quit after processing all available files.\n";
 static const char* versionStr =
 "ICEMET Server " ICEMET_VERSION "\n"
 "\n"
@@ -43,9 +45,7 @@ static int cvErrorHandler(int status, const char* func, const char* msg, const c
 
 int main(int argc, char* argv[])
 {
-	// Parse args
-	std::string cfgFile;
-	bool statsFlag = false;
+	Arguments args;
 	for (int i = 1; i < argc; i++) {
 		std::string arg(argv[i]);
 		if (arg[0] == '-') {
@@ -58,7 +58,10 @@ int main(int argc, char* argv[])
 				return EXIT_SUCCESS;
 			}
 			else if (!arg.compare("-s")) {
-				statsFlag = true;
+				args.statsOnly = true;
+			}
+			else if (!arg.compare("-Q")) {
+				args.waitNew = false;
 			}
 			else {
 				printf("Invalid option '%s'\n", arg.c_str());
@@ -66,10 +69,10 @@ int main(int argc, char* argv[])
 			}
 		}
 		else {
-			cfgFile = arg;
+			args.cfgFile = arg;
 		}
 	}
-	if (cfgFile.empty()) {
+	if (args.cfgFile.empty()) {
 		printf(usageStr);
 		return EXIT_FAILURE;
 	}
@@ -80,7 +83,8 @@ int main(int argc, char* argv[])
 		cv::redirectError(cvErrorHandler);
 		
 		// Read config
-		Config cfg(cfgFile.c_str());
+		Config cfg(args.cfgFile.c_str());
+		cfg.setArgs(args);
 		Config::setDefaultPtr(&cfg);
 		
 		// Setup logging
@@ -102,29 +106,29 @@ int main(int argc, char* argv[])
 		log.info("Stats table '%s'", dbInfo.statsTable.c_str());
 		Database::setDefaultPtr(&db);
 		
-		// Create data queues
-		FileQueue dataWatcher(4);
-		FileQueue dataPreproc(2);
-		FileQueue dataRecon(2);
-		FileQueue dataAnalysisSaver(2);
-		FileQueue dataAnalysisStats(2);
-		std::vector<FileQueue*> dataAnalysis;
-		dataAnalysis.push_back(&dataAnalysisSaver);
-		dataAnalysis.push_back(&dataAnalysisStats);
+		// Create default data context
+		Data data;
+		Data::setDefaultPtr(&data);
 		
 		// Launch worker threads
-		if (!statsFlag) {
-			std::thread watcher(Watcher::start, &dataWatcher);
-			std::thread preproc(Preproc::start, &dataWatcher, &dataPreproc);
-			std::thread recon(Recon::start, &dataPreproc, &dataRecon);
-			std::thread analysis(Analysis::start, &dataRecon, dataAnalysis);
-			std::thread saver(Saver::start, &dataAnalysisSaver);
-			Stats::start(&dataAnalysisStats);
+		std::vector<std::thread> threads;
+		if (!args.statsOnly) {
+			threads.push_back(std::thread(Watcher::start));
+			threads.push_back(std::thread(Preproc::start));
+			threads.push_back(std::thread(Recon::start));
+			threads.push_back(std::thread(Analysis::start));
+			threads.push_back(std::thread(Saver::start));
+			threads.push_back(std::thread(Stats::start));
 		}
 		else {
-			std::thread reader(Reader::start, &dataAnalysisStats);
-			Stats::start(&dataAnalysisStats);
+			threads.push_back(std::thread(Reader::start));
+			threads.push_back(std::thread(Stats::start));
 		}
+		
+		// Join threads
+		for (size_t i = 0; i < threads.size(); i++)
+			threads[i].join();
+		log.info("Done");
 	}
 	catch (std::exception& e) {
 		log.critical(e.what());

@@ -23,6 +23,7 @@ set(ICEMET_SRC
 	src/worker.cpp
 	
 	src/core/config.cpp
+	src/core/data.cpp
 	src/core/database.cpp
 	src/core/datetime.cpp
 	src/core/file.cpp

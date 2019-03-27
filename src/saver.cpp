@@ -9,9 +9,8 @@
 
 #include <queue>
 
-Saver::Saver(FileQueue* input) :
-	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET),
-	m_input(input)
+Saver::Saver() :
+	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET)
 {
 	m_log.info("Results %s", m_cfg->paths().results.string().c_str());
 }
@@ -96,7 +95,7 @@ bool Saver::cycle()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_input->collect(files);
+	m_data->analysisSaver.collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -112,10 +111,10 @@ bool Saver::cycle()
 		files.pop();
 	}
 	msleep(1);
-	return true;
+	return m_cfg->args().waitNew || !m_data->analysisSaver.done();
 }
 
-void Saver::start(FileQueue* input)
+void Saver::start()
 {
-	Saver(input).run();
+	Saver().run();
 }

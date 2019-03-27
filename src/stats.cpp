@@ -8,9 +8,8 @@
 
 #include <queue>
 
-Stats::Stats(FileQueue* input) :
-	Worker(COLOR_BLUE "STATS" COLOR_RESET),
-	m_input(input)
+Stats::Stats() :
+	Worker(COLOR_BLUE "STATS" COLOR_RESET)
 {
 	int wpx = m_cfg->img().size.width - 2*m_cfg->img().border.width;
 	int hpx = m_cfg->img().size.height - 2*m_cfg->img().border.height;
@@ -28,10 +27,10 @@ Stats::Stats(FileQueue* input) :
 	m_V = Math::Vcone(h, Acam, Alsr);
 	m_log.debug("Measurement volume %.2f cm3", m_V * 1000000);
 	
-	resetStats();
+	reset();
 }
 
-void Stats::resetStats(const DateTime& dt)
+void Stats::reset(const DateTime& dt)
 {
 	m_particles = cv::Mat(0, 0, CV_64F);
 	m_frames = 0;
@@ -41,7 +40,7 @@ void Stats::resetStats(const DateTime& dt)
 	m_dt.MS = 0;
 }
 
-void Stats::createStats(StatsRow& row) const
+void Stats::fillStatsRow(StatsRow& row) const
 {
 	unsigned int particles = m_particles.rows;
 	if (!particles) {
@@ -101,6 +100,18 @@ void Stats::createStats(StatsRow& row) const
 	row = {0, m_dt, lwc, mvd, conc, m_frames, particles};
 }
 
+void Stats::statsPoint() const
+{
+	StatsRow row;
+	fillStatsRow(row);
+	m_db->writeStats(row);
+	m_log.info(
+		"[%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
+		 m_dt.H, m_dt.M,
+		 row.lwc, row.mvd*1000000, row.conc/1000000
+	);
+}
+
 bool Stats::particleValid(const cv::Ptr<Particle>& par) const
 {
 	return (
@@ -121,19 +132,12 @@ void Stats::process(const cv::Ptr<File>& file)
 	
 	// Make sure we have datetime
 	if (m_dt.m == 0)
-		resetStats(dt);
+		reset(dt);
 	
 	// Create a new stats point if the minutes differ
 	if (dt.M != m_dt.M) {
-		StatsRow row;
-		createStats(row);
-		m_db->writeStats(row);
-		m_log.info(
-			"[%02d:%02d] LWC %.2f g/m3, MVD %.2f μm, Conc %.2f #/cm3",
-			 m_dt.H, m_dt.M,
-			 row.lwc, row.mvd*1000000, row.conc/1000000
-		);
-		resetStats(dt);
+		statsPoint();
+		reset(dt);
 	}
 	
 	// Get particle diameters
@@ -151,7 +155,7 @@ bool Stats::cycle()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_input->collect(files);
+	m_data->analysisStats.collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -165,11 +169,17 @@ bool Stats::cycle()
 		m_frames++;
 		files.pop();
 	}
+	
+	if (!m_cfg->args().waitNew && m_data->analysisStats.done()) {
+		if (m_frames)
+			statsPoint();
+		return false;
+	}
 	msleep(1);
 	return true;
 }
 
-void Stats::start(FileQueue* input)
+void Stats::start()
 {
-	Stats(input).run();
+	Stats().run();
 }

@@ -11,8 +11,6 @@
 
 class Recon : Worker {
 protected:
-	FileQueue* m_input;
-	FileQueue* m_output;
 	cv::Ptr<cv::icemet::Hologram> m_hologram;
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
@@ -21,8 +19,8 @@ protected:
 	bool cycle();
 
 public:
-	Recon(FileQueue* input, FileQueue* output);
-	static void start(FileQueue* input, FileQueue* output);
+	Recon();
+	static void start();
 };
 
 #endif

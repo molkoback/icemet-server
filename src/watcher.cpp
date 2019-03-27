@@ -8,9 +8,8 @@
 #include <stdexcept>
 #include <vector>
 
-Watcher::Watcher(FileQueue* output) :
+Watcher::Watcher() :
 	Worker(COLOR_BRIGHT_CYAN "WATCHER" COLOR_RESET),
-	m_output(output),
 	m_prev(cv::makePtr<File>())
 {
 	m_log.info("Watching %s", m_cfg->paths().watch.string().c_str());
@@ -66,16 +65,21 @@ bool Watcher::cycle()
 			// Push to output queue
 			file->setEmpty(false);
 			m_log.debug("Found %s", file->name().c_str());
-			m_output->pushWait(file);
+			m_data->original.pushWait(file);
 			m_prev = file;
 		}
 		files.pop();
+	}
+	
+	if (!m_cfg->args().waitNew) {
+		m_data->original.close();
+		return false;
 	}
 	ssleep(1);
 	return true;
 }
 
-void Watcher::start(FileQueue* output)
+void Watcher::start()
 {
-	Watcher(output).run();
+	Watcher().run();
 }

@@ -9,21 +9,21 @@
 
 class Stats : Worker {
 protected:
-	FileQueue* m_input;
 	double m_V;
 	cv::Mat m_particles;
 	unsigned int m_frames;
 	DateTime m_dt;
 	
-	void resetStats(const DateTime& dt=DateTime());
-	void createStats(StatsRow& row) const;
+	void reset(const DateTime& dt=DateTime());
+	void fillStatsRow(StatsRow& row) const;
+	void statsPoint() const;
 	bool particleValid(const cv::Ptr<Particle>& par) const;
 	void process(const cv::Ptr<File>& file);
 	bool cycle();
 
 public:
-	Stats(FileQueue* input);
-	static void start(FileQueue* input);
+	Stats();
+	static void start();
 };
 
 #endif

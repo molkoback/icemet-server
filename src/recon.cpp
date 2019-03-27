@@ -9,10 +9,8 @@
 #include <algorithm>
 #include <queue>
 
-Recon::Recon(FileQueue* input, FileQueue* output) :
-	Worker(COLOR_GREEN "RECON" COLOR_RESET),
-	m_input(input),
-	m_output(output)
+Recon::Recon() :
+	Worker(COLOR_GREEN "RECON" COLOR_RESET)
 {
 	m_hologram = cv::icemet::Hologram::create(
 		m_cfg->img().size,
@@ -131,7 +129,7 @@ bool Recon::cycle()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_input->collect(files);
+	m_data->preproc.collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -142,14 +140,19 @@ bool Recon::cycle()
 			process(file);
 			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		}
-		m_output->pushWait(file);
+		m_data->recon.pushWait(file);
 		files.pop();
+	}
+	
+	if (!m_cfg->args().waitNew && m_data->preproc.done()) {
+		m_data->recon.close();
+		return false;
 	}
 	msleep(1);
 	return true;
 }
 
-void Recon::start(FileQueue* input, FileQueue* output)
+void Recon::start()
 {
-	Recon(input, output).run();
+	Recon().run();
 }

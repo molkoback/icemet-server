@@ -2,6 +2,7 @@
 #define WORKER_H
 
 #include "core/config.hpp"
+#include "core/data.hpp"
 #include "core/database.hpp"
 #include "util/log.hpp"
 
@@ -12,6 +13,7 @@ protected:
 	std::string m_name;
 	Log m_log;
 	Config* m_cfg;
+	Data* m_data;
 	Database* m_db;
 	
 	virtual bool cycle() = 0;
