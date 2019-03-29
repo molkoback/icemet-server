@@ -1,4 +1,4 @@
-#include "measure.hpp"
+#include "time.hpp"
 
 Measure::Measure() :
 	m_start(chr::high_resolution_clock::now()) {}

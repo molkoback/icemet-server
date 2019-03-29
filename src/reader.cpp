@@ -1,6 +1,6 @@
 #include "reader.hpp"
 
-#include "util/sleep.hpp"
+#include "util/time.hpp"
 
 Reader::Reader() :
 	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET),

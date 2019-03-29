@@ -6,11 +6,6 @@
 
 const double Math::pi = 3.14159265358979323846;
 
-double Math::Mz(double dist, double z)
-{
-	return dist / (dist-z);
-}
-
 double Math::equivdiam(double area)
 {
 	return sqrt(4*area/pi);

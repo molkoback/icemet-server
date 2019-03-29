@@ -30,8 +30,8 @@ set(ICEMET_SRC
 	src/core/math.cpp
 	
 	src/util/log.cpp
-	src/util/measure.cpp
 	src/util/strfmt.cpp
+	src/util/time.cpp
 )
 
 # Executables

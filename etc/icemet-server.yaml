@@ -39,9 +39,10 @@ filt_lowpass_f: 100000
 holo_z_start: 8.3e-3
 holo_z_end: 38.6e-3
 holo_z_step: 0.020e-3
-holo_distance: 56.4e-3
 holo_pixel_size: 3.45e-6
 holo_lambda: 660e-9
+holo_collimated: false
+holo_distance: 56.4e-3
 recon_step: 800
 focus_points: 20
 segment_th_factor: 0.60 # th = X * median_Ipp

@@ -1,8 +1,8 @@
 #include "stats.hpp"
 
 #include "core/math.hpp"
-#include "util/measure.hpp"
 #include "util/strfmt.hpp"
+#include "util/time.hpp"
 
 #include <opencv2/icemet.hpp>
 
@@ -20,8 +20,8 @@ Stats::Stats() :
 	
 	double h = m_cfg->hologram().z1 - m_cfg->hologram().z0;
 	int Apx = wpx * hpx;
-	double pszcam = psz / Math::Mz(dist, z1);
-	double pszlsr = psz / Math::Mz(dist, z0);
+	double pszcam = psz / cv::icemet::Hologram::magnf(dist, z1);
+	double pszlsr = psz / cv::icemet::Hologram::magnf(dist, z0);
 	double Acam = Apx * pszcam*pszcam;
 	double Alsr = Apx * pszlsr*pszlsr;
 	m_V = Math::Vcone(h, Acam, Alsr);

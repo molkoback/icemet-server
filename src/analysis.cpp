@@ -1,8 +1,7 @@
 #include "analysis.hpp"
 
 #include "core/math.hpp"
-#include "util/sleep.hpp"
-#include "util/measure.hpp"
+#include "util/time.hpp"
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -73,7 +72,7 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 	// Allocate particle
 	par = cv::makePtr<Particle>();
 	par->img = imgPar;
-	par->effPxSz = m_cfg->hologram().psz / Math::Mz(m_cfg->hologram().dist, segm->z);
+	par->effPxSz = m_cfg->hologram().psz / cv::icemet::Hologram::magnf(m_cfg->hologram().dist, segm->z);
 	
 	// Calculate diameter and apply correction
 	double diam = par->effPxSz * Math::equivdiam(area);

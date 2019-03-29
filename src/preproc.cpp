@@ -1,8 +1,7 @@
 #include "preproc.hpp"
 
 #include "core/math.hpp"
-#include "util/sleep.hpp"
-#include "util/measure.hpp"
+#include "util/time.hpp"
 
 #include <exception>
 

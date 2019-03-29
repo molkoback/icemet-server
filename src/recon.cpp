@@ -1,7 +1,6 @@
 #include "recon.hpp"
 
-#include "util/measure.hpp"
-#include "util/sleep.hpp"
+#include "util/time.hpp"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -14,7 +13,8 @@ Recon::Recon() :
 {
 	m_hologram = cv::icemet::Hologram::create(
 		m_cfg->img().size,
-		m_cfg->hologram().psz, m_cfg->hologram().dist, m_cfg->hologram().lambda
+		m_cfg->hologram().psz, m_cfg->hologram().lambda,
+		m_cfg->hologram().dist
 	);
 	
 	// Allocate image stack

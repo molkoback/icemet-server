@@ -79,9 +79,9 @@ void Config::load(const char* fn)
 		m_hologram.z0 = node["holo_z_start"].as<float>();
 		m_hologram.z1 = node["holo_z_end"].as<float>();
 		m_hologram.dz = node["holo_z_step"].as<float>();
-		m_hologram.dist = node["holo_distance"].as<float>();
 		m_hologram.psz = node["holo_pixel_size"].as<float>();
 		m_hologram.lambda = node["holo_lambda"].as<float>();
+		m_hologram.dist = node["holo_collimated"].as<bool>() ? 0.0 : node["holo_distance"].as<float>();
 		m_hologram.step = node["recon_step"].as<int>();
 		m_hologram.focusPoints = node["focus_points"].as<int>();
 		
