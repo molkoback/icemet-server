@@ -14,7 +14,7 @@ path_watch: "~/.icemet/watch"
 path_results: "~/.icemet/results"
 
 # Output file types
-type_results: "bmp"
+type_results: "png"
 type_results_lossy: "jpg"
 
 # SQL server
@@ -32,10 +32,10 @@ img_y: 0
 img_w: 2048
 img_h: 2048
 bgsub_stack_len: 7
-
-# Reconstruction
 filt_lowpass: false
 filt_lowpass_f: 100000
+
+# Reconstruction
 holo_z_start: 8.3e-3
 holo_z_end: 38.6e-3
 holo_z_step: 0.020e-3

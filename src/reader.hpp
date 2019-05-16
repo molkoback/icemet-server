@@ -6,16 +6,15 @@
 
 #include <opencv2/core.hpp>
 
-class Reader : Worker {
+class Reader : public Worker {
 protected:
 	unsigned int m_id;
 	cv::Ptr<File> m_file;
 	
-	bool cycle();
+	bool loop() override;
 
 public:
-	Reader();
-	static void start();
+	Reader(const WorkerPointers& ptrs);
 };
 
 #endif

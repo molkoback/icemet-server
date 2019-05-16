@@ -8,8 +8,8 @@
 
 #include <queue>
 
-Stats::Stats() :
-	Worker(COLOR_BLUE "STATS" COLOR_RESET)
+Stats::Stats(const WorkerPointers& ptrs) :
+	Worker(COLOR_BLUE "STATS" COLOR_RESET, ptrs)
 {
 	int wpx = m_cfg->img().size.width - 2*m_cfg->img().border.width;
 	int hpx = m_cfg->img().size.height - 2*m_cfg->img().border.height;
@@ -152,7 +152,7 @@ void Stats::process(const cv::Ptr<File>& file)
 	m_log.debug("Valid particles: %d", count);
 }
 
-bool Stats::cycle()
+bool Stats::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
@@ -175,9 +175,4 @@ bool Stats::cycle()
 	}
 	msleep(1);
 	return true;
-}
-
-void Stats::start()
-{
-	Stats().run();
 }

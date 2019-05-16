@@ -11,8 +11,8 @@
 /* Preprocessed images with dynamic range smaller than this will be marked as empty. */
 #define PREPROC_EMPTY_TH 10
 
-Preproc::Preproc() :
-	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET)
+Preproc::Preproc(const WorkerPointers& ptrs) :
+	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET, ptrs)
 {
 	m_stackLen = m_cfg->bgsub().stackLen;
 	m_stack = cv::icemet::BGSubStack::create(m_cfg->img().size, m_stackLen);
@@ -69,7 +69,7 @@ void Preproc::process(cv::Ptr<File> file)
 	}
 }
 
-bool Preproc::cycle()
+bool Preproc::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
@@ -87,9 +87,4 @@ bool Preproc::cycle()
 	}
 	msleep(1);
 	return true;
-}
-
-void Preproc::start()
-{
-	Preproc().run();
 }

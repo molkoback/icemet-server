@@ -2,12 +2,12 @@
 
 #include "util/time.hpp"
 
-Reader::Reader() :
-	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET),
+Reader::Reader(const WorkerPointers& ptrs) :
+	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET, ptrs),
 	m_id(0),
 	m_file(NULL) {}
 
-bool Reader::cycle()
+bool Reader::loop()
 {
 	std::vector<ParticleRow> rows;
 	m_db->readParticles(rows, m_id);
@@ -44,9 +44,4 @@ bool Reader::cycle()
 	}
 	msleep(10);
 	return true;
-}
-
-void Reader::start()
-{
-	Reader().run();
 }

@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <queue>
 
-Recon::Recon() :
-	Worker(COLOR_GREEN "RECON" COLOR_RESET)
+Recon::Recon(const WorkerPointers& ptrs) :
+	Worker(COLOR_GREEN "RECON" COLOR_RESET, ptrs)
 {
 	m_hologram = cv::icemet::Hologram::create(
 		m_cfg->img().size,
@@ -125,7 +125,7 @@ end:
 	m_log.debug("Segments: %d, Contours: %d", count, ncontours);
 }
 
-bool Recon::cycle()
+bool Recon::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
@@ -150,9 +150,4 @@ bool Recon::cycle()
 	}
 	msleep(1);
 	return true;
-}
-
-void Recon::start()
-{
-	Recon().run();
 }

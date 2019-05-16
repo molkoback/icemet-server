@@ -85,7 +85,6 @@ int main(int argc, char* argv[])
 		// Read config
 		Config cfg(args.cfgFile.c_str());
 		cfg.setArgs(args);
-		Config::setDefaultPtr(&cfg);
 		
 		// Setup logging
 		Log::setLevel(cfg.log().level);
@@ -104,25 +103,33 @@ int main(int argc, char* argv[])
 		log.info("Database %s:%d/%s", connInfo.host.c_str(), connInfo.port, dbInfo.name.c_str());
 		log.info("Particle table '%s'", dbInfo.particleTable.c_str());
 		log.info("Stats table '%s'", dbInfo.statsTable.c_str());
-		Database::setDefaultPtr(&db);
 		
-		// Create default data context
+		// Create data queues
 		Data data;
-		Data::setDefaultPtr(&data);
+		
+		// Create workers
+		WorkerPointers ptrs = {&cfg, &data, &db};
+		Watcher watcher(ptrs);
+		Reader reader(ptrs);
+		Preproc preproc(ptrs);
+		Recon recon(ptrs);
+		Analysis analysis(ptrs);
+		Saver saver(ptrs);
+		Stats stats(ptrs);
 		
 		// Launch worker threads
 		std::vector<std::thread> threads;
 		if (!args.statsOnly) {
-			threads.push_back(std::thread(Watcher::start));
-			threads.push_back(std::thread(Preproc::start));
-			threads.push_back(std::thread(Recon::start));
-			threads.push_back(std::thread(Analysis::start));
-			threads.push_back(std::thread(Saver::start));
-			threads.push_back(std::thread(Stats::start));
+			threads.push_back(std::thread(&Watcher::run, &watcher));
+			threads.push_back(std::thread(&Preproc::run, &preproc));
+			threads.push_back(std::thread(&Recon::run, &recon));
+			threads.push_back(std::thread(&Analysis::run, &analysis));
+			threads.push_back(std::thread(&Saver::run, &saver));
+			threads.push_back(std::thread(&Stats::run, &stats));
 		}
 		else {
-			threads.push_back(std::thread(Reader::start));
-			threads.push_back(std::thread(Stats::start));
+			threads.push_back(std::thread(&Reader::run, &reader));
+			threads.push_back(std::thread(&Stats::run, &stats));
 		}
 		
 		// Join threads

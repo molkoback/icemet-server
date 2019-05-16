@@ -74,16 +74,13 @@ typedef SafeQueue<cv::Ptr<File>> FileQueue;
 
 class Data {
 public:
-	Data();
+	Data() : original(4), preproc(2), recon(2), analysisSaver(2), analysisStats(2) {}
 	
 	FileQueue original;
 	FileQueue preproc;
 	FileQueue recon;
 	FileQueue analysisSaver;
 	FileQueue analysisStats;
-	
-	static Data* getDefaultPtr();
-	static void setDefaultPtr(Data* cfg);
 };
 
 #endif

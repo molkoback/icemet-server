@@ -137,9 +137,6 @@ public:
 	const ParticleParam& particle() const { return m_particle; }
 	const DiameterCorrection& diamCorr() const { return m_diamCorr; }
 	const OCLParam& ocl() const { return m_ocl; }
-	
-	static Config* getDefaultPtr();
-	static void setDefaultPtr(Config* cfg);
 };
 
 #endif

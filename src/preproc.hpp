@@ -9,7 +9,7 @@
 
 #include <queue>
 
-class Preproc : Worker {
+class Preproc : public Worker {
 protected:
 	size_t m_stackLen;
 	cv::Ptr<cv::icemet::BGSubStack> m_stack;
@@ -17,11 +17,10 @@ protected:
 	
 	int dynRange(const cv::UMat& img) const;
 	void process(cv::Ptr<File> file);
-	bool cycle();
+	bool loop() override;
 
 public:
-	Preproc();
-	static void start();
+	Preproc(const WorkerPointers& ptrs);
 };
 
 #endif

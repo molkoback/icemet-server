@@ -8,15 +8,14 @@
 
 #include <vector>
 
-class Analysis : Worker {
+class Analysis : public Worker {
 protected:
 	bool analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par) const;
 	void process(cv::Ptr<File> file);
-	bool cycle();
+	bool loop() override;
 
 public:
-	Analysis();
-	static void start();
+	Analysis(const WorkerPointers& ptrs);
 };
 
 #endif

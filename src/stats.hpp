@@ -7,7 +7,7 @@
 
 #include <opencv2/core.hpp>
 
-class Stats : Worker {
+class Stats : public Worker {
 protected:
 	double m_V;
 	cv::Mat m_particles;
@@ -19,11 +19,10 @@ protected:
 	void statsPoint() const;
 	bool particleValid(const cv::Ptr<Particle>& par) const;
 	void process(const cv::Ptr<File>& file);
-	bool cycle();
+	bool loop() override;
 
 public:
-	Stats();
-	static void start();
+	Stats(const WorkerPointers& ptrs);
 };
 
 #endif

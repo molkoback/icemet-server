@@ -53,8 +53,6 @@ static const char* selectParticlesQuery = "SELECT "
 "ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH "
 "FROM %s WHERE ID>=%u ORDER BY ID ASC LIMIT " MAX_ROWS ";";
 
-static Database* dbDefault = NULL;
-
 Database::Database() :
 	m_mysql(NULL) {}
 
@@ -206,14 +204,4 @@ void Database::readParticles(std::vector<ParticleRow>& rows, unsigned int minId)
 		});
 	}
 	mysql_free_result(res);
-}
-
-Database* Database::getDefaultPtr()
-{
-	return dbDefault;
-}
-
-void Database::setDefaultPtr(Database* cfg)
-{
-	dbDefault = cfg;
 }

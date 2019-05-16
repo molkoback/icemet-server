@@ -8,16 +8,15 @@
 
 #include <queue>
 
-class Watcher : Worker {
+class Watcher : public Worker {
 protected:
 	cv::Ptr<File> m_prev;
 	
 	void findFiles(std::queue<cv::Ptr<File>>& files);
-	bool cycle();
+	bool loop() override;
 
 public:
-	Watcher();
-	static void start();
+	Watcher(const WorkerPointers& ptrs);
 };
 
 #endif

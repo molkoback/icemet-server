@@ -13,8 +13,8 @@
 
 #define AREA_MAX 0.70
 
-Analysis::Analysis() :
-	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET) {}
+Analysis::Analysis(const WorkerPointers& ptrs) :
+	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET, ptrs) {}
 
 bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par) const
 {
@@ -65,8 +65,8 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 	
 	// Calculate area and perimeter
 	double area = cv::countNonZero(imgPar);
-	if (area > AREA_MAX*segm->rect.width*segm->rect.height)
-		return false;
+	//if (area > AREA_MAX*segm->rect.width*segm->rect.height)
+	//	return false;
 	double perim = cv::arcLength(contours[idx], true);
 	
 	// Allocate particle
@@ -155,7 +155,7 @@ void Analysis::process(cv::Ptr<File> file)
 	m_log.debug("Particles: %d", count);
 }
 
-bool Analysis::cycle()
+bool Analysis::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
@@ -182,9 +182,4 @@ bool Analysis::cycle()
 	}
 	msleep(1);
 	return true;
-}
-
-void Analysis::start()
-{
-	Analysis().run();
 }

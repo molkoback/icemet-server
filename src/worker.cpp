@@ -2,18 +2,18 @@
 
 #include <exception>
 
-Worker::Worker(const std::string& name) :
+Worker::Worker(const std::string& name, const WorkerPointers& ptrs) :
 	m_name(name),
 	m_log(name),
-	m_cfg(Config::getDefaultPtr()),
-	m_data(Data::getDefaultPtr()),
-	m_db(Database::getDefaultPtr()) {}
+	m_cfg(ptrs.cfg),
+	m_data(ptrs.data),
+	m_db(ptrs.db) {}
 
 void Worker::run()
 {
 	m_log.debug("Running");
 	try {
-		while (cycle());
+		while (loop());
 	}
 	catch (std::exception& e) {
 		m_log.critical(e.what());

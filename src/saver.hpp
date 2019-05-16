@@ -6,16 +6,15 @@
 
 #include <opencv2/core.hpp>
 
-class Saver : Worker {
+class Saver : public Worker {
 protected:
 	void moveOriginal(const cv::Ptr<File>& file) const;
 	void processEmpty(const cv::Ptr<File>& file) const;
 	void process(const cv::Ptr<File>& file) const;
-	bool cycle();
+	bool loop() override;
 
 public:
-	Saver();
-	static void start();
+	Saver(const WorkerPointers& ptrs);
 };
 
 #endif

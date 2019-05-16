@@ -77,9 +77,6 @@ public:
 	void writeStats(const StatsRow& row);
 	
 	void readParticles(std::vector<ParticleRow>& rows, unsigned int minId=0);
-	
-	static Database* getDefaultPtr();
-	static void setDefaultPtr(Database* cfg);
 };
 
 #endif

@@ -8,6 +8,12 @@
 
 #include <string>
 
+typedef struct _worker_pointers {
+	Config* cfg;
+	Data* data;
+	Database* db;
+} WorkerPointers;
+
 class Worker {
 protected:
 	std::string m_name;
@@ -16,10 +22,10 @@ protected:
 	Data* m_data;
 	Database* m_db;
 	
-	virtual bool cycle() = 0;
+	virtual bool loop() { return false; }
 
 public:
-	Worker(const std::string& name);
+	Worker(const std::string& name, const WorkerPointers& ptrs);
 	void run();
 };
 

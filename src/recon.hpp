@@ -9,18 +9,17 @@
 
 #include <vector>
 
-class Recon : Worker {
+class Recon : public Worker {
 protected:
 	cv::Ptr<cv::icemet::Hologram> m_hologram;
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
 	
 	void process(cv::Ptr<File> file);
-	bool cycle();
+	bool loop() override;
 
 public:
-	Recon();
-	static void start();
+	Recon(const WorkerPointers& ptrs);
 };
 
 #endif

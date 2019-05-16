@@ -7,8 +7,6 @@
 #include <exception>
 #include <stdexcept>
 
-static Config* cfgDefault = NULL;
-
 Config::Config(const char* fn)
 {
 	load(fn);
@@ -113,14 +111,4 @@ void Config::load(const char* fn)
 	catch (std::exception& e) {
 		throw(std::runtime_error(strfmt("Couldn't parse config file '%s'", fn)));
 	}
-}
-
-Config* Config::getDefaultPtr()
-{
-	return cfgDefault;
-}
-
-void Config::setDefaultPtr(Config* cfg)
-{
-	cfgDefault = cfg;
 }

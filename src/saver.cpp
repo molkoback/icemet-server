@@ -8,8 +8,8 @@
 
 #include <queue>
 
-Saver::Saver() :
-	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET)
+Saver::Saver(const WorkerPointers& ptrs) :
+	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET, ptrs)
 {
 	m_log.info("Results %s", m_cfg->paths().results.string().c_str());
 }
@@ -90,7 +90,7 @@ void Saver::process(const cv::Ptr<File>& file) const
 	}
 }
 
-bool Saver::cycle()
+bool Saver::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
@@ -111,9 +111,4 @@ bool Saver::cycle()
 	}
 	msleep(1);
 	return m_cfg->args().waitNew || !m_data->analysisSaver.done();
-}
-
-void Saver::start()
-{
-	Saver().run();
 }
