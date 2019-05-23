@@ -17,10 +17,6 @@ Recon::Recon(const WorkerPointers& ptrs) :
 		m_cfg->hologram().dist
 	);
 	
-	// Allocate image stack
-	for (int i = 0; i < m_cfg->hologram().step; i++)
-		m_stack.emplace_back(m_cfg->img().size, CV_8UC1);
-	
 	// Create filters
 	if (m_cfg->lpf().enabled)
 		m_lpf = m_hologram->createLPF(m_cfg->lpf().f);

@@ -39,6 +39,8 @@ void Saver::processEmpty(const cv::Ptr<File>& file) const
 
 void Saver::process(const cv::Ptr<File>& file) const
 {
+	int n = file->particles.size();
+	
 	// Create preview
 	cv::UMat preview = cv::UMat::zeros(m_cfg->img().size, CV_8UC1);
 	for (const auto& segm : file->segments) {
@@ -65,23 +67,22 @@ void Saver::process(const cv::Ptr<File>& file) const
 	cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
 	dst = file->path(m_cfg->paths().preview, m_cfg->types().lossy);
 	cv::imwrite(dst.string(), preview.getMat(cv::ACCESS_READ));
-	for (size_t i = 0; i < file->segments.size(); i++) {
+	for (int i = 0; i < n; i++) {
 		dst = file->path(m_cfg->paths().recon, m_cfg->types().results, i+1);
 		cv::imwrite(dst.string(), file->segments[i]->img);
-	}
-	for (size_t i = 0; i < file->particles.size(); i++) {
+		
 		dst = file->path(m_cfg->paths().threshold, m_cfg->types().results, i+1);
 		cv::imwrite(dst.string(), file->particles[i]->img);
 	}
 	moveOriginal(file);
 	
 	// Write SQL
-	for (unsigned int i = 0; i < file->particles.size(); i++) {
-		cv::Ptr<Segment> segm = file->segments[i];
-		cv::Ptr<Particle> par = file->particles[i];
+	for (int i = 0; i < n; i++) {
+		const auto& segm = file->segments[i];
+		const auto& par = file->particles[i];
 		m_db->writeParticle({
 			0, file->dt(),
-			file->sensor(), file->frame(), i+1,
+			file->sensor(), file->frame(), (unsigned int)i+1,
 			par->x, par->y, par->z,
 			par->diam, par->diamCorr,
 			par->circularity, par->dynRange, par->effPxSz,

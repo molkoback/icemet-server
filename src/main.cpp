@@ -133,8 +133,8 @@ int main(int argc, char* argv[])
 		}
 		
 		// Join threads
-		for (size_t i = 0; i < threads.size(); i++)
-			threads[i].join();
+		for (auto it = threads.begin(); it != threads.end(); ++it)
+			it->join();
 		log.info("Done");
 	}
 	catch (std::exception& e) {

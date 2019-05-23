@@ -120,12 +120,14 @@ void Analysis::process(cv::Ptr<File> file)
 	// Find overlapping segments and select the best
 	std::vector<cv::Ptr<Segment>> segmentsUnique;
 	std::vector<cv::Ptr<Particle>> particlesUnique;
-	for (int i = 0; i < (int)segments.size(); i++) {
+	int ni = segments.size();
+	for (int i = 0; i < ni; i++) {
 		const auto& segm = segments[i];
 		const auto& par = particles[i];
 		
 		bool found = false;
-		for (int j = 0; j < (int)segmentsUnique.size(); j++) {
+		int nj = segmentsUnique.size();
+		for (int j = 0; j < nj; j++) {
 			const auto& segmOld = segmentsUnique[j];
 			const auto& parOld = particlesUnique[j];
 			
