@@ -5,7 +5,6 @@
 #include "saver.hpp"
 #include "stats.hpp"
 #include "watcher.hpp"
-#include "core/data.hpp"
 #include "core/database.hpp"
 #include "util/log.hpp"
 #include "util/strfmt.hpp"
@@ -104,22 +103,31 @@ int main(int argc, char* argv[])
 		log.info("Particle table '%s'", dbInfo.particleTable.c_str());
 		log.info("Stats table '%s'", dbInfo.statsTable.c_str());
 		
-		// Create data queues
-		Data data;
-		
 		// Create workers
-		WorkerPointers ptrs = {&cfg, &data, &db};
-		Watcher watcher(ptrs);
-		Reader reader(ptrs);
-		Preproc preproc(ptrs);
-		Recon recon(ptrs);
-		Analysis analysis(ptrs);
-		Saver saver(ptrs);
-		Stats stats(ptrs);
+		Watcher watcher(&cfg);
+		Reader reader(&cfg, &db);
+		Preproc preproc(&cfg);
+		Recon recon(&cfg);
+		Analysis analysis(&cfg);
+		Saver saver(&cfg, &db);
+		Stats stats(&cfg, &db);
+		
+		// Create data queues
+		FileQueue filesOriginal(4);
+		FileQueue filesPreproc(2);
+		FileQueue filesRecon(2);
+		FileQueue filesAnalysisSaver(2);
+		FileQueue filesAnalysisStats(2);
 		
 		// Launch worker threads
 		std::vector<std::thread> threads;
 		if (!args.statsOnly) {
+			Worker::connect(&watcher, &preproc, &filesOriginal);
+			Worker::connect(&preproc, &recon, &filesPreproc);
+			Worker::connect(&recon, &analysis, &filesRecon);
+			Worker::connect(&analysis, &saver, &filesAnalysisSaver);
+			Worker::connect(&analysis, &stats, &filesAnalysisStats);
+			
 			threads.push_back(std::thread(&Watcher::run, &watcher));
 			threads.push_back(std::thread(&Preproc::run, &preproc));
 			threads.push_back(std::thread(&Recon::run, &recon));
@@ -128,6 +136,8 @@ int main(int argc, char* argv[])
 			threads.push_back(std::thread(&Stats::run, &stats));
 		}
 		else {
+			Worker::connect(&reader, &stats, &filesAnalysisStats);
+			
 			threads.push_back(std::thread(&Reader::run, &reader));
 			threads.push_back(std::thread(&Stats::run, &stats));
 		}

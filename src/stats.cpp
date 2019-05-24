@@ -8,8 +8,10 @@
 
 #include <queue>
 
-Stats::Stats(const WorkerPointers& ptrs) :
-	Worker(COLOR_BLUE "STATS" COLOR_RESET, ptrs)
+Stats::Stats(Config* cfg, Database* db) :
+	Worker(COLOR_BLUE "STATS" COLOR_RESET),
+	m_cfg(cfg),
+	m_db(db)
 {
 	int wpx = m_cfg->img().size.width - 2*m_cfg->img().border.width;
 	int hpx = m_cfg->img().size.height - 2*m_cfg->img().border.height;
@@ -28,6 +30,12 @@ Stats::Stats(const WorkerPointers& ptrs) :
 	m_log.debug("Measurement volume %.2f cm3", m_V * 1000000);
 	
 	reset();
+}
+
+bool Stats::init()
+{
+	m_filesAnalysis = static_cast<FileQueue*>(m_inputs[0]->data);
+	return true;
 }
 
 void Stats::reset(const DateTime& dt)
@@ -156,7 +164,7 @@ bool Stats::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_data->analysisStats.collect(files);
+	m_filesAnalysis->collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -168,11 +176,15 @@ bool Stats::loop()
 		files.pop();
 	}
 	
-	if (!m_cfg->args().waitNew && m_data->analysisStats.done()) {
-		if (m_frames)
-			statsPoint();
+	if (m_inputs.empty()) {
 		return false;
 	}
 	msleep(1);
-	return true;
+	return !m_inputs[0]->closed() || !m_filesAnalysis->empty();
+}
+
+void Stats::close()
+{
+	if (m_frames)
+		statsPoint();
 }

@@ -13,8 +13,15 @@
 
 #define AREA_MAX 0.70
 
-Analysis::Analysis(const WorkerPointers& ptrs) :
-	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET, ptrs) {}
+Analysis::Analysis(Config* cfg) :
+	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET),
+	m_cfg(cfg) {}
+
+bool Analysis::init()
+{
+	m_filesRecon = static_cast<FileQueue*>(m_inputs[0]->data);
+	return true;
+}
 
 bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par) const
 {
@@ -161,7 +168,7 @@ bool Analysis::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_data->recon.collect(files);
+	m_filesRecon->collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -172,16 +179,10 @@ bool Analysis::loop()
 			process(file);
 			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		}
-		m_data->analysisSaver.pushWait(file);
-		m_data->analysisStats.pushWait(file);
+		for (const auto& conn : m_outputs)
+			static_cast<FileQueue*>(conn->data)->push(file);
 		files.pop();
 	}
-	
-	if (!m_cfg->args().waitNew && m_data->recon.done()) {
-		m_data->analysisSaver.close();
-		m_data->analysisStats.close();
-		return false;
-	}
 	msleep(1);
-	return true;
+	return !m_inputs[0]->closed() || !m_filesRecon->empty();
 }

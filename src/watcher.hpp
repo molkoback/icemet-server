@@ -2,6 +2,7 @@
 #define WATCHER_H
 
 #include "worker.hpp"
+#include "core/config.hpp"
 #include "core/file.hpp"
 
 #include <opencv2/core.hpp>
@@ -10,13 +11,16 @@
 
 class Watcher : public Worker {
 protected:
+	Config* m_cfg;
+	FileQueue* m_filesOriginal;
 	cv::Ptr<File> m_prev;
 	
 	void findFiles(std::queue<cv::Ptr<File>>& files);
+	bool init() override;
 	bool loop() override;
 
 public:
-	Watcher(const WorkerPointers& ptrs);
+	Watcher(Config* cfg);
 };
 
 #endif

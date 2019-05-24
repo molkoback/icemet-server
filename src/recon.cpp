@@ -8,8 +8,9 @@
 #include <algorithm>
 #include <queue>
 
-Recon::Recon(const WorkerPointers& ptrs) :
-	Worker(COLOR_GREEN "RECON" COLOR_RESET, ptrs)
+Recon::Recon(Config* cfg) :
+	Worker(COLOR_GREEN "RECON" COLOR_RESET),
+	m_cfg(cfg)
 {
 	m_hologram = cv::icemet::Hologram::create(
 		m_cfg->img().size,
@@ -20,6 +21,13 @@ Recon::Recon(const WorkerPointers& ptrs) :
 	// Create filters
 	if (m_cfg->lpf().enabled)
 		m_lpf = m_hologram->createLPF(m_cfg->lpf().f);
+}
+
+bool Recon::init()
+{
+	m_filesPreproc = static_cast<FileQueue*>(m_inputs[0]->data);
+	m_filesRecon = static_cast<FileQueue*>(m_outputs[0]->data);
+	return true;
 }
 
 void Recon::process(cv::Ptr<File> file)
@@ -53,9 +61,9 @@ void Recon::process(cv::Ptr<File> file)
 	int count = 0;
 	int ncontours = 0;
 	for (float lz0 = z0; lz0 < z1; lz0 += dz) {
-		cv::UMat imgMin(size, CV_8UC1, cv::Scalar(255));
 		float lz1 = std::min(lz0 + dz, z1);
 		int last = roundf((lz1 - lz0) / ldz) - 1;
+		cv::UMat imgMin;
 		m_hologram->recon(m_stack, imgMin, lz0, lz1, ldz);
 		
 		// Threshold
@@ -125,7 +133,7 @@ bool Recon::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_data->preproc.collect(files);
+	m_filesPreproc->collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -136,14 +144,9 @@ bool Recon::loop()
 			process(file);
 			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		}
-		m_data->recon.pushWait(file);
+		m_filesRecon->push(file);
 		files.pop();
 	}
-	
-	if (!m_cfg->args().waitNew && m_data->preproc.done()) {
-		m_data->recon.close();
-		return false;
-	}
 	msleep(1);
-	return true;
+	return !m_inputs[0]->closed() || !m_filesPreproc->empty();
 }

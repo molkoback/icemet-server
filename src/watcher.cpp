@@ -8,11 +8,19 @@
 #include <stdexcept>
 #include <vector>
 
-Watcher::Watcher(const WorkerPointers& ptrs) :
-	Worker(COLOR_BRIGHT_CYAN "WATCHER" COLOR_RESET, ptrs),
+Watcher::Watcher(Config* cfg) :
+	Worker(COLOR_BRIGHT_CYAN "WATCHER" COLOR_RESET),
+	m_cfg(cfg),
 	m_prev(cv::makePtr<File>())
 {
+	
 	m_log.info("Watching %s", m_cfg->paths().watch.string().c_str());
+}
+
+bool Watcher::init()
+{
+	m_filesOriginal = static_cast<FileQueue*>(m_outputs[0]->data);
+	return true;
 }
 
 void Watcher::findFiles(std::queue<cv::Ptr<File>>& files)
@@ -65,16 +73,14 @@ bool Watcher::loop()
 			// Push to output queue
 			file->setEmpty(false);
 			m_log.debug("Found %s", file->name().c_str());
-			m_data->original.pushWait(file);
+			m_filesOriginal->push(file);
 			m_prev = file;
 		}
 		files.pop();
 	}
 	
-	if (!m_cfg->args().waitNew) {
-		m_data->original.close();
+	if (!m_cfg->args().waitNew)
 		return false;
-	}
 	ssleep(1);
-	return true;
+	return !m_outputs.empty();
 }

@@ -1,6 +1,7 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include "worker.hpp"
 #include "core/datetime.hpp"
 
 #include <opencv2/core.hpp>
@@ -112,5 +113,7 @@ public:
 	friend bool operator>(const File& f1, const File& f2);
 	friend bool operator>=(const File& f1, const File& f2);
 };
+
+typedef WorkerQueue<cv::Ptr<File>> FileQueue;
 
 #endif

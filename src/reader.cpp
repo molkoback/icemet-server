@@ -2,19 +2,23 @@
 
 #include "util/time.hpp"
 
-Reader::Reader(const WorkerPointers& ptrs) :
-	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET, ptrs),
+Reader::Reader(Config* cfg, Database* db) :
+	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET),
+	m_cfg(cfg),
+	m_db(db),
 	m_id(0),
 	m_file(NULL) {}
+
+bool Reader::init()
+{
+	m_filesAnalysis = static_cast<FileQueue*>(m_outputs[0]->data);
+	return true;
+}
 
 bool Reader::loop()
 {
 	std::vector<ParticleRow> rows;
 	m_db->readParticles(rows, m_id);
-	if (!m_cfg->args().waitNew && rows.empty()) {
-		m_data->analysisStats.close();
-		return false;
-	}
 	for (const auto& row : rows) {
 		File tmp = File(row.sensor, row.dt, row.frame, false);
 		
@@ -25,7 +29,7 @@ bool Reader::loop()
 		// File complete
 		else if (tmp != *m_file) {
 			m_log.debug("Read %s", m_file->name().c_str());
-			m_data->analysisStats.pushWait(m_file);
+			m_filesAnalysis->push(m_file);
 			m_file = cv::makePtr<File>(tmp);
 		}
 		
@@ -43,5 +47,5 @@ bool Reader::loop()
 		m_id = row.id+1;
 	}
 	msleep(10);
-	return true;
+	return m_cfg->args().waitNew || !rows.empty();
 }

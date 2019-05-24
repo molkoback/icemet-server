@@ -3,7 +3,6 @@
 #include "util/strfmt.hpp"
 
 #include <cstdio>
-#include <cstdlib>
 #include <ctime>
 #include <mutex>
 
@@ -93,7 +92,6 @@ void Log::critical(const std::string& fmt, ...) const
 	va_start(args, fmt);
 	logsend(LOG_CRITICAL, fmt, args);
 	va_end(args);
-	exit(EXIT_FAILURE);
 }
 
 void Log::setLevel(LogLevel level)

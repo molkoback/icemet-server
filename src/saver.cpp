@@ -8,10 +8,18 @@
 
 #include <queue>
 
-Saver::Saver(const WorkerPointers& ptrs) :
-	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET, ptrs)
+Saver::Saver(Config* cfg, Database* db) :
+	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET),
+	m_cfg(cfg),
+	m_db(db)
 {
 	m_log.info("Results %s", m_cfg->paths().results.string().c_str());
+}
+
+bool Saver::init()
+{
+	m_filesAnalysis = static_cast<FileQueue*>(m_inputs[0]->data);
+	return true;
 }
 
 void Saver::moveOriginal(const cv::Ptr<File>& file) const
@@ -95,7 +103,7 @@ bool Saver::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_data->analysisSaver.collect(files);
+	m_filesAnalysis->collect(files);
 	
 	// Process
 	while (!files.empty()) {
@@ -111,5 +119,5 @@ bool Saver::loop()
 		files.pop();
 	}
 	msleep(1);
-	return m_cfg->args().waitNew || !m_data->analysisSaver.done();
+	return !m_inputs[0]->closed() || !m_filesAnalysis->empty();
 }

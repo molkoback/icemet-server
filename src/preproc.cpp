@@ -11,11 +11,19 @@
 /* Preprocessed images with dynamic range smaller than this will be marked as empty. */
 #define PREPROC_EMPTY_TH 10
 
-Preproc::Preproc(const WorkerPointers& ptrs) :
-	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET, ptrs)
+Preproc::Preproc(Config* cfg) :
+	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET),
+	m_cfg(cfg)
 {
 	m_stackLen = m_cfg->bgsub().stackLen;
 	m_stack = cv::icemet::BGSubStack::create(m_cfg->img().size, m_stackLen);
+}
+
+bool Preproc::init()
+{
+	m_filesOriginal = static_cast<FileQueue*>(m_inputs[0]->data);
+	m_filesPreproc = static_cast<FileQueue*>(m_outputs[0]->data);
+	return true;
 }
 
 int Preproc::dynRange(const cv::UMat& img) const
@@ -64,7 +72,7 @@ void Preproc::process(cv::Ptr<File> file)
 			fileDone->setEmpty(true);
 		}
 		m_log.debug("Done %s (%.2f s)", fileDone->name().c_str(), m.time());
-		m_data->preproc.pushWait(fileDone);
+		m_filesPreproc->push(fileDone);
 		m_wait.pop();
 	}
 }
@@ -73,18 +81,13 @@ bool Preproc::loop()
 {
 	// Collect files
 	std::queue<cv::Ptr<File>> files;
-	m_data->original.collect(files);
+	m_filesOriginal->collect(files);
 	
 	// Process
 	while (!files.empty()) {
 		process(files.front());
 		files.pop();
 	}
-	
-	if (!m_cfg->args().waitNew && m_data->original.done()) {
-		m_data->preproc.close();
-		return false;
-	}
 	msleep(1);
-	return true;
+	return !m_inputs[0]->closed() || !m_filesOriginal->empty();
 }
