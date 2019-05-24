@@ -25,7 +25,8 @@ static const char* helpStr =
 "  -h                Print this help message and exit\n"
 "  -V                Print version info and exit\n"
 "  -s                Stats only. Particles will be fetched from the database.\n"
-"  -Q                Quit after processing all available files.\n";
+"  -Q                Quit after processing all available files.\n"
+"  -d                Enable debug messages.\n";
 static const char* versionStr =
 "ICEMET Server " ICEMET_VERSION "\n"
 "\n"
@@ -62,6 +63,9 @@ int main(int argc, char* argv[])
 			else if (!arg.compare("-Q")) {
 				args.waitNew = false;
 			}
+			else if (!arg.compare("-d")) {
+				args.loglevel = LOG_DEBUG;
+			}
 			else {
 				printf("Invalid option '%s'\n", arg.c_str());
 				return EXIT_FAILURE;
@@ -86,7 +90,7 @@ int main(int argc, char* argv[])
 		cfg.setArgs(args);
 		
 		// Setup logging
-		Log::setLevel(cfg.log().level);
+		Log::setLevel(args.loglevel);
 		
 		// Initialize OpenCL
 		const char* device = cfg.ocl().device.c_str();

@@ -13,7 +13,6 @@ Config::Config(const char* fn)
 }
 
 Config::Config(const Config& cfg) :
-	m_log(cfg.m_log),
 	m_paths(cfg.m_paths),
 	m_types(cfg.m_types),
 	m_connInfo(cfg.m_connInfo),
@@ -37,8 +36,6 @@ void Config::load(const char* fn)
 {
 	try {
 		YAML::Node node = YAML::LoadFile(fn);
-		
-		m_log.level = static_cast<LogLevel>(node["log_level"].as<int>());
 		
 		m_connInfo.host = node["sql_host"].as<std::string>();
 		m_connInfo.port = node["sql_port"].as<int>();
