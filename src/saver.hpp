@@ -5,17 +5,15 @@
 #include "core/config.hpp"
 #include "core/file.hpp"
 
-#include <opencv2/core.hpp>
-
 class Saver : public Worker {
 protected:
 	Config* m_cfg;
 	Database* m_db;
 	FileQueue* m_filesAnalysis;
 	
-	void moveOriginal(const cv::Ptr<File>& file) const;
-	void processEmpty(const cv::Ptr<File>& file) const;
-	void process(const cv::Ptr<File>& file) const;
+	void moveOriginal(const FilePtr& file) const;
+	void processEmpty(const FilePtr& file) const;
+	void process(const FilePtr& file) const;
 	bool init() override;
 	bool loop() override;
 

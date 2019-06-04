@@ -3,6 +3,8 @@
 #include "core/math.hpp"
 #include "util/time.hpp"
 
+#include <opencv2/core.hpp>
+
 #include <exception>
 
 /* Opened images with dynamic range smaller than this will be removed. */
@@ -33,7 +35,7 @@ int Preproc::dynRange(const cv::UMat& img) const
 	return maxVal - minVal;
 }
 
-void Preproc::process(cv::Ptr<File> file)
+void Preproc::process(FilePtr file)
 {
 	m_log.debug("Processing %s", file->name().c_str());
 	Measure m;
@@ -55,7 +57,7 @@ void Preproc::process(cv::Ptr<File> file)
 	// Files go through a queue so we maintain the order
 	m_wait.push(file);
 	if (m_wait.size() >= m_stackLen/2 + 1) {
-		cv::Ptr<File> fileDone = m_wait.front();
+		FilePtr fileDone = m_wait.front();
 		
 		// Perform median division if the background subtraction stack was full
 		if (full) {
@@ -80,7 +82,7 @@ void Preproc::process(cv::Ptr<File> file)
 bool Preproc::loop()
 {
 	// Collect files
-	std::queue<cv::Ptr<File>> files;
+	std::queue<FilePtr> files;
 	m_filesOriginal->collect(files);
 	
 	// Process

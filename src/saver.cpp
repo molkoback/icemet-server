@@ -2,6 +2,7 @@
 
 #include "util/time.hpp"
 
+#include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/icemet.hpp>
@@ -22,7 +23,7 @@ bool Saver::init()
 	return true;
 }
 
-void Saver::moveOriginal(const cv::Ptr<File>& file) const
+void Saver::moveOriginal(const FilePtr& file) const
 {
 	fs::path src(file->path());
 	fs::path dst = file->path(m_cfg->paths().original, src.extension());
@@ -31,7 +32,7 @@ void Saver::moveOriginal(const cv::Ptr<File>& file) const
 	fs::rename(src, dst);
 }
 
-void Saver::processEmpty(const cv::Ptr<File>& file) const
+void Saver::processEmpty(const FilePtr& file) const
 {
 	// Preproc
 	if (file->preproc.u) {
@@ -45,7 +46,7 @@ void Saver::processEmpty(const cv::Ptr<File>& file) const
 	moveOriginal(file);
 }
 
-void Saver::process(const cv::Ptr<File>& file) const
+void Saver::process(const FilePtr& file) const
 {
 	int n = file->particles.size();
 	
@@ -102,12 +103,12 @@ void Saver::process(const cv::Ptr<File>& file) const
 bool Saver::loop()
 {
 	// Collect files
-	std::queue<cv::Ptr<File>> files;
+	std::queue<FilePtr> files;
 	m_filesAnalysis->collect(files);
 	
 	// Process
 	while (!files.empty()) {
-		cv::Ptr<File> file = files.front();
+		FilePtr file = files.front();
 		m_log.debug("Saving %s", file->name().c_str());
 		Measure m;
 		if (file->empty())

@@ -2,6 +2,7 @@
 
 #include "util/time.hpp"
 
+#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
@@ -30,7 +31,7 @@ bool Recon::init()
 	return true;
 }
 
-void Recon::process(cv::Ptr<File> file)
+void Recon::process(FilePtr file)
 {
 	cv::Size2i size = m_cfg->img().size;
 	cv::Size2i border = m_cfg->img().border;
@@ -109,7 +110,7 @@ void Recon::process(cv::Ptr<File> file)
 			);
 			
 			// Create segment
-			cv::Ptr segm = cv::makePtr<Segment>();
+			SegmentPtr segm = cv::makePtr<Segment>();
 			segm->z = lz0 + idx*ldz;
 			segm->score = score;
 			segm->method = method;
@@ -132,12 +133,12 @@ end:
 bool Recon::loop()
 {
 	// Collect files
-	std::queue<cv::Ptr<File>> files;
+	std::queue<FilePtr> files;
 	m_filesPreproc->collect(files);
 	
 	// Process
 	while (!files.empty()) {
-		cv::Ptr<File> file = files.front();
+		FilePtr file = files.front();
 		if (!file->empty()) {
 			m_log.debug("Reconstructing %s", file->name().c_str());
 			Measure m;

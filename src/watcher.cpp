@@ -13,7 +13,6 @@ Watcher::Watcher(Config* cfg) :
 	m_cfg(cfg),
 	m_prev(cv::makePtr<File>())
 {
-	
 	m_log.info("Watching %s", m_cfg->paths().watch.string().c_str());
 }
 
@@ -23,10 +22,10 @@ bool Watcher::init()
 	return true;
 }
 
-void Watcher::findFiles(std::queue<cv::Ptr<File>>& files)
+void Watcher::findFiles(std::queue<FilePtr>& files)
 {
 	// Find files
-	std::vector<cv::Ptr<File>> filesVec;
+	std::vector<FilePtr> filesVec;
 	auto iter = fs::recursive_directory_iterator(m_cfg->paths().watch);
 	for (const auto& entry : iter) {
 		if (!entry.is_regular_file())
@@ -54,10 +53,10 @@ void Watcher::findFiles(std::queue<cv::Ptr<File>>& files)
 
 bool Watcher::loop()
 {
-	std::queue<cv::Ptr<File>> files;
+	std::queue<FilePtr> files;
 	findFiles(files);
 	while (!files.empty()) {
-		cv::Ptr<File> file = files.front();
+		FilePtr file = files.front();
 		
 		// Check if the file is new
 		if (*file > *m_prev) {
@@ -68,7 +67,7 @@ bool Watcher::loop()
 				m_log.debug("Invalid image file: '%s'", fn.c_str());
 				break;
 			}
-			mat.getUMat(cv::ACCESS_READ).copyTo(file->original);
+			mat.copyTo(file->original);
 			
 			// Push to output queue
 			file->setEmpty(false);

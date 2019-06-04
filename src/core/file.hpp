@@ -32,6 +32,7 @@ typedef struct _segment {
 		s.img.copyTo(img);
 	}
 } Segment;
+typedef cv::Ptr<Segment> SegmentPtr;
 
 typedef struct _particle {
 	float x, y, z;
@@ -60,6 +61,7 @@ typedef struct _particle {
 		p.img.copyTo(img);
 	}
 } Particle;
+typedef cv::Ptr<Particle> ParticlePtr;
 
 typedef struct _file_param {
 	unsigned char bgVal; // Background value of the preprocessed file
@@ -85,8 +87,8 @@ public:
 	FileParam param;
 	cv::UMat original;
 	cv::UMat preproc;
-	std::vector<cv::Ptr<Segment>> segments;
-	std::vector<cv::Ptr<Particle>> particles;
+	std::vector<SegmentPtr> segments;
+	std::vector<ParticlePtr> particles;
 	
 	unsigned int sensor() const { return m_sensor; }
 	void setSensor(unsigned int sensor) { m_sensor = sensor; }
@@ -113,7 +115,7 @@ public:
 	friend bool operator>(const File& f1, const File& f2);
 	friend bool operator>=(const File& f1, const File& f2);
 };
-
-typedef WorkerQueue<cv::Ptr<File>> FileQueue;
+typedef cv::Ptr<File> FilePtr;
+typedef WorkerQueue<FilePtr> FileQueue;
 
 #endif

@@ -4,6 +4,7 @@
 #include "util/strfmt.hpp"
 #include "util/time.hpp"
 
+#include <opencv2/core.hpp>
 #include <opencv2/icemet.hpp>
 
 #include <queue>
@@ -120,7 +121,7 @@ void Stats::statsPoint() const
 	);
 }
 
-bool Stats::particleValid(const cv::Ptr<Particle>& par) const
+bool Stats::particleValid(const ParticlePtr& par) const
 {
 	return (
 		par->z >= m_cfg->particle().zMin &&
@@ -134,7 +135,7 @@ bool Stats::particleValid(const cv::Ptr<Particle>& par) const
 	);
 }
 
-void Stats::process(const cv::Ptr<File>& file)
+void Stats::process(const FilePtr& file)
 {
 	DateTime dt = file->dt();
 	
@@ -163,12 +164,12 @@ void Stats::process(const cv::Ptr<File>& file)
 bool Stats::loop()
 {
 	// Collect files
-	std::queue<cv::Ptr<File>> files;
+	std::queue<FilePtr> files;
 	m_filesAnalysis->collect(files);
 	
 	// Process
 	while (!files.empty()) {
-		cv::Ptr<File> file = files.front();
+		FilePtr file = files.front();
 		m_log.debug("Analysing %s", file->name().c_str());
 		Measure m;
 		process(file);

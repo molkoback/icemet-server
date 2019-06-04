@@ -23,7 +23,7 @@ bool Analysis::init()
 	return true;
 }
 
-bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, cv::Ptr<Particle>& par) const
+bool Analysis::analyse(const FilePtr& file, const SegmentPtr& segm, ParticlePtr& par) const
 {
 	// Calculate threshold
 	double min, max;
@@ -104,7 +104,7 @@ bool Analysis::analyse(const cv::Ptr<File>& file, const cv::Ptr<Segment>& segm, 
 	return true;
 }
 
-void Analysis::process(cv::Ptr<File> file)
+void Analysis::process(FilePtr file)
 {
 	// Sort by size
 	std::sort(file->segments.begin(), file->segments.end(), [](const auto& s1, const auto& s2) {
@@ -114,10 +114,10 @@ void Analysis::process(cv::Ptr<File> file)
 	});
 	
 	// Analyse all segments
-	std::vector<cv::Ptr<Segment>> segments;
-	std::vector<cv::Ptr<Particle>> particles;
+	std::vector<SegmentPtr> segments;
+	std::vector<ParticlePtr> particles;
 	for (const auto& segm : file->segments) {
-		cv::Ptr<Particle> par;
+		ParticlePtr par;
 		if (analyse(file, segm, par)) {
 			segments.push_back(segm);
 			particles.push_back(par);
@@ -125,8 +125,8 @@ void Analysis::process(cv::Ptr<File> file)
 	}
 	
 	// Find overlapping segments and select the best
-	std::vector<cv::Ptr<Segment>> segmentsUnique;
-	std::vector<cv::Ptr<Particle>> particlesUnique;
+	std::vector<SegmentPtr> segmentsUnique;
+	std::vector<ParticlePtr> particlesUnique;
 	int ni = segments.size();
 	for (int i = 0; i < ni; i++) {
 		const auto& segm = segments[i];
@@ -167,12 +167,12 @@ void Analysis::process(cv::Ptr<File> file)
 bool Analysis::loop()
 {
 	// Collect files
-	std::queue<cv::Ptr<File>> files;
+	std::queue<FilePtr> files;
 	m_filesRecon->collect(files);
 	
 	// Process
 	while (!files.empty()) {
-		cv::Ptr<File> file = files.front();
+		FilePtr file = files.front();
 		if (!file->empty()) {
 			m_log.debug("Analysing %s", file->name().c_str());
 			Measure m;

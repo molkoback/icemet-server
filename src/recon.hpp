@@ -5,7 +5,6 @@
 #include "core/config.hpp"
 #include "core/file.hpp"
 
-#include <opencv2/core.hpp>
 #include <opencv2/icemet.hpp>
 
 #include <vector>
@@ -19,7 +18,7 @@ protected:
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
 	
-	void process(cv::Ptr<File> file);
+	void process(FilePtr file);
 	bool init() override;
 	bool loop() override;
 

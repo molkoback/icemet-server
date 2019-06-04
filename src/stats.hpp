@@ -6,8 +6,6 @@
 #include "core/file.hpp"
 #include "util/time.hpp"
 
-#include <opencv2/core.hpp>
-
 class Stats : public Worker {
 protected:
 	Config* m_cfg;
@@ -21,8 +19,8 @@ protected:
 	void reset(const DateTime& dt=DateTime());
 	void fillStatsRow(StatsRow& row) const;
 	void statsPoint() const;
-	bool particleValid(const cv::Ptr<Particle>& par) const;
-	void process(const cv::Ptr<File>& file);
+	bool particleValid(const ParticlePtr& par) const;
+	void process(const FilePtr& file);
 	bool init() override;
 	bool loop() override;
 	void close() override;

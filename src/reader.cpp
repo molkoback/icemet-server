@@ -34,7 +34,7 @@ bool Reader::loop()
 		}
 		
 		// Create particle
-		cv::Ptr<Particle> par = cv::makePtr<Particle>();
+		ParticlePtr par = cv::makePtr<Particle>();
 		par->effPxSz = row.effPxSz;
 		par->x = row.x;
 		par->y = row.y;
