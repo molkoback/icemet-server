@@ -64,7 +64,7 @@ void Recon::process(cv::Ptr<File> file)
 		float lz1 = std::min(lz0 + dz, z1);
 		int last = roundf((lz1 - lz0) / ldz) - 1;
 		cv::UMat imgMin;
-		m_hologram->recon(m_stack, imgMin, lz0, lz1, ldz);
+		m_hologram->reconMin(m_stack, imgMin, lz0, lz1, ldz);
 		
 		// Threshold
 		cv::UMat imgTh;
