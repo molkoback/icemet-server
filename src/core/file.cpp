@@ -41,8 +41,8 @@ std::string File::name() const
 	return strfmt(
 		"%02u_%02d%02d%02d_%02d%02d%02d%03d_%06u_%c",
 		m_sensor,
-		m_dt.d, m_dt.m, m_dt.y-2000,
-		m_dt.H, m_dt.M, m_dt.S, m_dt.MS,
+		m_dt.day(), m_dt.month(), m_dt.year()%100,
+		m_dt.hour(), m_dt.min(), m_dt.sec(), m_dt.millis(),
 		m_frame,
 		m_empty ? 'F' : 'T'
 	);
@@ -50,17 +50,19 @@ std::string File::name() const
 
 void File::setName(const std::string& str)
 {
+	DateTimeInfo info;
 	try {
 		m_sensor = std::stoi(str.substr(0, 2));
-		m_dt.d = std::stoi(str.substr(3, 2));
-		m_dt.m = std::stoi(str.substr(5, 2));
-		m_dt.y = std::stoi(str.substr(7, 2)) + 2000;
-		m_dt.H = std::stoi(str.substr(10, 2));
-		m_dt.M = std::stoi(str.substr(12, 2));
-		m_dt.S = std::stoi(str.substr(14, 2));
-		m_dt.MS = std::stoi(str.substr(16, 3));
+		info.d = std::stoi(str.substr(3, 2));
+		info.m = std::stoi(str.substr(5, 2));
+		info.y = std::stoi(str.substr(7, 2)) + 2000;
+		info.H = std::stoi(str.substr(10, 2));
+		info.M = std::stoi(str.substr(12, 2));
+		info.S = std::stoi(str.substr(14, 2));
+		info.MS = std::stoi(str.substr(16, 3));
 		m_frame = std::stoi(str.substr(20, 6));
 		m_empty = str.substr(27, 1).compare("T");
+		m_dt.setInfo(info);
 	}
 	catch (std::exception& e) {
 		throw std::invalid_argument("Invalid filename");
@@ -77,7 +79,7 @@ fs::path File::path(const fs::path& root, const fs::path& ext, int sub) const
 
 fs::path File::dir(const fs::path& root) const
 {
-	fs::path p(strfmt("%02d/%02d/%02d/%02d", m_dt.y-2000, m_dt.m, m_dt.d, m_dt.H));
+	fs::path p(strfmt("%02d/%02d/%02d/%02d", m_dt.year()%100, m_dt.month(), m_dt.day(), m_dt.hour()));
 	p.make_preferred();
 	return root / p;
 }

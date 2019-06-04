@@ -1,14 +1,6 @@
 # ICEMET Server config
 #
 
-# Logging
-# 10 = debug
-# 20 = info
-# 30 = warning
-# 40 = error
-# 50 = critical
-log_level: 20
-
 # Folders
 path_watch: "~/.icemet/watch"
 path_results: "~/.icemet/results"

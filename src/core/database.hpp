@@ -2,6 +2,7 @@
 #define DATABASE_H
 
 #include "core/file.hpp"
+#include "util/time.hpp"
 
 #include <mysql/mysql.h>
 #include <opencv2/core.hpp>

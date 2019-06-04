@@ -24,7 +24,6 @@ set(ICEMET_SRC
 	
 	src/core/config.cpp
 	src/core/database.cpp
-	src/core/datetime.cpp
 	src/core/file.cpp
 	src/core/math.cpp
 	

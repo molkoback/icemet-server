@@ -44,8 +44,8 @@ void Stats::reset(const DateTime& dt)
 	m_frames = 0;
 	
 	m_dt = dt;
-	m_dt.S = 0;
-	m_dt.MS = 0;
+	m_dt.setSec(0);
+	m_dt.setMillis(0);
 }
 
 void Stats::fillStatsRow(StatsRow& row) const
@@ -115,7 +115,7 @@ void Stats::statsPoint() const
 	m_db->writeStats(row);
 	m_log.info(
 		"[%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
-		 m_dt.H, m_dt.M,
+		 m_dt.hour(), m_dt.min(),
 		 row.lwc, row.mvd*1000000, row.conc/1000000
 	);
 }
@@ -139,11 +139,11 @@ void Stats::process(const cv::Ptr<File>& file)
 	DateTime dt = file->dt();
 	
 	// Make sure we have datetime
-	if (m_dt.m == 0)
+	if (m_dt.stamp() == 0)
 		reset(dt);
 	
 	// Create a new stats point if the minutes differ
-	if (dt.M != m_dt.M) {
+	if (dt.min() != m_dt.min()) {
 		statsPoint();
 		reset(dt);
 	}
