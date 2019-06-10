@@ -20,17 +20,17 @@ bool Reader::loop()
 	std::vector<ParticleRow> rows;
 	m_db->readParticles(rows, m_id);
 	for (const auto& row : rows) {
-		File tmp = File(row.sensor, row.dt, row.frame, false);
+		FilePtr tmp = cv::makePtr<File>(row.sensor, row.dt, row.frame, false);
 		
 		// Make sure we have a file
 		if (m_file.empty()) {
-			m_file = cv::makePtr<File>(tmp);
+			m_file = tmp;
 		}
 		// File complete
-		else if (tmp != *m_file) {
+		else if (*tmp != *m_file) {
 			m_log.debug("Read %s", m_file->name().c_str());
 			m_filesAnalysis->push(m_file);
-			m_file = cv::makePtr<File>(tmp);
+			m_file = tmp;
 		}
 		
 		// Create particle

@@ -65,9 +65,6 @@ typedef cv::Ptr<Particle> ParticlePtr;
 
 typedef struct _file_param {
 	unsigned char bgVal; // Background value of the preprocessed file
-	bool last;           // Quit after processing this file
-	
-	_file_param() : last(false) {}
 } FileParam;
 
 class File {
@@ -82,7 +79,8 @@ public:
 	File();
 	File(const fs::path& p);
 	File(unsigned int m_sensor, DateTime dt, unsigned int frame, bool empty);
-	File(const File& f);
+	File(const File& f) = delete;
+	File& operator=(const File&) = delete;
 	
 	FileParam param;
 	cv::UMat original;

@@ -22,20 +22,6 @@ File::File(unsigned int sensor, DateTime dt, unsigned int frame, bool empty) :
 	m_frame(frame),
 	m_empty(empty) {}
 
-File::File(const File& f) :
-	m_sensor(f.m_sensor),
-	m_dt(f.m_dt),
-	m_frame(f.m_frame),
-	m_empty(f.m_empty),
-	m_path(f.m_path)
-{
-	param = f.param;
-	f.original.copyTo(original);
-	f.preproc.copyTo(preproc);
-	segments = f.segments;
-	particles = f.particles;
-}
-
 std::string File::name() const
 {
 	return strfmt(
