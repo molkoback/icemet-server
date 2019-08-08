@@ -1,5 +1,5 @@
-#ifndef TIME_H
-#define TIME_H
+#ifndef ICEMET_TIME_H
+#define ICEMET_TIME_H
 
 #include <chrono>
 #include <thread>

@@ -1,9 +1,9 @@
-#ifndef READER_H
-#define READER_H
+#ifndef ICEMET_SERVER_READER_H
+#define ICEMET_SERVER_READER_H
 
-#include "worker.hpp"
-#include "core/config.hpp"
-#include "core/file.hpp"
+#include "icemet/worker.hpp"
+#include "icemet/core/config.hpp"
+#include "icemet/core/file.hpp"
 
 class Reader : public Worker {
 protected:

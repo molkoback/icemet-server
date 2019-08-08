@@ -1,7 +1,7 @@
 #include "preproc.hpp"
 
-#include "core/math.hpp"
-#include "util/time.hpp"
+#include "icemet/core/math.hpp"
+#include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>
 

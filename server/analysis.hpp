@@ -1,9 +1,9 @@
-#ifndef ANALYSIS_H
-#define ANALYSIS_H
+#ifndef ICEMET_SERVER_ANALYSIS_H
+#define ICEMET_SERVER_ANALYSIS_H
 
-#include "worker.hpp"
-#include "core/config.hpp"
-#include "core/file.hpp"
+#include "icemet/worker.hpp"
+#include "icemet/core/config.hpp"
+#include "icemet/core/file.hpp"
 
 #include <vector>
 

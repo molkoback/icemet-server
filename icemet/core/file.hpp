@@ -1,8 +1,8 @@
-#ifndef FILE_H
-#define FILE_H
+#ifndef ICEMET_FILE_H
+#define ICEMET_FILE_H
 
-#include "worker.hpp"
-#include "util/time.hpp"
+#include "icemet/worker.hpp"
+#include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>
 #include <opencv2/icemet.hpp>

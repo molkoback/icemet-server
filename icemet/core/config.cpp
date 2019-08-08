@@ -1,6 +1,6 @@
 #include "config.hpp"
 
-#include "util/strfmt.hpp"
+#include "icemet/util/strfmt.hpp"
 
 #include <yaml-cpp/yaml.h>
 

@@ -1,5 +1,5 @@
-#ifndef STRFMT_H
-#define STRFMT_H
+#ifndef ICEMET_STRFMT_H
+#define ICEMET_STRFMT_H
 
 #include <cstdarg>
 #include <string>

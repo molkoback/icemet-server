@@ -1,9 +1,9 @@
-#ifndef WATCHER_H
-#define WATCHER_H
+#ifndef ICEMET_SERVER_WATCHER_H
+#define ICEMET_SERVER_WATCHER_H
 
-#include "worker.hpp"
-#include "core/config.hpp"
-#include "core/file.hpp"
+#include "icemet/worker.hpp"
+#include "icemet/core/config.hpp"
+#include "icemet/core/file.hpp"
 
 #include <queue>
 

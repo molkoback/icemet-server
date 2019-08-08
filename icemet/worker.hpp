@@ -1,8 +1,8 @@
-#ifndef WORKER_H
-#define WORKER_H
+#ifndef ICEMET_WORKER_H
+#define ICEMET_WORKER_H
 
-#include "util/log.hpp"
-#include "util/time.hpp"
+#include "icemet/util/log.hpp"
+#include "icemet/util/time.hpp"
 
 #include <atomic>
 #include <mutex>

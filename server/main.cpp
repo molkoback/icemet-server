@@ -1,13 +1,13 @@
-#include "analysis.hpp"
-#include "preproc.hpp"
-#include "reader.hpp"
-#include "recon.hpp"
-#include "saver.hpp"
-#include "stats.hpp"
-#include "watcher.hpp"
-#include "core/database.hpp"
-#include "util/log.hpp"
-#include "util/strfmt.hpp"
+#include "icemet/core/database.hpp"
+#include "icemet/util/log.hpp"
+#include "icemet/util/strfmt.hpp"
+#include "server/analysis.hpp"
+#include "server/preproc.hpp"
+#include "server/reader.hpp"
+#include "server/recon.hpp"
+#include "server/saver.hpp"
+#include "server/stats.hpp"
+#include "server/watcher.hpp"
 
 #include <opencv2/core/ocl.hpp>
 

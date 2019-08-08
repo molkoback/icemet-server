@@ -1,5 +1,5 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef ICEMET_MATH_H
+#define ICEMET_MATH_H
 
 #include <opencv2/core.hpp>
 

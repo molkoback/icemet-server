@@ -1,5 +1,5 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef ICEMET_LOG_H
+#define ICEMET_LOG_H
 
 #include <cstdarg>
 #include <string>

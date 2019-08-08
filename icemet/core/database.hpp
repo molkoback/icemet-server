@@ -1,8 +1,8 @@
-#ifndef DATABASE_H
-#define DATABASE_H
+#ifndef ICEMET_DATABASE_H
+#define ICEMET_DATABASE_H
 
-#include "core/file.hpp"
-#include "util/time.hpp"
+#include "icemet/core/file.hpp"
+#include "icemet/util/time.hpp"
 
 #include <mysql/mysql.h>
 #include <opencv2/core.hpp>

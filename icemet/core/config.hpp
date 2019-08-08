@@ -1,9 +1,9 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef ICEMET_CONFIG_H
+#define ICEMET_CONFIG_H
 
-#include "core/database.hpp"
-#include "core/file.hpp"
-#include "util/log.hpp"
+#include "icemet/core/database.hpp"
+#include "icemet/core/file.hpp"
+#include "icemet/util/log.hpp"
 
 #include <opencv2/core.hpp>
 

@@ -2,8 +2,8 @@
 
 #include <stdexcept>
 
-#include "util/log.hpp"
-#include "util/strfmt.hpp"
+#include "icemet/util/log.hpp"
+#include "icemet/util/strfmt.hpp"
 
 #define FLOAT_REPR "%.24f"
 #define MAX_ROWS "1000"

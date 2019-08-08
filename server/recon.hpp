@@ -1,9 +1,9 @@
-#ifndef RECON_H
-#define RECON_H
+#ifndef ICEMET_SERVER_RECON_H
+#define ICEMET_SERVER_RECON_H
 
-#include "worker.hpp"
-#include "core/config.hpp"
-#include "core/file.hpp"
+#include "icemet/worker.hpp"
+#include "icemet/core/config.hpp"
+#include "icemet/core/file.hpp"
 
 #include <opencv2/icemet.hpp>
 

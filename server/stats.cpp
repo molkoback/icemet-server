@@ -1,8 +1,8 @@
 #include "stats.hpp"
 
-#include "core/math.hpp"
-#include "util/strfmt.hpp"
-#include "util/time.hpp"
+#include "icemet/core/math.hpp"
+#include "icemet/util/strfmt.hpp"
+#include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>
 #include <opencv2/icemet.hpp>
