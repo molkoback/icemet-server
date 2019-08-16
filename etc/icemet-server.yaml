@@ -36,7 +36,7 @@ holo_lambda: 660e-9
 holo_collimated: false
 holo_distance: 56.4e-3
 recon_step: 800
-focus_points: 20
+focus_k: 20
 segment_th_factor: 0.60 # th = X * median_Ipp
 segment_n_max: 2000
 segment_size_min: 2

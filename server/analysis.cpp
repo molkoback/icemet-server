@@ -72,8 +72,8 @@ bool Analysis::analyse(const FilePtr& file, const SegmentPtr& segm, ParticlePtr&
 	
 	// Calculate area and perimeter
 	double area = cv::countNonZero(imgPar);
-	//if (area > AREA_MAX*segm->rect.width*segm->rect.height)
-	//	return false;
+	if (area > AREA_MAX*segm->rect.width*segm->rect.height)
+		return false;
 	double perim = cv::arcLength(contours[idx], true);
 	
 	// Allocate particle

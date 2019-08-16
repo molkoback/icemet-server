@@ -78,7 +78,7 @@ void Config::load(const char* fn)
 		m_hologram.lambda = node["holo_lambda"].as<float>();
 		m_hologram.dist = node["holo_collimated"].as<bool>() ? 0.0 : node["holo_distance"].as<float>();
 		m_hologram.step = node["recon_step"].as<int>();
-		m_hologram.focusPoints = node["focus_points"].as<int>();
+		m_hologram.focusK = node["focus_k"].as<float>();
 		
 		m_segment.thFact = node["segment_th_factor"].as<float>();
 		m_segment.nMax = node["segment_n_max"].as<int>();

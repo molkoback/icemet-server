@@ -40,7 +40,7 @@ void Recon::process(FilePtr file)
 		size.width-2*border.width, size.height-2*border.height
 	);
 	
-	int focusPoints = m_cfg->hologram().focusPoints;
+	float focusK = m_cfg->hologram().focusK;
 	int segmNMax = m_cfg->segment().nMax;
 	int segmSizeMin = m_cfg->segment().sizeMin;
 	int segmSizeSmall = m_cfg->segment().sizeSmall;
@@ -103,11 +103,7 @@ void Recon::process(FilePtr file)
 			// Focus
 			int idx = 0;
 			double score = 0.0;
-			cv::icemet::Hologram::focus(
-				m_stack, rect,
-				idx, score, method,
-				0, last, focusPoints
-			);
+			cv::icemet::Hologram::focus(m_stack, rect, idx, score, method, 0, last, focusK);
 			
 			// Create segment
 			SegmentPtr segm = cv::makePtr<Segment>();

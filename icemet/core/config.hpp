@@ -56,7 +56,7 @@ typedef struct _hologram_param {
 	float psz;
 	float lambda;
 	int step;
-	int focusPoints;
+	float focusK;
 } HologramParam;
 
 typedef struct _segment_param {
