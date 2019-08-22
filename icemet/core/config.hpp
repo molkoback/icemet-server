@@ -28,6 +28,14 @@ typedef struct _paths {
 	fs::path preview;
 } Paths;
 
+typedef struct _saves {
+	bool original;
+	bool preproc;
+	bool recon;
+	bool threshold;
+	bool preview;
+} Saves;
+
 typedef struct _types {
 	fs::path results;
 	fs::path lossy;
@@ -96,6 +104,7 @@ class Config {
 private:
 	Arguments m_args;
 	Paths m_paths;
+	Saves m_saves;
 	Types m_types;
 	ConnectionInfo m_connInfo;
 	DatabaseInfo m_dbInfo;
@@ -121,6 +130,7 @@ public:
 	
 	const Arguments& args() const { return m_args; }
 	const Paths& paths() const { return m_paths; }
+	const Saves& saves() const { return m_saves; }
 	const Types& types() const { return m_types; }
 	const ConnectionInfo& connInfo() const { return m_connInfo; }
 	const DatabaseInfo& dbInfo() const { return m_dbInfo; }

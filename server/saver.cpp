@@ -23,67 +23,62 @@ bool Saver::init()
 	return true;
 }
 
-void Saver::moveOriginal(const FilePtr& file) const
-{
-	fs::path src(file->path());
-	fs::path dst = file->path(m_cfg->paths().original, src.extension());
-	if (fs::exists(dst))
-		fs::remove(dst);
-	fs::rename(src, dst);
-}
-
-void Saver::processEmpty(const FilePtr& file) const
-{
-	// Preproc
-	if (file->preproc.u) {
-		fs::create_directories(file->dir(m_cfg->paths().preproc));
-		fs::path dst = file->path(m_cfg->paths().preproc, m_cfg->types().results);
-		cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
-	}
-	
-	// Original
-	fs::create_directories(file->dir(m_cfg->paths().original));
-	moveOriginal(file);
-}
-
 void Saver::process(const FilePtr& file) const
 {
 	int n = file->particles.size();
 	
-	// Create preview
-	cv::UMat preview = cv::UMat::zeros(m_cfg->img().size, CV_8UC1);
-	for (const auto& segm : file->segments) {
-		cv::UMat tmp;
-		segm->img.copyTo(tmp);
-		cv::UMat inv, invTh;
-		cv::bitwise_not(tmp, inv);
-		unsigned char th = cv::threshold(inv, invTh, 0, 255, cv::THRESH_OTSU);
-		cv::UMat adj(inv.size(), CV_8UC1);
-		cv::icemet::adjust(inv, adj, th, 255, 0, 255);
-		adj.copyTo(cv::UMat(preview, segm->rect));
-	}
-	
-	// Create directories
-	fs::create_directories(file->dir(m_cfg->paths().original));
-	fs::create_directories(file->dir(m_cfg->paths().preproc));
-	fs::create_directories(file->dir(m_cfg->paths().recon));
-	fs::create_directories(file->dir(m_cfg->paths().threshold));
-	fs::create_directories(file->dir(m_cfg->paths().preview));
-	
-	// Save images
-	fs::path dst;
-	dst = file->path(m_cfg->paths().preproc, m_cfg->types().results);
-	cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
-	dst = file->path(m_cfg->paths().preview, m_cfg->types().lossy);
-	cv::imwrite(dst.string(), preview.getMat(cv::ACCESS_READ));
-	for (int i = 0; i < n; i++) {
-		dst = file->path(m_cfg->paths().recon, m_cfg->types().results, i+1);
-		cv::imwrite(dst.string(), file->segments[i]->img);
+	// Save files
+	if (m_cfg->saves().original) {
+		fs::create_directories(file->dir(m_cfg->paths().original));
 		
-		dst = file->path(m_cfg->paths().threshold, m_cfg->types().results, i+1);
-		cv::imwrite(dst.string(), file->particles[i]->img);
+		fs::path src(file->path());
+		fs::path dst = file->path(m_cfg->paths().original, src.extension());
+		if (fs::exists(dst))
+			fs::remove(dst);
+		fs::rename(src, dst);
 	}
-	moveOriginal(file);
+	else {
+		fs::remove(file->path());
+	}
+	if (m_cfg->saves().preproc && file->preproc.u) {
+		fs::create_directories(file->dir(m_cfg->paths().preproc));
+		
+		fs::path dst(file->path(m_cfg->paths().preproc, m_cfg->types().results));
+		cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
+	}
+	if (m_cfg->saves().recon && !file->empty()) {
+		fs::create_directories(file->dir(m_cfg->paths().recon));
+		
+		for (int i = 0; i < n; i++) {
+			fs::path dst(file->path(m_cfg->paths().recon, m_cfg->types().results, i+1));
+			cv::imwrite(dst.string(), file->segments[i]->img);
+		}
+	}
+	if (m_cfg->saves().threshold && !file->empty()) {
+		fs::create_directories(file->dir(m_cfg->paths().threshold));
+		
+		for (int i = 0; i < n; i++) {
+			fs::path dst(file->path(m_cfg->paths().threshold, m_cfg->types().results, i+1));
+			cv::imwrite(dst.string(), file->particles[i]->img);
+		}
+	}
+	if (m_cfg->saves().preview && !file->empty()) {
+		fs::create_directories(file->dir(m_cfg->paths().preview));
+		
+		cv::UMat preview = cv::UMat::zeros(m_cfg->img().size, CV_8UC1);
+		for (const auto& segm : file->segments) {
+			cv::UMat tmp;
+			segm->img.copyTo(tmp);
+			cv::UMat inv, invTh;
+			cv::bitwise_not(tmp, inv);
+			unsigned char th = cv::threshold(inv, invTh, 0, 255, cv::THRESH_OTSU);
+			cv::UMat adj(inv.size(), CV_8UC1);
+			cv::icemet::adjust(inv, adj, th, 255, 0, 255);
+			adj.copyTo(cv::UMat(preview, segm->rect));
+		}
+		fs::path dst(file->path(m_cfg->paths().preview, m_cfg->types().lossy));
+		cv::imwrite(dst.string(), preview.getMat(cv::ACCESS_READ));
+	}
 	
 	// Write SQL
 	for (int i = 0; i < n; i++) {
@@ -111,10 +106,7 @@ bool Saver::loop()
 		FilePtr file = files.front();
 		m_log.debug("Saving %s", file->name().c_str());
 		Measure m;
-		if (file->empty())
-			processEmpty(file);
-		else
-			process(file);
+		process(file);
 		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		m_log.info("Done %s", file->name().c_str());
 		files.pop();

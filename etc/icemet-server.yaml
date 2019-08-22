@@ -1,11 +1,10 @@
 # ICEMET Server config
 #
 
-# Folders
+# Files
 path_watch: "~/.icemet/watch"
 path_results: "~/.icemet/results"
-
-# Output file types
+save_results: "oprtv" # o=original, p=preproc, r=recon, t=threshold, v=preview
 type_results: "png"
 type_results_lossy: "jpg"
 

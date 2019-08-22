@@ -11,8 +11,6 @@ protected:
 	Database* m_db;
 	FileQueue* m_filesAnalysis;
 	
-	void moveOriginal(const FilePtr& file) const;
-	void processEmpty(const FilePtr& file) const;
 	void process(const FilePtr& file) const;
 	bool init() override;
 	bool loop() override;

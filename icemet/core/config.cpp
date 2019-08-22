@@ -54,6 +54,13 @@ void Config::load(const char* fn)
 		m_paths.threshold = m_paths.results / fs::path("threshold");
 		m_paths.preview = m_paths.results / fs::path("preview");
 		
+		std::string saves(node["save_results"].as<std::string>());
+		m_saves.original = saves.find('o') != std::string::npos;
+		m_saves.preproc = saves.find('p') != std::string::npos;
+		m_saves.recon = saves.find('r') != std::string::npos;
+		m_saves.threshold = saves.find('t') != std::string::npos;
+		m_saves.preview = saves.find('v') != std::string::npos;
+		
 		m_types.results = strToPath(node["type_results"].as<std::string>());
 		m_types.lossy = strToPath(node["type_results_lossy"].as<std::string>());
 		
