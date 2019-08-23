@@ -11,9 +11,9 @@ Preproc::Preproc(Config* cfg) :
 	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET),
 	m_cfg(cfg)
 {
-	if (m_cfg->bgsub().enabled) {
-		m_stackLen = m_cfg->bgsub().stackLen;
-		m_stack = cv::icemet::BGSubStack::create(m_cfg->img().size, m_stackLen);
+	if (m_cfg->bgsub.enabled) {
+		m_stackLen = m_cfg->bgsub.stackLen;
+		m_stack = cv::icemet::BGSubStack::create(m_cfg->img.size, m_stackLen);
 	}
 }
 
@@ -37,7 +37,7 @@ void Preproc::process(FilePtr file)
 	Measure m;
 	
 	// Check dynamic range
-	if (dynRange(file->original) < m_cfg->check().discard_th) {
+	if (dynRange(file->original) < m_cfg->check.discard_th) {
 		m_log.warning("Discard %s", file->name().c_str());
 		fs::remove(file->path());
 		return;
@@ -45,7 +45,7 @@ void Preproc::process(FilePtr file)
 	
 	// Crop
 	cv::UMat imgCrop;
-	cv::UMat(file->original, m_cfg->img().rect).copyTo(imgCrop);
+	cv::UMat(file->original, m_cfg->img.rect).copyTo(imgCrop);
 	
 	// Push to background subtraction stack
 	bool full = m_stack->push(imgCrop);
@@ -57,11 +57,11 @@ void Preproc::process(FilePtr file)
 		
 		// Perform median division if the background subtraction stack was full
 		if (full) {
-			fileDone->preproc = cv::UMat(m_cfg->img().size, CV_8UC1);
+			fileDone->preproc = cv::UMat(m_cfg->img.size, CV_8UC1);
 			m_stack->meddiv(fileDone->preproc);
 			
 			// Check dynamic range
-			if (dynRange(fileDone->preproc) < m_cfg->check().empty_th)
+			if (dynRange(fileDone->preproc) < m_cfg->check.empty_th)
 				fileDone->setEmpty(true);
 			else
 				fileDone->param.bgVal =  Math::median(fileDone->preproc);
@@ -81,17 +81,17 @@ void Preproc::processNoBgsub(FilePtr file)
 	Measure m;
 	
 	// Check dynamic range
-	if (dynRange(file->original) < m_cfg->check().discard_th) {
+	if (dynRange(file->original) < m_cfg->check.discard_th) {
 		m_log.warning("Discard %s", file->name().c_str());
 		fs::remove(file->path());
 		return;
 	}
 	
 	// Crop
-	cv::UMat(file->original, m_cfg->img().rect).copyTo(file->preproc);
+	cv::UMat(file->original, m_cfg->img.rect).copyTo(file->preproc);
 	
 	// Check dynamic range
-	if (dynRange(file->preproc) < m_cfg->check().empty_th)
+	if (dynRange(file->preproc) < m_cfg->check.empty_th)
 		file->setEmpty(true);
 	else
 		file->param.bgVal =  Math::median(file->preproc);
@@ -108,7 +108,7 @@ bool Preproc::loop()
 	
 	// Process
 	while (!files.empty()) {
-		if (m_cfg->bgsub().enabled)
+		if (m_cfg->bgsub.enabled)
 			process(files.front());
 		else
 			processNoBgsub(files.front());

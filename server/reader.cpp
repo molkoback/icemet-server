@@ -47,5 +47,5 @@ bool Reader::loop()
 		m_id = row.id+1;
 	}
 	msleep(10);
-	return m_cfg->args().waitNew || !rows.empty();
+	return m_cfg->args.waitNew || !rows.empty();
 }

@@ -87,25 +87,23 @@ int main(int argc, char* argv[])
 		
 		// Read config
 		Config cfg(args.cfgFile.c_str());
-		cfg.setArgs(args);
+		cfg.args = args;
 		
 		// Setup logging
 		Log::setLevel(args.loglevel);
 		
 		// Initialize OpenCL
-		const char* device = cfg.ocl().device.c_str();
+		const char* device = cfg.ocl.device.c_str();
 		std::vector<char> vec = vecfmt("OPENCV_OPENCL_DEVICE=%s", device);
 		if (putenv(&vec[0]) || !cv::ocl::useOpenCL())
 			throw std::runtime_error("OpenCL not available");
 		log.info("OpenCL device %s:%s", device, cv::ocl::Device::getDefault().name().c_str());
 		
 		// Connect to database
-		const ConnectionInfo& connInfo = cfg.connInfo();
-		const DatabaseInfo& dbInfo = cfg.dbInfo();
-		Database db(connInfo, dbInfo);
-		log.info("Database %s:%d/%s", connInfo.host.c_str(), connInfo.port, dbInfo.name.c_str());
-		log.info("Particle table '%s'", dbInfo.particleTable.c_str());
-		log.info("Stats table '%s'", dbInfo.statsTable.c_str());
+		Database db(cfg.connInfo, cfg.dbInfo);
+		log.info("Database %s:%d/%s", cfg.connInfo.host.c_str(), cfg.connInfo.port, cfg.dbInfo.name.c_str());
+		log.info("Particle table '%s'", cfg.dbInfo.particleTable.c_str());
+		log.info("Stats table '%s'", cfg.dbInfo.statsTable.c_str());
 		
 		// Create workers
 		Watcher watcher(&cfg);

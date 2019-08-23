@@ -14,14 +14,14 @@ Stats::Stats(Config* cfg, Database* db) :
 	m_cfg(cfg),
 	m_db(db)
 {
-	int wpx = m_cfg->img().size.width - 2*m_cfg->img().border.width;
-	int hpx = m_cfg->img().size.height - 2*m_cfg->img().border.height;
-	double z0 = m_cfg->hologram().z0;
-	double z1 = m_cfg->hologram().z1;
-	double psz = m_cfg->hologram().psz;
-	double dist = m_cfg->hologram().dist;
+	int wpx = m_cfg->img.size.width - 2*m_cfg->img.border.width;
+	int hpx = m_cfg->img.size.height - 2*m_cfg->img.border.height;
+	double z0 = m_cfg->hologram.z0;
+	double z1 = m_cfg->hologram.z1;
+	double psz = m_cfg->hologram.psz;
+	double dist = m_cfg->hologram.dist;
 	
-	double h = m_cfg->hologram().z1 - m_cfg->hologram().z0;
+	double h = m_cfg->hologram.z1 - m_cfg->hologram.z0;
 	int Apx = wpx * hpx;
 	double pszcam = psz / cv::icemet::Hologram::magnf(dist, z1);
 	double pszlsr = psz / cv::icemet::Hologram::magnf(dist, z0);
@@ -64,7 +64,7 @@ void Stats::fillStatsRow(StatsRow& row) const
 	cv::icemet::hist(
 		m_particles.getUMat(cv::ACCESS_READ),
 		counts, bins,
-		m_cfg->particle().diamMin, m_cfg->particle().diamMax, m_cfg->particle().diamStep
+		m_cfg->particle.diamMin, m_cfg->particle.diamMax, m_cfg->particle.diamStep
 	);
 	cv::Mat N, D;
 	counts.convertTo(N, CV_64FC1);
@@ -124,14 +124,14 @@ void Stats::statsPoint() const
 bool Stats::particleValid(const ParticlePtr& par) const
 {
 	return (
-		par->z >= m_cfg->particle().zMin &&
-		par->z <= m_cfg->particle().zMax &&
-		par->diam >= m_cfg->particle().diamMin &&
-		par->diam <= m_cfg->particle().diamMax &&
-		par->circularity >= m_cfg->particle().circMin &&
-		par->circularity <= m_cfg->particle().circMax &&
-		par->dynRange >= m_cfg->particle().dynRangeMin &&
-		par->dynRange <= m_cfg->particle().dynRangeMax
+		par->z >= m_cfg->particle.zMin &&
+		par->z <= m_cfg->particle.zMax &&
+		par->diam >= m_cfg->particle.diamMin &&
+		par->diam <= m_cfg->particle.diamMax &&
+		par->circularity >= m_cfg->particle.circMin &&
+		par->circularity <= m_cfg->particle.circMax &&
+		par->dynRange >= m_cfg->particle.dynRangeMin &&
+		par->dynRange <= m_cfg->particle.dynRangeMax
 	);
 }
 

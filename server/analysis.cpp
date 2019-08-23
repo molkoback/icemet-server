@@ -30,7 +30,7 @@ bool Analysis::analyse(const FilePtr& file, const SegmentPtr& segm, ParticlePtr&
 	cv::Point minLoc, maxLoc;
 	cv::minMaxLoc(segm->img, &min, &max, &minLoc, &maxLoc);
 	double bg = file->param.bgVal;
-	double f = m_cfg->particle().thFact;
+	double f = m_cfg->particle.thFact;
 	int th = bg - f*(bg-min);
 	
 	// Apply threshold
@@ -79,23 +79,23 @@ bool Analysis::analyse(const FilePtr& file, const SegmentPtr& segm, ParticlePtr&
 	// Allocate particle
 	par = cv::makePtr<Particle>();
 	par->img = imgPar;
-	par->effPxSz = m_cfg->hologram().psz / cv::icemet::Hologram::magnf(m_cfg->hologram().dist, segm->z);
+	par->effPxSz = m_cfg->hologram.psz / cv::icemet::Hologram::magnf(m_cfg->hologram.dist, segm->z);
 	
 	// Calculate diameter and apply correction
 	double diam = par->effPxSz * Math::equivdiam(area);
 	double diamCorr = 1.0;
-	double D0 = m_cfg->diamCorr().D0;
-	double D1 = m_cfg->diamCorr().D1;
-	if (m_cfg->diamCorr().enabled && diam < D1 && diam > D0) {
-		double f0 = m_cfg->diamCorr().f0;
-		double f1 = m_cfg->diamCorr().f1;
+	double D0 = m_cfg->diamCorr.D0;
+	double D1 = m_cfg->diamCorr.D1;
+	if (m_cfg->diamCorr.enabled && diam < D1 && diam > D0) {
+		double f0 = m_cfg->diamCorr.f0;
+		double f1 = m_cfg->diamCorr.f1;
 		diamCorr = (diam-D0) * (f1-f0) / (D1-D0) + f0;
 		diam *= diamCorr;
 	}
 	
 	// Save properties
-	par->x = par->effPxSz * (segm->rect.x + center.x - m_cfg->img().border.width);
-	par->y = par->effPxSz * (segm->rect.y + center.y - m_cfg->img().border.height);
+	par->x = par->effPxSz * (segm->rect.x + center.x - m_cfg->img.border.width);
+	par->y = par->effPxSz * (segm->rect.y + center.y - m_cfg->img.border.height);
 	par->z = segm->z;
 	par->diam = diam;
 	par->diamCorr = diamCorr;

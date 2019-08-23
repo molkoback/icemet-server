@@ -14,7 +14,7 @@ Saver::Saver(Config* cfg, Database* db) :
 	m_cfg(cfg),
 	m_db(db)
 {
-	m_log.info("Results %s", m_cfg->paths().results.string().c_str());
+	m_log.info("Results %s", m_cfg->paths.results.string().c_str());
 }
 
 bool Saver::init()
@@ -28,11 +28,11 @@ void Saver::process(const FilePtr& file) const
 	int n = file->particles.size();
 	
 	// Save files
-	if (m_cfg->saves().original) {
-		fs::create_directories(file->dir(m_cfg->paths().original));
+	if (m_cfg->saves.original) {
+		fs::create_directories(file->dir(m_cfg->paths.original));
 		
 		fs::path src(file->path());
-		fs::path dst = file->path(m_cfg->paths().original, src.extension());
+		fs::path dst = file->path(m_cfg->paths.original, src.extension());
 		if (fs::exists(dst))
 			fs::remove(dst);
 		fs::rename(src, dst);
@@ -40,32 +40,32 @@ void Saver::process(const FilePtr& file) const
 	else {
 		fs::remove(file->path());
 	}
-	if (m_cfg->saves().preproc && file->preproc.u) {
-		fs::create_directories(file->dir(m_cfg->paths().preproc));
+	if (m_cfg->saves.preproc && file->preproc.u) {
+		fs::create_directories(file->dir(m_cfg->paths.preproc));
 		
-		fs::path dst(file->path(m_cfg->paths().preproc, m_cfg->types().results));
+		fs::path dst(file->path(m_cfg->paths.preproc, m_cfg->types.results));
 		cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
 	}
-	if (m_cfg->saves().recon && !file->empty()) {
-		fs::create_directories(file->dir(m_cfg->paths().recon));
+	if (m_cfg->saves.recon && !file->empty()) {
+		fs::create_directories(file->dir(m_cfg->paths.recon));
 		
 		for (int i = 0; i < n; i++) {
-			fs::path dst(file->path(m_cfg->paths().recon, m_cfg->types().results, i+1));
+			fs::path dst(file->path(m_cfg->paths.recon, m_cfg->types.results, i+1));
 			cv::imwrite(dst.string(), file->segments[i]->img);
 		}
 	}
-	if (m_cfg->saves().threshold && !file->empty()) {
-		fs::create_directories(file->dir(m_cfg->paths().threshold));
+	if (m_cfg->saves.threshold && !file->empty()) {
+		fs::create_directories(file->dir(m_cfg->paths.threshold));
 		
 		for (int i = 0; i < n; i++) {
-			fs::path dst(file->path(m_cfg->paths().threshold, m_cfg->types().results, i+1));
+			fs::path dst(file->path(m_cfg->paths.threshold, m_cfg->types.results, i+1));
 			cv::imwrite(dst.string(), file->particles[i]->img);
 		}
 	}
-	if (m_cfg->saves().preview && !file->empty()) {
-		fs::create_directories(file->dir(m_cfg->paths().preview));
+	if (m_cfg->saves.preview && !file->empty()) {
+		fs::create_directories(file->dir(m_cfg->paths.preview));
 		
-		cv::UMat preview = cv::UMat::zeros(m_cfg->img().size, CV_8UC1);
+		cv::UMat preview = cv::UMat::zeros(m_cfg->img.size, CV_8UC1);
 		for (const auto& segm : file->segments) {
 			cv::UMat tmp;
 			segm->img.copyTo(tmp);
@@ -76,7 +76,7 @@ void Saver::process(const FilePtr& file) const
 			cv::icemet::adjust(inv, adj, th, 255, 0, 255);
 			adj.copyTo(cv::UMat(preview, segm->rect));
 		}
-		fs::path dst(file->path(m_cfg->paths().preview, m_cfg->types().lossy));
+		fs::path dst(file->path(m_cfg->paths.preview, m_cfg->types.lossy));
 		cv::imwrite(dst.string(), preview.getMat(cv::ACCESS_READ));
 	}
 	

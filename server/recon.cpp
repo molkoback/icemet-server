@@ -14,14 +14,14 @@ Recon::Recon(Config* cfg) :
 	m_cfg(cfg)
 {
 	m_hologram = cv::icemet::Hologram::create(
-		m_cfg->img().size,
-		m_cfg->hologram().psz, m_cfg->hologram().lambda,
-		m_cfg->hologram().dist
+		m_cfg->img.size,
+		m_cfg->hologram.psz, m_cfg->hologram.lambda,
+		m_cfg->hologram.dist
 	);
 	
 	// Create filters
-	if (m_cfg->lpf().enabled)
-		m_lpf = m_hologram->createLPF(m_cfg->lpf().f);
+	if (m_cfg->lpf.enabled)
+		m_lpf = m_hologram->createLPF(m_cfg->lpf.f);
 }
 
 bool Recon::init()
@@ -33,25 +33,25 @@ bool Recon::init()
 
 void Recon::process(FilePtr file)
 {
-	cv::Size2i size = m_cfg->img().size;
-	cv::Size2i border = m_cfg->img().border;
+	cv::Size2i size = m_cfg->img.size;
+	cv::Size2i border = m_cfg->img.border;
 	cv::Rect crop(
 		border.width, border.height,
 		size.width-2*border.width, size.height-2*border.height
 	);
 	
-	float focusK = m_cfg->hologram().focusK;
-	int segmNMax = m_cfg->segment().nMax;
-	int segmSizeMin = m_cfg->segment().sizeMin;
-	int segmSizeSmall = m_cfg->segment().sizeSmall;
-	int pad = m_cfg->segment().pad;
+	float focusK = m_cfg->hologram.focusK;
+	int segmNMax = m_cfg->segment.nMax;
+	int segmSizeMin = m_cfg->segment.sizeMin;
+	int segmSizeSmall = m_cfg->segment.sizeSmall;
+	int pad = m_cfg->segment.pad;
 	
-	float z0 = m_cfg->hologram().z0;
-	float z1 = m_cfg->hologram().z1;
-	float ldz = m_cfg->hologram().dz;
-	float dz = m_cfg->hologram().step*ldz;
+	float z0 = m_cfg->hologram.z0;
+	float z1 = m_cfg->hologram.z1;
+	float ldz = m_cfg->hologram.dz;
+	float dz = m_cfg->hologram.step*ldz;
 	
-	int th = m_cfg->segment().thFact * file->param.bgVal;
+	int th = m_cfg->segment.thFact * file->param.bgVal;
 	
 	// Set our image and apply filters
 	m_hologram->setImg(file->preproc);

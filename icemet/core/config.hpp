@@ -108,22 +108,6 @@ typedef struct _ocl_param {
 
 class Config {
 private:
-	Arguments m_args;
-	Paths m_paths;
-	Saves m_saves;
-	Types m_types;
-	ConnectionInfo m_connInfo;
-	DatabaseInfo m_dbInfo;
-	ImageParam m_img;
-	BGSubParam m_bgsub;
-	CheckParam m_check;
-	FilterParam m_lpf;
-	HologramParam m_hologram;
-	SegmentParam m_segment;
-	ParticleParam m_particle;
-	DiameterCorrection m_diamCorr;
-	OCLParam m_ocl;
-	
 	fs::path strToPath(const std::string& str) const;
 
 public:
@@ -133,23 +117,21 @@ public:
 	
 	void load(const char* fn);
 	
-	void setArgs(const Arguments& args) { m_args = args; }
-	
-	const Arguments& args() const { return m_args; }
-	const Paths& paths() const { return m_paths; }
-	const Saves& saves() const { return m_saves; }
-	const Types& types() const { return m_types; }
-	const ConnectionInfo& connInfo() const { return m_connInfo; }
-	const DatabaseInfo& dbInfo() const { return m_dbInfo; }
-	const ImageParam& img() const { return m_img; }
-	const BGSubParam& bgsub() const { return m_bgsub; }
-	const CheckParam check() const { return m_check; }
-	const FilterParam lpf() const { return m_lpf; }
-	const HologramParam& hologram() const { return m_hologram; }
-	const SegmentParam& segment() const { return m_segment; }
-	const ParticleParam& particle() const { return m_particle; }
-	const DiameterCorrection& diamCorr() const { return m_diamCorr; }
-	const OCLParam& ocl() const { return m_ocl; }
+	Arguments args;
+	Paths paths;
+	Saves saves;
+	Types types;
+	ConnectionInfo connInfo;
+	DatabaseInfo dbInfo;
+	ImageParam img;
+	BGSubParam bgsub;
+	CheckParam check;
+	FilterParam lpf;
+	HologramParam hologram;
+	SegmentParam segment;
+	ParticleParam particle;
+	DiameterCorrection diamCorr;
+	OCLParam ocl;
 };
 
 #endif

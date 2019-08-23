@@ -14,7 +14,7 @@ Watcher::Watcher(Config* cfg) :
 	m_prev(cv::makePtr<File>())
 {
 	
-	m_log.info("Watching %s", m_cfg->paths().watch.string().c_str());
+	m_log.info("Watching %s", m_cfg->paths.watch.string().c_str());
 }
 
 bool Watcher::init()
@@ -27,7 +27,7 @@ void Watcher::findFiles(std::queue<cv::Ptr<File>>& files)
 {
 	// Find files
 	std::vector<cv::Ptr<File>> filesVec;
-	auto iter = fs::recursive_directory_iterator(m_cfg->paths().watch);
+	auto iter = fs::recursive_directory_iterator(m_cfg->paths.watch);
 	for (const auto& entry : iter) {
 		if (!entry.is_regular_file())
 			continue;
@@ -79,7 +79,7 @@ bool Watcher::loop()
 		files.pop();
 	}
 	
-	if (!m_cfg->args().waitNew)
+	if (!m_cfg->args.waitNew)
 		return false;
 	ssleep(1);
 	return !m_outputs.empty();
