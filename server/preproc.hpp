@@ -20,6 +20,7 @@ protected:
 	
 	int dynRange(const cv::UMat& img) const;
 	void process(FilePtr file);
+	void processNoBgsub(FilePtr file);
 	bool init() override;
 	bool loop() override;
 

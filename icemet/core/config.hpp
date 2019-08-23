@@ -48,8 +48,14 @@ typedef struct _image_param {
 } ImageParam;
 
 typedef struct _bgsub_param {
+	bool enabled;
 	int stackLen;
 } BGSubParam;
+
+typedef struct _check_param {
+	int discard_th;
+	int empty_th;
+} CheckParam;
 
 typedef struct _filter_param {
 	bool enabled;
@@ -110,6 +116,7 @@ private:
 	DatabaseInfo m_dbInfo;
 	ImageParam m_img;
 	BGSubParam m_bgsub;
+	CheckParam m_check;
 	FilterParam m_lpf;
 	HologramParam m_hologram;
 	SegmentParam m_segment;
@@ -136,6 +143,7 @@ public:
 	const DatabaseInfo& dbInfo() const { return m_dbInfo; }
 	const ImageParam& img() const { return m_img; }
 	const BGSubParam& bgsub() const { return m_bgsub; }
+	const CheckParam check() const { return m_check; }
 	const FilterParam lpf() const { return m_lpf; }
 	const HologramParam& hologram() const { return m_hologram; }
 	const SegmentParam& segment() const { return m_segment; }

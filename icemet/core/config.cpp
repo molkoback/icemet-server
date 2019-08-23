@@ -73,7 +73,11 @@ void Config::load(const char* fn)
 		m_img.border.width = node["img_ignore_x"].as<int>();
 		m_img.border.height = node["img_ignore_y"].as<int>();
 		
+		m_bgsub.enabled = node["bgsub"].as<bool>();
 		m_bgsub.stackLen = node["bgsub_stack_len"].as<int>();
+		
+		m_check.discard_th = node["discard_th"].as<int>();
+		m_check.empty_th = node["empty_th"].as<int>();
 		
 		m_lpf.enabled = node["filt_lowpass"].as<bool>();
 		m_lpf.f = node["filt_lowpass_f"].as<float>();

@@ -7,18 +7,14 @@
 
 #include <exception>
 
-/* Opened images with dynamic range smaller than this will be removed. */
-#define ORIGINAL_EMPTY_TH 50
-
-/* Preprocessed images with dynamic range smaller than this will be marked as empty. */
-#define PREPROC_EMPTY_TH 10
-
 Preproc::Preproc(Config* cfg) :
 	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET),
 	m_cfg(cfg)
 {
-	m_stackLen = m_cfg->bgsub().stackLen;
-	m_stack = cv::icemet::BGSubStack::create(m_cfg->img().size, m_stackLen);
+	if (m_cfg->bgsub().enabled) {
+		m_stackLen = m_cfg->bgsub().stackLen;
+		m_stack = cv::icemet::BGSubStack::create(m_cfg->img().size, m_stackLen);
+	}
 }
 
 bool Preproc::init()
@@ -41,7 +37,7 @@ void Preproc::process(FilePtr file)
 	Measure m;
 	
 	// Check dynamic range
-	if (dynRange(file->original) < ORIGINAL_EMPTY_TH) {
+	if (dynRange(file->original) < m_cfg->check().discard_th) {
 		m_log.warning("Discard %s", file->name().c_str());
 		fs::remove(file->path());
 		return;
@@ -65,7 +61,7 @@ void Preproc::process(FilePtr file)
 			m_stack->meddiv(fileDone->preproc);
 			
 			// Check dynamic range
-			if (dynRange(fileDone->preproc) < PREPROC_EMPTY_TH)
+			if (dynRange(fileDone->preproc) < m_cfg->check().empty_th)
 				fileDone->setEmpty(true);
 			else
 				fileDone->param.bgVal =  Math::median(fileDone->preproc);
@@ -79,6 +75,31 @@ void Preproc::process(FilePtr file)
 	}
 }
 
+void Preproc::processNoBgsub(FilePtr file)
+{
+	m_log.debug("Processing %s", file->name().c_str());
+	Measure m;
+	
+	// Check dynamic range
+	if (dynRange(file->original) < m_cfg->check().discard_th) {
+		m_log.warning("Discard %s", file->name().c_str());
+		fs::remove(file->path());
+		return;
+	}
+	
+	// Crop
+	cv::UMat(file->original, m_cfg->img().rect).copyTo(file->preproc);
+	
+	// Check dynamic range
+	if (dynRange(file->preproc) < m_cfg->check().empty_th)
+		file->setEmpty(true);
+	else
+		file->param.bgVal =  Math::median(file->preproc);
+	
+	m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+	m_filesPreproc->push(file);
+}
+
 bool Preproc::loop()
 {
 	// Collect files
@@ -87,7 +108,10 @@ bool Preproc::loop()
 	
 	// Process
 	while (!files.empty()) {
-		process(files.front());
+		if (m_cfg->bgsub().enabled)
+			process(files.front());
+		else
+			processNoBgsub(files.front());
 		files.pop();
 	}
 	msleep(1);
