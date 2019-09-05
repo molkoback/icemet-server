@@ -7,7 +7,7 @@
 #include <exception>
 #include <stdexcept>
 
-Config::Config(const char* fn)
+Config::Config(const fs::path& fn)
 {
 	load(fn);
 }
@@ -36,10 +36,10 @@ fs::path Config::strToPath(const std::string& str) const
 	return p;
 }
 
-void Config::load(const char* fn)
+void Config::load(const fs::path& fn)
 {
 	try {
-		YAML::Node node = YAML::LoadFile(fn);
+		YAML::Node node = YAML::LoadFile(fn.string());
 		
 		connInfo.host = node["sql_host"].as<std::string>();
 		connInfo.port = node["sql_port"].as<int>();
@@ -86,9 +86,9 @@ void Config::load(const char* fn)
 		lpf.enabled = node["filt_lowpass"].as<bool>();
 		lpf.f = node["filt_lowpass_f"].as<float>();
 		
-		hologram.z0 = node["holo_z_start"].as<float>();
-		hologram.z1 = node["holo_z_end"].as<float>();
-		hologram.dz = node["holo_z_step"].as<float>();
+		hologram.z.start = node["holo_z_start"].as<float>();
+		hologram.z.stop = node["holo_z_end"].as<float>();
+		hologram.z.step = node["holo_z_step"].as<float>();
 		hologram.psz = node["holo_pixel_size"].as<float>();
 		hologram.lambda = node["holo_lambda"].as<float>();
 		hologram.dist = node["holo_collimated"].as<bool>() ? 0.0 : node["holo_distance"].as<float>();

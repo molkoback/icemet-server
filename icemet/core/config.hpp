@@ -6,16 +6,18 @@
 #include "icemet/util/log.hpp"
 
 #include <opencv2/core.hpp>
+#include <opencv2/icemet.hpp>
 
 #include <string>
 
 typedef struct _arguments {
-	std::string cfgFile;
+	fs::path cfgFile;
+	fs::path root;
 	bool waitNew;
 	bool statsOnly;
 	LogLevel loglevel;
 	
-	_arguments() : cfgFile(std::string()), waitNew(true), statsOnly(false), loglevel(LOG_INFO) {}
+	_arguments() : cfgFile(fs::path()), root(fs::path(".")), waitNew(true), statsOnly(false), loglevel(LOG_INFO) {}
 } Arguments;
 
 typedef struct _paths {
@@ -63,9 +65,7 @@ typedef struct _filter_param {
 } FilterParam;
 
 typedef struct _hologram_param {
-	float z0;
-	float z1;
-	float dz;
+	cv::icemet::ZRange z;
 	float dist;
 	float psz;
 	float lambda;
@@ -112,10 +112,10 @@ private:
 
 public:
 	Config() {}
-	Config(const char* fn);
+	Config(const fs::path& fn);
 	Config(const Config& cfg);
 	
-	void load(const char* fn);
+	void load(const fs::path& fn);
 	
 	Arguments args;
 	Paths paths;

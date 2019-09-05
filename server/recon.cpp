@@ -46,10 +46,9 @@ void Recon::process(FilePtr file)
 	int segmSizeSmall = m_cfg->segment.sizeSmall;
 	int pad = m_cfg->segment.pad;
 	
-	float z0 = m_cfg->hologram.z0;
-	float z1 = m_cfg->hologram.z1;
-	float ldz = m_cfg->hologram.dz;
-	float dz = m_cfg->hologram.step*ldz;
+	cv::icemet::ZRange gz = m_cfg->hologram.z;
+	gz.step *= m_cfg->hologram.step;
+	cv::icemet::ZRange lz = m_cfg->hologram.z;
 	
 	int th = m_cfg->segment.thFact * file->param.bgVal;
 	
@@ -61,11 +60,12 @@ void Recon::process(FilePtr file)
 	// Reconstruct whole range in steps
 	int count = 0;
 	int ncontours = 0;
-	for (float lz0 = z0; lz0 < z1; lz0 += dz) {
-		float lz1 = std::min(lz0 + dz, z1);
-		int last = roundf((lz1 - lz0) / ldz) - 1;
+	for (; gz.start < gz.stop; gz.start += gz.step) {
+		lz.start = gz.start;
+		lz.stop = std::min(lz.start+gz.step, gz.stop);
+		int last = lz.n() - 1;
 		cv::UMat imgMin;
-		m_hologram->reconMin(m_stack, imgMin, lz0, lz1, ldz);
+		m_hologram->reconMin(m_stack, imgMin, lz);
 		
 		// Threshold
 		cv::UMat imgTh;
@@ -107,7 +107,7 @@ void Recon::process(FilePtr file)
 			
 			// Create segment
 			SegmentPtr segm = cv::makePtr<Segment>();
-			segm->z = lz0 + idx*ldz;
+			segm->z = lz.z(idx);
 			segm->score = score;
 			segm->method = method;
 			segm->rect = rect;

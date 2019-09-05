@@ -40,7 +40,7 @@ void Saver::process(const FilePtr& file) const
 	else {
 		fs::remove(file->path());
 	}
-	if (m_cfg->saves.preproc && file->preproc.u) {
+	if (m_cfg->saves.preproc && !file->preproc.empty()) {
 		fs::create_directories(file->dir(m_cfg->paths.preproc));
 		
 		fs::path dst(file->path(m_cfg->paths.preproc, m_cfg->types.results));

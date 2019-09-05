@@ -46,6 +46,7 @@ static int cvErrorHandler(int status, const char* func, const char* msg, const c
 int main(int argc, char* argv[])
 {
 	Arguments args;
+	args.root = fs::path(argv[0]).parent_path();
 	for (int i = 1; i < argc; i++) {
 		std::string arg(argv[i]);
 		if (arg[0] == '-') {

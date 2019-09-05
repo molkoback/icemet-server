@@ -16,12 +16,12 @@ Stats::Stats(Config* cfg, Database* db) :
 {
 	int wpx = m_cfg->img.size.width - 2*m_cfg->img.border.width;
 	int hpx = m_cfg->img.size.height - 2*m_cfg->img.border.height;
-	double z0 = m_cfg->hologram.z0;
-	double z1 = m_cfg->hologram.z1;
+	double z0 = m_cfg->hologram.z.start;
+	double z1 = m_cfg->hologram.z.stop;
 	double psz = m_cfg->hologram.psz;
 	double dist = m_cfg->hologram.dist;
 	
-	double h = m_cfg->hologram.z1 - m_cfg->hologram.z0;
+	double h = z1 - z0;
 	int Apx = wpx * hpx;
 	double pszcam = psz / cv::icemet::Hologram::magnf(dist, z1);
 	double pszlsr = psz / cv::icemet::Hologram::magnf(dist, z0);
@@ -172,7 +172,10 @@ bool Stats::loop()
 		FilePtr file = files.front();
 		m_log.debug("Analysing %s", file->name().c_str());
 		Measure m;
-		process(file);
+		
+		// Skip files that haven't been preprocessed
+		if (!file->preproc.empty())
+			process(file);
 		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		files.pop();
 	}
