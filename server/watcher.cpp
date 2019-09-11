@@ -61,6 +61,8 @@ bool Watcher::loop()
 		
 		// Check if the file is new
 		if (*file > *m_prev) {
+			Measure m;
+			
 			// Open the image
 			std::string fn(file->path().string());
 			cv::Mat mat = cv::imread(fn, cv::IMREAD_GRAYSCALE);
@@ -72,7 +74,7 @@ bool Watcher::loop()
 			
 			// Push to output queue
 			file->setEmpty(false);
-			m_log.debug("Found %s", file->name().c_str());
+			m_log.debug("Opened %s (%.2f s)", file->name().c_str(), m.time());
 			m_filesOriginal->push(file);
 			m_prev = file;
 		}
