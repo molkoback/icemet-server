@@ -16,18 +16,18 @@ Stats::Stats(Config* cfg, Database* db) :
 {
 	int wpx = m_cfg->img.size.width - 2*m_cfg->img.border.width;
 	int hpx = m_cfg->img.size.height - 2*m_cfg->img.border.height;
-	double z0 = m_cfg->hologram.z.start;
-	double z1 = m_cfg->hologram.z.stop;
+	double z0 = m_cfg->particle.zMin;
+	double z1 = m_cfg->particle.zMax;
 	double psz = m_cfg->hologram.psz;
 	double dist = m_cfg->hologram.dist;
 	
 	double h = z1 - z0;
 	int Apx = wpx * hpx;
-	double pszcam = psz / cv::icemet::Hologram::magnf(dist, z1);
-	double pszlsr = psz / cv::icemet::Hologram::magnf(dist, z0);
-	double Acam = Apx * pszcam*pszcam;
-	double Alsr = Apx * pszlsr*pszlsr;
-	m_V = Math::Vcone(h, Acam, Alsr);
+	double pszZ0 = psz / cv::icemet::Hologram::magnf(dist, z0);
+	double pszZ1 = psz / cv::icemet::Hologram::magnf(dist, z1);
+	double AZ0 = Apx * pszZ0*pszZ0;
+	double AZ1 = Apx * pszZ1*pszZ1;
+	m_V = Math::Vcone(h, AZ0, AZ1);
 	m_log.debug("Measurement volume %.2f cm3", m_V * 1000000);
 	
 	reset();
