@@ -65,19 +65,28 @@ void Saver::process(const FilePtr& file) const
 	if (m_cfg->saves.preview && !file->empty()) {
 		fs::create_directories(file->dir(m_cfg->paths.preview));
 		
-		cv::UMat preview = cv::UMat::zeros(m_cfg->img.size, CV_8UC1);
+		cv::Mat preview = cv::Mat::zeros(m_cfg->img.size, CV_8UC1);
 		for (const auto& segm : file->segments) {
-			cv::UMat tmp;
-			segm->img.copyTo(tmp);
-			cv::UMat inv, invTh;
-			cv::bitwise_not(tmp, inv);
-			unsigned char th = cv::threshold(inv, invTh, 0, 255, cv::THRESH_OTSU);
-			cv::UMat adj(inv.size(), CV_8UC1);
-			cv::icemet::adjust(inv, adj, th, 255, 0, 255);
-			adj.copyTo(cv::UMat(preview, segm->rect));
+			// Invert
+			cv::Mat imgInv;
+			cv::bitwise_not(segm->img, imgInv);
+			
+			// Adjust
+			cv::Mat imgTh, imgAdj;
+			unsigned char th = cv::threshold(imgInv, imgTh, 0, 255, cv::THRESH_OTSU);
+			cv::icemet::adjust(imgInv, imgAdj, th, 255, 0, 255);
+			
+			// Draw
+			cv::Rect rect(
+				segm->rect.x + imgAdj.cols/2,
+				segm->rect.y + imgAdj.rows/2,
+				imgAdj.cols,
+				imgAdj.rows
+			);
+			imgAdj.copyTo(cv::Mat(preview, rect));
 		}
 		fs::path dst(file->path(m_cfg->paths.preview, m_cfg->types.lossy));
-		cv::imwrite(dst.string(), preview.getMat(cv::ACCESS_READ));
+		cv::imwrite(dst.string(), preview);
 	}
 	
 	// Write SQL
