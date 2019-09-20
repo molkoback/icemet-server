@@ -118,6 +118,9 @@ void Config::load(const fs::path& fn)
 		diamCorr.f0 = node["diam_correction_start_factor"].as<float>();
 		diamCorr.f1 = node["diam_correction_end_factor"].as<float>();
 		
+		stats.time = node["stats_time"].as<int>();
+		stats.frames = node["stats_frames"].as<int>();
+		
 		ocl.device = node["ocl_device"].as<std::string>();
 	}
 	catch (std::exception& e) {

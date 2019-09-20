@@ -30,6 +30,8 @@ Stats::Stats(Config* cfg, Database* db) :
 	m_V = Math::Vcone(h, AZ0, AZ1);
 	m_log.debug("Measurement volume %.2f cm3", m_V * 1000000);
 	
+	m_len = m_cfg->stats.time * 1000;
+	
 	reset();
 }
 
@@ -44,20 +46,21 @@ void Stats::reset(const DateTime& dt)
 	m_particles = cv::Mat(0, 0, CV_64F);
 	m_frames = 0;
 	
-	m_dt = dt;
-	m_dt.setSec(0);
-	m_dt.setMillis(0);
+	m_dt.setStamp(dt.stamp() / m_len * m_len);
 }
 
 void Stats::fillStatsRow(StatsRow& row) const
 {
+	// Use fixed frames in -s mode
+	unsigned int frames = m_cfg->args.statsOnly ? m_cfg->stats.frames : m_frames;
+	
 	unsigned int particles = m_particles.rows;
 	if (!particles) {
-		row = {0, m_dt, 0.0, 0.0, 0.0, m_frames, 0};
+		row = {0, m_dt, 0.0, 0.0, 0.0, frames, 0};
 		return;
 	}
 	
-	double Vtot = m_V * m_frames; // Total measurement volume (m3)
+	double Vtot = m_V * frames; // Total measurement volume (m3)
 	
 	// Create histogram
 	cv::Mat counts, bins;
@@ -106,7 +109,7 @@ void Stats::fillStatsRow(StatsRow& row) const
 	// Concentration
 	float conc = particles / Vtot;
 	
-	row = {0, m_dt, lwc, mvd, conc, m_frames, particles};
+	row = {0, m_dt, lwc, mvd, conc, frames, particles};
 }
 
 void Stats::statsPoint() const
@@ -115,8 +118,8 @@ void Stats::statsPoint() const
 	fillStatsRow(row);
 	m_db->writeStats(row);
 	m_log.info(
-		"[%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
-		 m_dt.hour(), m_dt.min(),
+		"[%02d:%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
+		 m_dt.hour(), m_dt.min(), m_dt.sec(),
 		 row.lwc, row.mvd*1000000, row.conc/1000000
 	);
 }
@@ -144,7 +147,7 @@ void Stats::process(const FilePtr& file)
 		reset(dt);
 	
 	// Create a new stats point if the minutes differ
-	if (dt.min() != m_dt.min()) {
+	if (dt.stamp() - m_dt.stamp() >= m_len) {
 		statsPoint();
 		reset(dt);
 	}

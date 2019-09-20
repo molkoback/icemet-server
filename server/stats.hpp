@@ -12,9 +12,10 @@ protected:
 	Database* m_db;
 	FileQueue* m_filesAnalysis;
 	double m_V;
+	DateTime m_dt;
+	Timestamp m_len;
 	cv::Mat m_particles;
 	unsigned int m_frames;
-	DateTime m_dt;
 	
 	void reset(const DateTime& dt=DateTime());
 	void fillStatsRow(StatsRow& row) const;

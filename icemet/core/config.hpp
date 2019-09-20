@@ -102,6 +102,11 @@ typedef struct _diameter_correction {
 	float f1;
 } DiameterCorrection;
 
+typedef struct _stats_param {
+	unsigned int time;
+	unsigned int frames;
+} StatsParam;
+
 typedef struct _ocl_param {
 	std::string device;
 } OCLParam;
@@ -131,6 +136,7 @@ public:
 	SegmentParam segment;
 	ParticleParam particle;
 	DiameterCorrection diamCorr;
+	StatsParam stats;
 	OCLParam ocl;
 };
 
