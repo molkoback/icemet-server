@@ -173,8 +173,8 @@ bool Stats::loop()
 		m_log.debug("Analysing %s", file->name().c_str());
 		Measure m;
 		
-		// Skip files that haven't been preprocessed
-		if (!file->preproc.empty())
+		// Skip files that haven't been preprocessed (the first few files)
+		if (m_cfg->args.statsOnly || !file->preproc.empty())
 			process(file);
 		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		files.pop();
