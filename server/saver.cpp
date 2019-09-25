@@ -77,13 +77,7 @@ void Saver::process(const FilePtr& file) const
 			cv::icemet::adjust(imgInv, imgAdj, th, 255, 0, 255);
 			
 			// Draw
-			cv::Rect rect(
-				segm->rect.x + imgAdj.cols/2,
-				segm->rect.y + imgAdj.rows/2,
-				imgAdj.cols,
-				imgAdj.rows
-			);
-			imgAdj.copyTo(cv::Mat(preview, rect));
+			imgAdj.copyTo(cv::Mat(preview, segm->rect));
 		}
 		fs::path dst(file->path(m_cfg->paths.preview, m_cfg->types.lossy));
 		cv::imwrite(dst.string(), preview);
