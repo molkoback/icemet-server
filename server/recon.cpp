@@ -58,6 +58,7 @@ void Recon::process(FilePtr file)
 		m_hologram->applyFilter(m_lpf);
 	
 	// Reconstruct whole range in steps
+	int iter = 0;
 	int count = 0;
 	int ncontours = 0;
 	for (; gz.start < gz.stop; gz.start += gz.step) {
@@ -108,6 +109,7 @@ void Recon::process(FilePtr file)
 			// Create segment
 			SegmentPtr segm = cv::makePtr<Segment>();
 			segm->z = lz.z(idx);
+			segm->iter = iter;
 			segm->score = score;
 			segm->method = method;
 			segm->rect = rect;
@@ -119,6 +121,7 @@ void Recon::process(FilePtr file)
 				goto end;
 			}
 		}
+		iter++;
 	}
 	if (!count)
 		file->setEmpty(true);

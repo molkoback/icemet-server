@@ -140,9 +140,12 @@ void Analysis::process(FilePtr file)
 			
 			// Check overlap
 			if ((segm->rect & segmOld->rect).area() > 0) {
-				// Compare score or dynamic
-				if ((segm->method == segmOld->method && segm->score > segmOld->score) ||
-				    (segm->method != segmOld->method && par->dynRange > parOld->dynRange)) {
+				// Decide the better particle
+				if ((segm->iter == segmOld->iter && segm->rect.area() > segmOld->rect.area()) ||
+				    (segm->iter != segmOld->iter && (
+						(segm->method == segmOld->method && segm->score > segmOld->score) ||
+						(segm->method != segmOld->method && par->dynRange > parOld->dynRange)
+					))) {
 					segmentsUnique[j] = segm;
 					particlesUnique[j] = par;
 				}

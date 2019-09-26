@@ -15,19 +15,20 @@ namespace fs = std::filesystem;
 
 typedef struct _segment {
 	float z;
+	int iter;
 	double score;
 	cv::icemet::FocusMethod method;
 	cv::Rect rect;
 	cv::Mat img;
 	
 	_segment() {}
-	_segment(float z_, double score_, cv::icemet::FocusMethod method_, const cv::Rect& rect_, const cv::UMat& img_) :
-		z(z_), score(score_), method(method_), rect(rect_)
+	_segment(float z_, int iter_, double score_, cv::icemet::FocusMethod method_, const cv::Rect& rect_, const cv::UMat& img_) :
+		z(z_), iter(iter_), score(score_), method(method_), rect(rect_)
 	{
 		img_.copyTo(img);
 	}
 	_segment(const _segment& s) :
-		z(s.z), score(s.score), method(s.method), rect(s.rect)
+		z(s.z), iter(s.iter), score(s.score), method(s.method), rect(s.rect)
 	{
 		s.img.copyTo(img);
 	}
