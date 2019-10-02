@@ -22,6 +22,7 @@ img_x: 200
 img_y: 0
 img_w: 2048
 img_h: 2048
+img_rotation: 0
 discard_th: 40 # Before bgsub
 empty_th: 10 # After bgsub
 bgsub: true

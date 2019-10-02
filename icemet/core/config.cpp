@@ -76,6 +76,7 @@ void Config::load(const fs::path& fn)
 		img.size.height = img.rect.height;
 		img.border.width = node["img_ignore_x"].as<int>();
 		img.border.height = node["img_ignore_y"].as<int>();
+		img.rotation = node["img_rotation"].as<float>();
 		
 		bgsub.enabled = node["bgsub"].as<bool>();
 		bgsub.stackLen = node["bgsub_stack_len"].as<int>();

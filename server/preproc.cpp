@@ -3,7 +3,7 @@
 #include "icemet/core/math.hpp"
 #include "icemet/util/time.hpp"
 
-#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include <exception>
 
@@ -14,6 +14,10 @@ Preproc::Preproc(Config* cfg) :
 	if (m_cfg->bgsub.enabled) {
 		m_stackLen = m_cfg->bgsub.stackLen;
 		m_stack = cv::icemet::BGSubStack::create(m_cfg->img.size, m_stackLen);
+	}
+	if (m_cfg->img.rotation != 0.0) {
+		cv::Point2f center(m_cfg->img.size.width/2.0, m_cfg->img.size.height/2.0);
+		m_rot = cv::getRotationMatrix2D(center, m_cfg->img.rotation, 1.0);
 	}
 }
 
@@ -31,24 +35,10 @@ int Preproc::dynRange(const cv::UMat& img) const
 	return maxVal - minVal;
 }
 
-void Preproc::process(FilePtr file)
+void Preproc::process(FilePtr file, cv::UMat& imgPP)
 {
-	m_log.debug("Processing %s", file->name().c_str());
-	Measure m;
-	
-	// Check dynamic range
-	if (dynRange(file->original) < m_cfg->check.discard_th) {
-		m_log.warning("Discard %s", file->name().c_str());
-		fs::remove(file->path());
-		return;
-	}
-	
-	// Crop
-	cv::UMat imgCrop;
-	cv::UMat(file->original, m_cfg->img.rect).copyTo(imgCrop);
-	
 	// Push to background subtraction stack
-	bool full = m_stack->push(imgCrop);
+	bool full = m_stack->push(imgPP);
 	
 	// Files go through a queue so we maintain the order
 	m_wait.push(file);
@@ -69,34 +59,18 @@ void Preproc::process(FilePtr file)
 		else {
 			fileDone->setEmpty(true);
 		}
-		m_log.debug("Done %s (%.2f s)", fileDone->name().c_str(), m.time());
 		m_filesPreproc->push(fileDone);
 		m_wait.pop();
 	}
 }
 
-void Preproc::processNoBgsub(FilePtr file)
+void Preproc::processNoBgsub(FilePtr file, cv::UMat& imgPP)
 {
-	m_log.debug("Processing %s", file->name().c_str());
-	Measure m;
-	
-	// Check dynamic range
-	if (dynRange(file->original) < m_cfg->check.discard_th) {
-		m_log.warning("Discard %s", file->name().c_str());
-		fs::remove(file->path());
-		return;
-	}
-	
-	// Crop
-	cv::UMat(file->original, m_cfg->img.rect).copyTo(file->preproc);
-	
-	// Check dynamic range
+	file->preproc = imgPP;
 	if (dynRange(file->preproc) < m_cfg->check.empty_th)
 		file->setEmpty(true);
 	else
 		file->param.bgVal =  Math::median(file->preproc);
-	
-	m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 	m_filesPreproc->push(file);
 }
 
@@ -108,10 +82,30 @@ bool Preproc::loop()
 	
 	// Process
 	while (!files.empty()) {
-		if (m_cfg->bgsub.enabled)
-			process(files.front());
-		else
-			processNoBgsub(files.front());
+		FilePtr file = files.front();
+		m_log.debug("Processing %s", file->name().c_str());
+		Measure m;
+		
+		// Check dynamic range
+		if (dynRange(file->original) < m_cfg->check.discard_th) {
+			m_log.warning("Discard %s", file->name().c_str());
+			fs::remove(file->path());
+		}
+		else {
+			// Crop and rotate
+			cv::UMat imgCrop, imgPP;
+			cv::UMat(file->original, m_cfg->img.rect).copyTo(imgCrop);
+			if (!m_rot.empty())
+				cv::warpAffine(imgCrop, imgPP, m_rot, imgCrop.size());
+			else
+				imgPP = imgCrop;
+			
+			if (m_cfg->bgsub.enabled)
+				process(file, imgPP);
+			else
+				processNoBgsub(file, imgPP);
+		}
+		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		files.pop();
 	}
 	msleep(1);

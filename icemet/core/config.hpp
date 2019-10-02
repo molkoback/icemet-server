@@ -47,6 +47,7 @@ typedef struct _image_param {
 	cv::Size2i size;
 	cv::Rect rect;
 	cv::Size2i border;
+	float rotation;
 } ImageParam;
 
 typedef struct _bgsub_param {
