@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
 
 project(icemet_server)
-set(ICEMET_VERSION "1.3.0")
+set(ICEMET_VERSION "1.4.0")
 
 find_package(Threads REQUIRED)
 find_package(OpenCV REQUIRED)

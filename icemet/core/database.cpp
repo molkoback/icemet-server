@@ -8,8 +8,8 @@
 #define FLOAT_REPR "%.24f"
 #define MAX_ROWS "1000"
 
-static const char* createDBQuery = "CREATE DATABASE %s;";
-static const char* createParticleTableQuery = "CREATE TABLE %s ("
+static const char* createDBQuery = "CREATE DATABASE `%s`;";
+static const char* createParticleTableQuery = "CREATE TABLE `%s` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME(3) NOT NULL,"
 "Sensor TINYINT UNSIGNED NOT NULL,"
@@ -29,7 +29,7 @@ static const char* createParticleTableQuery = "CREATE TABLE %s ("
 "SubH INT UNSIGNED NOT NULL,"
 "PRIMARY KEY (ID)"
 ");";
-static const char* createStatsTableQuery = "CREATE TABLE %s ("
+static const char* createStatsTableQuery = "CREATE TABLE `%s` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME NOT NULL,"
 "LWC FLOAT NOT NULL,"
@@ -39,19 +39,19 @@ static const char* createStatsTableQuery = "CREATE TABLE %s ("
 "Particles INT UNSIGNED NOT NULL,"
 "PRIMARY KEY (ID)"
 ");";
-static const char* insertParticleQuery = "INSERT INTO %s ("
+static const char* insertParticleQuery = "INSERT INTO `%s` ("
 "ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH"
 ")VALUES("
 "NULL, '%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
 ");";
-static const char* insertStatsQuery = "INSERT INTO %s ("
+static const char* insertStatsQuery = "INSERT INTO `%s` ("
 "ID, DateTime, LWC, MVD, Conc, Frames, Particles"
 ")VALUES("
 "NULL, '%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u"
 ");";
 static const char* selectParticlesQuery = "SELECT "
 "ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH "
-"FROM %s WHERE ID>=%u ORDER BY ID ASC LIMIT " MAX_ROWS ";";
+"FROM `%s` WHERE ID>=%u ORDER BY ID ASC LIMIT " MAX_ROWS ";";
 
 Database::Database() :
 	m_mysql(NULL) {}
