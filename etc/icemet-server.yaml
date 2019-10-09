@@ -5,6 +5,7 @@
 path_watch: "~/.icemet/watch"
 path_results: "~/.icemet/results"
 save_results: "oprtv" # o=original, p=preproc, r=recon, t=threshold, v=preview
+save_empty: true
 type_results: "png"
 type_results_lossy: "jpg"
 
@@ -23,8 +24,9 @@ img_y: 0
 img_w: 2048
 img_h: 2048
 img_rotation: 0
-discard_th: 40 # Before bgsub
-empty_th: 10 # After bgsub
+empty_th_original: 40 # Before bgsub
+empty_th_preproc: 10 # After bgsub
+empty_th_recon: 15 # Minimum image
 bgsub: true
 bgsub_stack_len: 7
 filt_lowpass: false

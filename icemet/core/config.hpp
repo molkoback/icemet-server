@@ -36,6 +36,7 @@ typedef struct _saves {
 	bool recon;
 	bool threshold;
 	bool preview;
+	bool empty;
 } Saves;
 
 typedef struct _types {
@@ -55,10 +56,11 @@ typedef struct _bgsub_param {
 	int stackLen;
 } BGSubParam;
 
-typedef struct _check_param {
-	int discard_th;
-	int empty_th;
-} CheckParam;
+typedef struct _empty_check_param {
+	int originalTh;
+	int preprocTh;
+	int reconTh;
+} EmptyCheckParam;
 
 typedef struct _filter_param {
 	bool enabled;
@@ -131,7 +133,7 @@ public:
 	DatabaseInfo dbInfo;
 	ImageParam img;
 	BGSubParam bgsub;
-	CheckParam check;
+	EmptyCheckParam emptyCheck;
 	FilterParam lpf;
 	HologramParam hologram;
 	SegmentParam segment;

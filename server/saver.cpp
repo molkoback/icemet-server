@@ -107,10 +107,12 @@ bool Saver::loop()
 	// Process
 	while (!files.empty()) {
 		FilePtr file = files.front();
-		m_log.debug("Saving %s", file->name().c_str());
-		Measure m;
-		process(file);
-		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		if (!file->empty() || m_cfg->saves.empty) {
+			m_log.debug("Saving %s", file->name().c_str());
+			Measure m;
+			process(file);
+			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+		}
 		m_log.info("Done %s", file->name().c_str());
 		files.pop();
 	}

@@ -51,7 +51,7 @@ void Preproc::process(FilePtr file, cv::UMat& imgPP)
 			m_stack->meddiv(fileDone->preproc);
 			
 			// Check dynamic range
-			if (dynRange(fileDone->preproc) < m_cfg->check.empty_th)
+			if (dynRange(fileDone->preproc) < m_cfg->emptyCheck.preprocTh)
 				fileDone->setEmpty(true);
 			else
 				fileDone->param.bgVal =  Math::median(fileDone->preproc);
@@ -67,7 +67,7 @@ void Preproc::process(FilePtr file, cv::UMat& imgPP)
 void Preproc::processNoBgsub(FilePtr file, cv::UMat& imgPP)
 {
 	file->preproc = imgPP;
-	if (dynRange(file->preproc) < m_cfg->check.empty_th)
+	if (dynRange(file->preproc) < m_cfg->emptyCheck.preprocTh)
 		file->setEmpty(true);
 	else
 		file->param.bgVal =  Math::median(file->preproc);
@@ -87,9 +87,9 @@ bool Preproc::loop()
 		Measure m;
 		
 		// Check dynamic range
-		if (dynRange(file->original) < m_cfg->check.discard_th) {
-			m_log.warning("Discard %s", file->name().c_str());
-			fs::remove(file->path());
+		if (dynRange(file->original) < m_cfg->emptyCheck.originalTh) {
+			file->setEmpty(true);
+			m_filesPreproc->push(file);
 		}
 		else {
 			// Crop and rotate

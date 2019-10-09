@@ -31,6 +31,17 @@ bool Recon::init()
 	return true;
 }
 
+bool Recon::isEmpty()
+{
+	cv::icemet::ZRange z = m_cfg->hologram.z;
+	z.step *= 10.0;
+	cv::UMat imgMin;
+	m_hologram->min(imgMin, z);
+	double minVal, maxVal;
+	minMaxLoc(imgMin, &minVal, &maxVal);
+	return maxVal - minVal < m_cfg->emptyCheck.reconTh;
+}
+
 void Recon::process(FilePtr file)
 {
 	cv::Size2i size = m_cfg->img.size;
@@ -52,15 +63,21 @@ void Recon::process(FilePtr file)
 	
 	int th = m_cfg->segment.thFact * file->param.bgVal;
 	
-	// Set our image and apply filters
-	m_hologram->setImg(file->preproc);
-	if (m_lpf.u)
-		m_hologram->applyFilter(m_lpf);
-	
-	// Reconstruct whole range in steps
 	int iter = 0;
 	int count = 0;
 	int ncontours = 0;
+	
+	// Set our image and apply filters
+	m_hologram->setImg(file->preproc);
+	if (!m_lpf.empty())
+		m_hologram->applyFilter(m_lpf);
+	
+	// Emtpy check
+	if (m_cfg->emptyCheck.reconTh > 0 && isEmpty()) {
+		file->setEmpty(true);
+		goto end;
+	}
+	// Reconstruct whole range in steps
 	for (; gz.start < gz.stop; gz.start += gz.step) {
 		lz.start = gz.start;
 		lz.stop = std::min(lz.start+gz.step, gz.stop);

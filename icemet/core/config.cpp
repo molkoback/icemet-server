@@ -21,7 +21,7 @@ Config::Config(const Config& cfg) :
 	dbInfo(cfg.dbInfo),
 	img(cfg.img),
 	bgsub(cfg.bgsub),
-	check(cfg.check),
+	emptyCheck(cfg.emptyCheck),
 	lpf(cfg.lpf),
 	hologram(cfg.hologram),
 	segment(cfg.segment),
@@ -64,6 +64,7 @@ void Config::load(const fs::path& fn)
 		saves.recon = savesStr.find('r') != std::string::npos;
 		saves.threshold = savesStr.find('t') != std::string::npos;
 		saves.preview = savesStr.find('v') != std::string::npos;
+		saves.empty = node["save_empty"].as<bool>();
 		
 		types.results = strToPath(node["type_results"].as<std::string>());
 		types.lossy = strToPath(node["type_results_lossy"].as<std::string>());
@@ -81,8 +82,9 @@ void Config::load(const fs::path& fn)
 		bgsub.enabled = node["bgsub"].as<bool>();
 		bgsub.stackLen = node["bgsub_stack_len"].as<int>();
 		
-		check.discard_th = node["discard_th"].as<int>();
-		check.empty_th = node["empty_th"].as<int>();
+		emptyCheck.originalTh = node["empty_th_original"].as<int>();
+		emptyCheck.preprocTh = node["empty_th_preproc"].as<int>();
+		emptyCheck.reconTh = node["empty_th_recon"].as<int>();
 		
 		lpf.enabled = node["filt_lowpass"].as<bool>();
 		lpf.f = node["filt_lowpass_f"].as<float>();
