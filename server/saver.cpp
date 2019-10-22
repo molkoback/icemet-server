@@ -28,7 +28,7 @@ void Saver::process(const FilePtr& file) const
 	int n = file->particles.size();
 	
 	// Save files
-	if (m_cfg->saves.original) {
+	if (m_cfg->saves.original && (!file->empty() || m_cfg->saves.empty)) {
 		fs::create_directories(file->dir(m_cfg->paths.original));
 		
 		fs::path src(file->path());
@@ -40,7 +40,7 @@ void Saver::process(const FilePtr& file) const
 	else {
 		fs::remove(file->path());
 	}
-	if (m_cfg->saves.preproc && !file->preproc.empty()) {
+	if (m_cfg->saves.preproc && !file->preproc.empty() && (!file->empty() || m_cfg->saves.empty)) {
 		fs::create_directories(file->dir(m_cfg->paths.preproc));
 		
 		fs::path dst(file->path(m_cfg->paths.preproc, m_cfg->types.results));
@@ -107,12 +107,10 @@ bool Saver::loop()
 	// Process
 	while (!files.empty()) {
 		FilePtr file = files.front();
-		if (!file->empty() || m_cfg->saves.empty) {
-			m_log.debug("Saving %s", file->name().c_str());
-			Measure m;
-			process(file);
-			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
-		}
+		m_log.debug("Saving %s", file->name().c_str());
+		Measure m;
+		process(file);
+		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		m_log.info("Done %s", file->name().c_str());
 		files.pop();
 	}
