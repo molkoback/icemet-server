@@ -115,8 +115,8 @@ void Recon::process(FilePtr file)
 			// Grow rect
 			rect.x = std::max(rect.x-pad, border.width);
 			rect.y = std::max(rect.y-pad, border.height);
-			rect.width = std::min(rect.width+2*pad, size.width-border.width-rect.x-1);
-			rect.height = std::min(rect.height+2*pad, size.height-border.height-rect.y-1);
+			rect.width = std::min(rect.width+2*pad, size.width-border.width-rect.x);
+			rect.height = std::min(rect.height+2*pad, size.height-border.height-rect.y);
 			
 			// Focus
 			int idx = 0;

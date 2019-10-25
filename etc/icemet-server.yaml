@@ -40,7 +40,7 @@ holo_pixel_size: 3.45e-6
 holo_lambda: 660e-9
 holo_collimated: false
 holo_distance: 56.4e-3
-recon_step: 800
+recon_step: 1515
 focus_k: 20
 segment_th_factor: 0.60 # th = X * median_Ipp
 segment_n_max: 2000
@@ -65,7 +65,7 @@ particle_z_min: 13.3e-3
 particle_z_max: 33.6e-3
 particle_diam_min: 5.0e-6
 particle_diam_max: 200.0e-6
-particle_diam_step: 1.0e-6
+particle_diam_step: 0.1e-6
 particle_circularity_min: 0.0
 particle_circularity_max: 1.1
 particle_dnr_min: 45
