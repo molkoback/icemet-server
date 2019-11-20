@@ -5,6 +5,11 @@
 #include <ctime>
 #include <stdexcept>
 
+#ifdef _WIN32
+#include <windows.h>
+#define timegm _mkgmtime
+#endif
+
 DateTime::DateTime(const std::string& str)
 {
 	DateTimeInfo info;
@@ -27,7 +32,7 @@ void DateTime::setStamp(Timestamp stamp)
 {
 	m_stamp = stamp;
 	time_t t = m_stamp / 1000;
-	struct tm* timeinfo = localtime(&t);
+	struct tm* timeinfo = gmtime(&t);
 	m_info.y = timeinfo->tm_year + 1900;
 	m_info.m = timeinfo->tm_mon + 1;
 	m_info.d = timeinfo->tm_mday;
@@ -47,7 +52,7 @@ void DateTime::setInfo(const DateTimeInfo& info)
 	timeinfo.tm_min = info.M;
 	timeinfo.tm_sec = info.S;
 	timeinfo.tm_isdst = -1;
-	int t = mktime(&timeinfo);
+	int t = timegm(&timeinfo);
 	if (t < 0)
 		throw std::exception();
 	m_info = info;
@@ -57,7 +62,7 @@ void DateTime::setInfo(const DateTimeInfo& info)
 std::string DateTime::str() const
 {
 	time_t t = m_stamp / 1000;
-	struct tm* timeinfo = localtime(&t);
+	struct tm* timeinfo = gmtime(&t);
 	char buf[23];
 	strftime(buf, 23, "%Y-%m-%d %H:%M:%S", timeinfo);
 	return strfmt("%s.%03d", buf, m_stamp % 1000);
