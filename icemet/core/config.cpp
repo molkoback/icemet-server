@@ -101,6 +101,7 @@ void Config::load(const fs::path& fn)
 		segment.thFact = node["segment_th_factor"].as<float>();
 		segment.nMax = node["segment_n_max"].as<int>();
 		segment.sizeMin = node["segment_size_min"].as<int>();
+		segment.sizeMax = node["segment_size_max"].as<int>();
 		segment.sizeSmall = node["segment_size_small"].as<int>();
 		segment.pad = node["segment_pad"].as<int>();
 		

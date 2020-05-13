@@ -80,6 +80,7 @@ typedef struct _segment_param {
 	float thFact;
 	int nMax;
 	int sizeMin;
+	int sizeMax;
 	int sizeSmall;
 	int pad;
 } SegmentParam;

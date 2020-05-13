@@ -54,6 +54,7 @@ void Recon::process(FilePtr file)
 	float focusK = m_cfg->hologram.focusK;
 	int segmNMax = m_cfg->segment.nMax;
 	int segmSizeMin = m_cfg->segment.sizeMin;
+	int segmSizeMax = m_cfg->segment.sizeMax;
 	int segmSizeSmall = m_cfg->segment.sizeSmall;
 	int pad = m_cfg->segment.pad;
 	
@@ -103,7 +104,9 @@ void Recon::process(FilePtr file)
 		ncontours += contours.size();
 		for (const auto& cnt : contours) {
 			cv::Rect rect = cv::boundingRect(cnt);
-			if (rect.width < segmSizeMin || rect.height < segmSizeMin)
+			
+			if ((segmSizeMin > 0 && (rect.width < segmSizeMin || rect.height < segmSizeMin)) ||
+			    (segmSizeMax > 0 && (rect.width > segmSizeMax || rect.height > segmSizeMax)))
 				continue;
 			
 			// Select our focus method
@@ -133,7 +136,8 @@ void Recon::process(FilePtr file)
 			cv::UMat(m_stack[idx], rect).copyTo(segm->img);
 			file->segments.push_back(segm);
 			
-			if (++count >= segmNMax) {
+			count++;
+			if (segmNMax > 0 && count >= segmNMax) {
 				m_log.warning("The maximum number of segments reached");
 				goto end;
 			}
