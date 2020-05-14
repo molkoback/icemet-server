@@ -25,7 +25,7 @@ File::File(unsigned int sensor, DateTime dt, unsigned int frame, bool empty) :
 std::string File::name() const
 {
 	return strfmt(
-		"%02u_%02d%02d%02d_%02d%02d%02d%03d_%06u_%c",
+		"%02X_%02d%02d%02d_%02d%02d%02d%03d_%06u_%c",
 		m_sensor,
 		m_dt.day(), m_dt.month(), m_dt.year()%100,
 		m_dt.hour(), m_dt.min(), m_dt.sec(), m_dt.millis(),
@@ -38,7 +38,7 @@ void File::setName(const std::string& str)
 {
 	DateTimeInfo info;
 	try {
-		m_sensor = std::stoi(str.substr(0, 2));
+		m_sensor = std::stoi(str.substr(0, 2), 0, 16);
 		info.d = std::stoi(str.substr(3, 2));
 		info.m = std::stoi(str.substr(5, 2));
 		info.y = std::stoi(str.substr(7, 2)) + 2000;
