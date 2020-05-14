@@ -8,6 +8,7 @@
 #include <opencv2/icemet.hpp>
 
 #include <queue>
+#include <stdexcept>
 
 Stats::Stats(Config* cfg, Database* db) :
 	Worker(COLOR_BLUE "STATS" COLOR_RESET),
@@ -37,6 +38,8 @@ Stats::Stats(Config* cfg, Database* db) :
 
 bool Stats::init()
 {
+	if (m_cfg->args.statsOnly && m_cfg->stats.frames <= 0)
+		throw(std::runtime_error("stats_frames required in stats only mode"));
 	m_filesAnalysis = static_cast<FileQueue*>(m_inputs[0]->data);
 	return true;
 }
@@ -51,8 +54,8 @@ void Stats::reset(const DateTime& dt)
 
 void Stats::fillStatsRow(StatsRow& row) const
 {
-	// Use fixed frames in -s mode
-	unsigned int frames = m_cfg->args.statsOnly ? m_cfg->stats.frames : m_frames;
+	// Use fixed frames?
+	unsigned int frames = m_cfg->stats.frames > 0 ? m_cfg->stats.frames : m_frames;
 	
 	unsigned int particles = m_particles.rows;
 	if (!particles) {

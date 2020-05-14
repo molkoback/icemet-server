@@ -61,7 +61,7 @@ diam_correction_end_factor: 1.0
 
 # Statistics
 stats_time: 60
-stats_frames: 60 # Only used in -s mode
+stats_frames: -1 # Use fixed framerate
 particle_z_min: 13.3e-3
 particle_z_max: 33.6e-3
 particle_diam_min: 5.0e-6

@@ -108,7 +108,7 @@ typedef struct _diameter_correction {
 
 typedef struct _stats_param {
 	unsigned int time;
-	unsigned int frames;
+	int frames;
 } StatsParam;
 
 typedef struct _ocl_param {
@@ -122,6 +122,7 @@ private:
 public:
 	Config() {}
 	Config(const fs::path& fn);
+	Config(const Arguments& args);
 	Config(const Config& cfg);
 	
 	void load(const fs::path& fn);

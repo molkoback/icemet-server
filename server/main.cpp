@@ -87,8 +87,7 @@ int main(int argc, char* argv[])
 		cv::redirectError(cvErrorHandler);
 		
 		// Read config
-		Config cfg(args.cfgFile.c_str());
-		cfg.args = args;
+		Config cfg(args);
 		
 		// Setup logging
 		Log::setLevel(args.loglevel);
