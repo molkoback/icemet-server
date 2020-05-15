@@ -23,6 +23,19 @@ bool Saver::init()
 	return true;
 }
 
+void Saver::move(const fs::path& src, const fs::path& dst) const
+{
+	if (fs::exists(dst))
+		fs::remove(dst);
+	try {
+		fs::rename(src, dst);
+	}
+	catch (std::exception& e) {
+		fs::copy(src, dst);
+		fs::remove(src);
+	}
+}
+
 void Saver::process(const FilePtr& file) const
 {
 	if ((file->status() == FILE_STATUS_EMPTY && !m_cfg->saves.empty) ||
@@ -40,9 +53,7 @@ void Saver::process(const FilePtr& file) const
 		
 		fs::path src(file->path());
 		fs::path dst = file->path(m_cfg->paths.original, src.extension());
-		if (fs::exists(dst))
-			fs::remove(dst);
-		fs::rename(src, dst);
+		move(src, dst);
 	}
 	else {
 		fs::remove(file->path());
