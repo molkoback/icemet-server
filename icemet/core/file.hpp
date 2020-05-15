@@ -13,6 +13,12 @@
 
 namespace fs = std::filesystem;
 
+typedef char FileStatus;
+const FileStatus FILE_STATUS_NONE = 'X';
+const FileStatus FILE_STATUS_NOTEMPTY = 'T';
+const FileStatus FILE_STATUS_EMPTY = 'F';
+const FileStatus FILE_STATUS_SKIP = 'S';
+
 typedef struct _segment {
 	float z;
 	int iter;
@@ -73,13 +79,13 @@ private:
 	unsigned int m_sensor;
 	DateTime m_dt;
 	unsigned int m_frame;
-	bool m_empty;
+	FileStatus m_status;
 	fs::path m_path;
 
 public:
 	File();
 	File(const fs::path& p);
-	File(unsigned int m_sensor, DateTime dt, unsigned int frame, bool empty);
+	File(unsigned int m_sensor, DateTime dt, unsigned int frame, FileStatus status);
 	File(const File& f) = delete;
 	File& operator=(const File&) = delete;
 	
@@ -92,11 +98,12 @@ public:
 	unsigned int sensor() const { return m_sensor; }
 	void setSensor(unsigned int sensor) { m_sensor = sensor; }
 	DateTime dt() const { return m_dt; }
-	void setDt(DateTime dt) { m_dt = dt; }
+	void setDt(const DateTime& dt) { m_dt = dt; }
 	unsigned int frame() const { return m_frame; }
 	void setFrame(unsigned int frame) { m_frame = frame; }
-	bool empty() const { return m_empty; }
-	void setEmpty(bool empty) { m_empty = empty; }
+	
+	FileStatus status() const { return m_status; }
+	void setStatus(FileStatus status);
 	
 	std::string name() const;
 	void setName(const std::string& str);

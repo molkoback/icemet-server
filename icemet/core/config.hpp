@@ -37,6 +37,7 @@ typedef struct _saves {
 	bool threshold;
 	bool preview;
 	bool empty;
+	bool skipped;
 } Saves;
 
 typedef struct _types {

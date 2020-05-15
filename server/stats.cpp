@@ -180,6 +180,8 @@ bool Stats::loop()
 		Measure m;
 		
 		// Skip files that haven't been preprocessed (the first few files)
+		if (file->status() != FILE_STATUS_SKIP)
+		
 		if (m_cfg->args.statsOnly || !file->preproc.empty())
 			process(file);
 		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());

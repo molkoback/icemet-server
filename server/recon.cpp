@@ -75,7 +75,7 @@ void Recon::process(FilePtr file)
 	
 	// Emtpy check
 	if (m_cfg->emptyCheck.reconTh > 0 && isEmpty()) {
-		file->setEmpty(true);
+		file->setStatus(FILE_STATUS_EMPTY);
 		goto end;
 	}
 	// Reconstruct whole range in steps
@@ -145,7 +145,7 @@ void Recon::process(FilePtr file)
 		iter++;
 	}
 	if (!count)
-		file->setEmpty(true);
+		file->setStatus(FILE_STATUS_EMPTY);
 end:
 	m_log.debug("Segments: %d, Contours: %d", count, ncontours);
 }
@@ -159,7 +159,7 @@ bool Recon::loop()
 	// Process
 	while (!files.empty()) {
 		FilePtr file = files.front();
-		if (!file->empty()) {
+		if (file->status() == FILE_STATUS_NONE) {
 			m_log.debug("Reconstructing %s", file->name().c_str());
 			Measure m;
 			process(file);

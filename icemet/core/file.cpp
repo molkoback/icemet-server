@@ -8,7 +8,7 @@ File::File() :
 	m_sensor(0),
 	m_dt(),
 	m_frame(0),
-	m_empty(true) {}
+	m_status(FILE_STATUS_NONE) {}
 
 File::File(const fs::path& p)
 {
@@ -16,11 +16,11 @@ File::File(const fs::path& p)
 	setPath(p);
 }
 
-File::File(unsigned int sensor, DateTime dt, unsigned int frame, bool empty) :
+File::File(unsigned int sensor, DateTime dt, unsigned int frame, FileStatus status) :
 	m_sensor(sensor),
 	m_dt(dt),
 	m_frame(frame),
-	m_empty(empty) {}
+	m_status(status) {}
 
 std::string File::name() const
 {
@@ -30,8 +30,21 @@ std::string File::name() const
 		m_dt.day(), m_dt.month(), m_dt.year()%100,
 		m_dt.hour(), m_dt.min(), m_dt.sec(), m_dt.millis(),
 		m_frame,
-		m_empty ? 'F' : 'T'
+		m_status
 	);
+}
+
+void File::setStatus(FileStatus status)
+{
+	switch (status) {
+	case FILE_STATUS_NONE: break;
+	case FILE_STATUS_NOTEMPTY: break;
+	case FILE_STATUS_EMPTY: break;
+	case FILE_STATUS_SKIP: break;
+	default:
+		throw std::invalid_argument("Invalid status");
+	}
+	m_status = status;
 }
 
 void File::setName(const std::string& str)
@@ -46,9 +59,9 @@ void File::setName(const std::string& str)
 		info.M = std::stoi(str.substr(12, 2));
 		info.S = std::stoi(str.substr(14, 2));
 		info.MS = std::stoi(str.substr(16, 3));
-		m_frame = std::stoi(str.substr(20, 6));
-		m_empty = str.substr(27, 1).compare("T");
 		m_dt.setInfo(info);
+		m_frame = std::stoi(str.substr(20, 6));
+		setStatus(str.at(27));
 	}
 	catch (std::exception& e) {
 		throw std::invalid_argument("Invalid filename");

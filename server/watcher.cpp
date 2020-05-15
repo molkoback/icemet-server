@@ -13,7 +13,6 @@ Watcher::Watcher(Config* cfg) :
 	m_cfg(cfg),
 	m_prev(cv::makePtr<File>())
 {
-	
 	m_log.info("Watching %s", m_cfg->paths.watch.string().c_str());
 }
 
@@ -73,7 +72,7 @@ bool Watcher::loop()
 			mat.getUMat(cv::ACCESS_READ).copyTo(file->original);
 			
 			// Push to output queue
-			file->setEmpty(false);
+			file->setStatus(FILE_STATUS_NONE);
 			m_log.debug("Opened %s (%.2f s)", file->name().c_str(), m.time());
 			m_filesOriginal->push(file);
 			m_prev = file;

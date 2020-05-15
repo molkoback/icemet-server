@@ -162,8 +162,7 @@ void Analysis::process(FilePtr file)
 	file->segments = segmentsUnique;
 	file->particles = particlesUnique;
 	int count = file->particles.size();
-	if (!count)
-		file->setEmpty(true);
+	file->setStatus(count ? FILE_STATUS_NOTEMPTY : FILE_STATUS_EMPTY);
 	m_log.debug("Particles: %d", count);
 }
 
@@ -176,7 +175,7 @@ bool Analysis::loop()
 	// Process
 	while (!files.empty()) {
 		FilePtr file = files.front();
-		if (!file->empty()) {
+		if (file->status() == FILE_STATUS_NONE) {
 			m_log.debug("Analysing %s", file->name().c_str());
 			Measure m;
 			process(file);

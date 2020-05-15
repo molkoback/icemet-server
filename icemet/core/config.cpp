@@ -70,6 +70,7 @@ void Config::load(const fs::path& fn)
 		saves.threshold = savesStr.find('t') != std::string::npos;
 		saves.preview = savesStr.find('v') != std::string::npos;
 		saves.empty = node["save_empty"].as<bool>();
+		saves.skipped = node["save_skipped"].as<bool>();
 		
 		types.results = strToPath(node["type_results"].as<std::string>());
 		types.lossy = strToPath(node["type_results_lossy"].as<std::string>());

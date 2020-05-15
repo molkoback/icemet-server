@@ -6,6 +6,7 @@ path_watch: "~/.icemet/watch"
 path_results: "~/.icemet/results"
 save_results: "oprtv" # o=original, p=preproc, r=recon, t=threshold, v=preview
 save_empty: true
+save_skipped: true
 type_results: "png"
 type_results_lossy: "jpg"
 

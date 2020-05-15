@@ -25,10 +25,17 @@ bool Saver::init()
 
 void Saver::process(const FilePtr& file) const
 {
+	if ((file->status() == FILE_STATUS_EMPTY && !m_cfg->saves.empty) ||
+	    (file->status() == FILE_STATUS_SKIP && !m_cfg->saves.skipped) ||
+	    (file->status() == FILE_STATUS_NONE)) {
+		fs::remove(file->path());
+		return;
+	}
+	
 	int n = file->particles.size();
 	
 	// Save files
-	if (m_cfg->saves.original && (!file->empty() || m_cfg->saves.empty)) {
+	if (m_cfg->saves.original) {
 		fs::create_directories(file->dir(m_cfg->paths.original));
 		
 		fs::path src(file->path());
@@ -40,13 +47,13 @@ void Saver::process(const FilePtr& file) const
 	else {
 		fs::remove(file->path());
 	}
-	if (m_cfg->saves.preproc && !file->preproc.empty() && (!file->empty() || m_cfg->saves.empty)) {
+	if (m_cfg->saves.preproc && !file->preproc.empty()) {
 		fs::create_directories(file->dir(m_cfg->paths.preproc));
 		
 		fs::path dst(file->path(m_cfg->paths.preproc, m_cfg->types.results));
 		cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
 	}
-	if (m_cfg->saves.recon && !file->empty()) {
+	if (m_cfg->saves.recon && file->status() == FILE_STATUS_NOTEMPTY) {
 		fs::create_directories(file->dir(m_cfg->paths.recon));
 		
 		for (int i = 0; i < n; i++) {
@@ -54,7 +61,7 @@ void Saver::process(const FilePtr& file) const
 			cv::imwrite(dst.string(), file->segments[i]->img);
 		}
 	}
-	if (m_cfg->saves.threshold && !file->empty()) {
+	if (m_cfg->saves.threshold && file->status() == FILE_STATUS_NOTEMPTY) {
 		fs::create_directories(file->dir(m_cfg->paths.threshold));
 		
 		for (int i = 0; i < n; i++) {
@@ -62,7 +69,7 @@ void Saver::process(const FilePtr& file) const
 			cv::imwrite(dst.string(), file->particles[i]->img);
 		}
 	}
-	if (m_cfg->saves.preview && !file->empty()) {
+	if (m_cfg->saves.preview && file->status() == FILE_STATUS_NOTEMPTY) {
 		fs::create_directories(file->dir(m_cfg->paths.preview));
 		
 		cv::Mat preview = cv::Mat::zeros(m_cfg->img.size, CV_8UC1);

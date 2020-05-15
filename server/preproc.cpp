@@ -52,12 +52,12 @@ void Preproc::process(FilePtr file, cv::UMat& imgPP)
 			
 			// Check dynamic range
 			if (dynRange(fileDone->preproc) < m_cfg->emptyCheck.preprocTh)
-				fileDone->setEmpty(true);
+				fileDone->setStatus(FILE_STATUS_EMPTY);
 			else
 				fileDone->param.bgVal =  Math::median(fileDone->preproc);
 		}
 		else {
-			fileDone->setEmpty(true);
+			fileDone->setStatus(FILE_STATUS_SKIP);
 		}
 		m_filesPreproc->push(fileDone);
 		m_wait.pop();
@@ -68,7 +68,7 @@ void Preproc::processNoBgsub(FilePtr file, cv::UMat& imgPP)
 {
 	file->preproc = imgPP;
 	if (dynRange(file->preproc) < m_cfg->emptyCheck.preprocTh)
-		file->setEmpty(true);
+		file->setStatus(FILE_STATUS_EMPTY);
 	else
 		file->param.bgVal =  Math::median(file->preproc);
 	m_filesPreproc->push(file);
@@ -88,7 +88,7 @@ bool Preproc::loop()
 		
 		// Check dynamic range
 		if (dynRange(file->original) < m_cfg->emptyCheck.originalTh) {
-			file->setEmpty(true);
+			file->setStatus(FILE_STATUS_EMPTY);
 			m_filesPreproc->push(file);
 		}
 		else {
