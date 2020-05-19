@@ -18,7 +18,6 @@ protected:
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
 	
-	bool isEmpty();
 	void process(FilePtr file);
 	bool init() override;
 	bool loop() override;

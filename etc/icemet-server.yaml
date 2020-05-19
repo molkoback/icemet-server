@@ -28,6 +28,7 @@ img_rotation: 0
 empty_th_original: 40 # Before bgsub
 empty_th_preproc: 10 # After bgsub
 empty_th_recon: 15 # Minimum image
+noisy_contours: -1
 bgsub: true
 bgsub_stack_len: 7
 filt_lowpass: false
@@ -44,7 +45,6 @@ holo_distance: 56.4e-3
 recon_step: 1515
 focus_k: 20
 segment_th_factor: 0.60 # th = X * median_Ipp
-segment_n_max: 2000
 segment_size_min: 2
 segment_size_max: -1
 segment_size_small: 4

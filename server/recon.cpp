@@ -18,8 +18,6 @@ Recon::Recon(Config* cfg) :
 		m_cfg->hologram.psz, m_cfg->hologram.lambda,
 		m_cfg->hologram.dist
 	);
-	
-	// Create filters
 	if (m_cfg->lpf.enabled)
 		m_lpf = m_hologram->createLPF(m_cfg->lpf.f);
 }
@@ -31,53 +29,36 @@ bool Recon::init()
 	return true;
 }
 
-bool Recon::isEmpty()
-{
-	cv::icemet::ZRange z = m_cfg->hologram.z;
-	z.step *= 10.0;
-	cv::UMat imgMin;
-	m_hologram->min(imgMin, z);
-	double minVal, maxVal;
-	minMaxLoc(imgMin, &minVal, &maxVal);
-	return maxVal - minVal < m_cfg->emptyCheck.reconTh;
-}
-
 void Recon::process(FilePtr file)
 {
-	cv::Size2i size = m_cfg->img.size;
-	cv::Size2i border = m_cfg->img.border;
-	cv::Rect crop(
+	const cv::Size2i size = m_cfg->img.size;
+	const cv::Size2i border = m_cfg->img.border;
+	const cv::Rect crop(
 		border.width, border.height,
 		size.width-2*border.width, size.height-2*border.height
 	);
 	
-	float focusK = m_cfg->hologram.focusK;
-	int segmNMax = m_cfg->segment.nMax;
-	int segmSizeMin = m_cfg->segment.sizeMin;
-	int segmSizeMax = m_cfg->segment.sizeMax;
-	int segmSizeSmall = m_cfg->segment.sizeSmall;
-	int pad = m_cfg->segment.pad;
+	const float focusK = m_cfg->hologram.focusK;
+	const int segmSizeMin = m_cfg->segment.sizeMin;
+	const int segmSizeMax = m_cfg->segment.sizeMax;
+	const int segmSizeSmall = m_cfg->segment.sizeSmall;
+	const int pad = m_cfg->segment.pad;
+	
+	const int th = m_cfg->segment.thFact * file->param.bgVal;
 	
 	cv::icemet::ZRange gz = m_cfg->hologram.z;
 	gz.step *= m_cfg->hologram.step;
 	cv::icemet::ZRange lz = m_cfg->hologram.z;
 	
-	int th = m_cfg->segment.thFact * file->param.bgVal;
-	
 	int iter = 0;
-	int count = 0;
 	int ncontours = 0;
+	int nsegments = 0;
 	
 	// Set our image and apply filters
 	m_hologram->setImg(file->preproc);
 	if (!m_lpf.empty())
 		m_hologram->applyFilter(m_lpf);
 	
-	// Emtpy check
-	if (m_cfg->emptyCheck.reconTh > 0 && isEmpty()) {
-		file->setStatus(FILE_STATUS_EMPTY);
-		goto end;
-	}
 	// Reconstruct whole range in steps
 	for (; gz.start < gz.stop; gz.start += gz.step) {
 		lz.start = gz.start;
@@ -135,19 +116,12 @@ void Recon::process(FilePtr file)
 			segm->rect = rect;
 			cv::UMat(m_stack[idx], rect).copyTo(segm->img);
 			file->segments.push_back(segm);
-			
-			count++;
-			if (segmNMax > 0 && count >= segmNMax) {
-				m_log.warning("The maximum number of segments reached");
-				goto end;
-			}
 		}
 		iter++;
 	}
-	if (!count)
+	if ((nsegments = file->segments.size()) == 0)
 		file->setStatus(FILE_STATUS_EMPTY);
-end:
-	m_log.debug("Segments: %d, Contours: %d", count, ncontours);
+	m_log.debug("Segments: %d, Contours: %d", nsegments, ncontours);
 }
 
 bool Recon::loop()
@@ -160,8 +134,8 @@ bool Recon::loop()
 	while (!files.empty()) {
 		FilePtr file = files.front();
 		if (file->status() == FILE_STATUS_NONE) {
-			m_log.debug("Reconstructing %s", file->name().c_str());
 			Measure m;
+			m_log.debug("Reconstructing %s", file->name().c_str());
 			process(file);
 			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
 		}

@@ -63,6 +63,10 @@ typedef struct _empty_check_param {
 	int reconTh;
 } EmptyCheckParam;
 
+typedef struct _noisy_check_param {
+	int contours;
+} NoisyCheckParam;
+
 typedef struct _filter_param {
 	bool enabled;
 	float f;
@@ -137,6 +141,7 @@ public:
 	ImageParam img;
 	BGSubParam bgsub;
 	EmptyCheckParam emptyCheck;
+	NoisyCheckParam noisyCheck;
 	FilterParam lpf;
 	HologramParam hologram;
 	SegmentParam segment;

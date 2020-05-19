@@ -19,10 +19,13 @@ protected:
 	size_t m_stackLen;
 	cv::Ptr<cv::icemet::BGSubStack> m_stack;
 	std::queue<FilePtr> m_wait; // Length: m_stackLen/2 + 1
+	cv::Ptr<cv::icemet::Hologram> m_hologram;
 	
 	int dynRange(const cv::UMat& img) const;
-	void process(FilePtr file, cv::UMat& imgPP);
+	void finalize(FilePtr file);
+	void processBgsub(FilePtr file, cv::UMat& imgPP);
 	void processNoBgsub(FilePtr file, cv::UMat& imgPP);
+	void process(FilePtr file);
 	bool init() override;
 	bool loop() override;
 

@@ -27,6 +27,7 @@ Config::Config(const Config& cfg) :
 	img(cfg.img),
 	bgsub(cfg.bgsub),
 	emptyCheck(cfg.emptyCheck),
+	noisyCheck(cfg.noisyCheck),
 	lpf(cfg.lpf),
 	hologram(cfg.hologram),
 	segment(cfg.segment),
@@ -92,6 +93,8 @@ void Config::load(const fs::path& fn)
 		emptyCheck.preprocTh = node["empty_th_preproc"].as<int>();
 		emptyCheck.reconTh = node["empty_th_recon"].as<int>();
 		
+		noisyCheck.contours = node["noisy_contours"].as<int>();
+		
 		lpf.enabled = node["filt_lowpass"].as<bool>();
 		lpf.f = node["filt_lowpass_f"].as<float>();
 		
@@ -105,7 +108,6 @@ void Config::load(const fs::path& fn)
 		hologram.focusK = node["focus_k"].as<float>();
 		
 		segment.thFact = node["segment_th_factor"].as<float>();
-		segment.nMax = node["segment_n_max"].as<int>();
 		segment.sizeMin = node["segment_size_min"].as<int>();
 		segment.sizeMax = node["segment_size_max"].as<int>();
 		segment.sizeSmall = node["segment_size_small"].as<int>();
