@@ -1,7 +1,7 @@
 #ifndef ICEMET_DATABASE_H
 #define ICEMET_DATABASE_H
 
-#include "icemet/core/file.hpp"
+#include "icemet/file.hpp"
 #include "icemet/util/time.hpp"
 
 #include <mysql/mysql.h>

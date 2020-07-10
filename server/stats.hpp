@@ -1,9 +1,9 @@
 #ifndef ICEMET_SERVER_STATS_H
 #define ICEMET_SERVER_STATS_H
 
-#include "icemet/worker.hpp"
-#include "icemet/core/config.hpp"
-#include "icemet/core/file.hpp"
+#include "server/worker.hpp"
+#include "icemet/config.hpp"
+#include "icemet/file.hpp"
 #include "icemet/util/time.hpp"
 
 class Stats : public Worker {

@@ -1,13 +1,14 @@
-#include "icemet/core/database.hpp"
+#include "icemet/database.hpp"
 #include "icemet/util/log.hpp"
 #include "icemet/util/strfmt.hpp"
-#include "server/analysis.hpp"
-#include "server/preproc.hpp"
-#include "server/reader.hpp"
-#include "server/recon.hpp"
-#include "server/saver.hpp"
-#include "server/stats.hpp"
-#include "server/watcher.hpp"
+#include "analysis.hpp"
+#include "preproc.hpp"
+#include "reader.hpp"
+#include "recon.hpp"
+#include "saver.hpp"
+#include "server.hpp"
+#include "stats.hpp"
+#include "watcher.hpp"
 
 #include <opencv2/core/ocl.hpp>
 
@@ -27,8 +28,8 @@ static const char* helpStr =
 "  -s                Stats only. Particles will be fetched from the database.\n"
 "  -Q                Quit after processing all available files.\n"
 "  -d                Enable debug messages.\n";
-static const char* versionStr =
-"ICEMET Server " ICEMET_VERSION "\n"
+static const char* versionFmt =
+"ICEMET Server %s\n"
 "\n"
 "Copyright (C) 2019-2020 Eero Molkoselkä <eero.molkoselka@gmail.com>\n";
 
@@ -43,6 +44,8 @@ static int cvErrorHandler(int status, const char* func, const char* msg, const c
     return 0;
 }
 
+#include <iostream>
+
 int main(int argc, char* argv[])
 {
 	Arguments args;
@@ -55,7 +58,7 @@ int main(int argc, char* argv[])
 				return EXIT_SUCCESS;
 			}
 			else if (!arg.compare("-V")) {
-				printf(versionStr);
+				printf(versionFmt, icemet_server_version().str().c_str());
 				return EXIT_SUCCESS;
 			}
 			else if (!arg.compare("-s")) {

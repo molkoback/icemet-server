@@ -1,6 +1,6 @@
 #include "preproc.hpp"
 
-#include "icemet/core/math.hpp"
+#include "icemet/math.hpp"
 #include "icemet/util/time.hpp"
 
 #include <opencv2/imgproc.hpp>

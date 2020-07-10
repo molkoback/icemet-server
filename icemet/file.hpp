@@ -1,7 +1,7 @@
 #ifndef ICEMET_FILE_H
 #define ICEMET_FILE_H
 
-#include "icemet/worker.hpp"
+#include "server/worker.hpp"
 #include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>

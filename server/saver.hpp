@@ -1,9 +1,9 @@
-#ifndef ICEMET_SERVER_SERVER_H
-#define ICEMET_SERVER_SERVER_H
+#ifndef ICEMET_SERVER_SAVER_H
+#define ICEMET_SERVER_SAVER_H
 
-#include "icemet/worker.hpp"
-#include "icemet/core/config.hpp"
-#include "icemet/core/file.hpp"
+#include "server/worker.hpp"
+#include "icemet/config.hpp"
+#include "icemet/file.hpp"
 
 class Saver : public Worker {
 protected:

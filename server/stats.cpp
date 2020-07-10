@@ -1,6 +1,6 @@
 #include "stats.hpp"
 
-#include "icemet/core/math.hpp"
+#include "icemet/math.hpp"
 #include "icemet/util/strfmt.hpp"
 #include "icemet/util/time.hpp"
 

@@ -22,10 +22,10 @@ bool Watcher::init()
 	return true;
 }
 
-void Watcher::findFiles(std::queue<cv::Ptr<File>>& files)
+void Watcher::findFiles(std::queue<FilePtr>& files)
 {
 	// Find files
-	std::vector<cv::Ptr<File>> filesVec;
+	std::vector<FilePtr> filesVec;
 	auto iter = fs::recursive_directory_iterator(m_cfg->paths.watch);
 	for (const auto& entry : iter) {
 		if (!entry.is_regular_file())
@@ -53,10 +53,10 @@ void Watcher::findFiles(std::queue<cv::Ptr<File>>& files)
 
 bool Watcher::loop()
 {
-	std::queue<cv::Ptr<File>> files;
+	std::queue<FilePtr> files;
 	findFiles(files);
 	while (!files.empty()) {
-		cv::Ptr<File> file = files.front();
+		FilePtr file = files.front();
 		
 		// Check if the file is new
 		if (*file > *m_prev) {
