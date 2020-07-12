@@ -57,7 +57,7 @@ void ICEMETV1Package::open(const fs::path& p)
 	// Create paths
 	m_tmp = icemetCacheDir();
 	m_data = m_tmp / "data.json";
-	m_video = m_tmp / "files.avi";
+	m_video = m_tmp / "images.avi";
 	
 	// Loop entries
 	struct archive_entry* entry;
@@ -67,7 +67,7 @@ void ICEMETV1Package::open(const fs::path& p)
 			writeArchive(arc, m_data);
 			readData();
 		}
-		else if (name == "files.avi") {
+		else if (name == "images.avi") {
 			writeArchive(arc, m_video);
 			m_cap = cv::VideoCapture(m_video);
 		}
