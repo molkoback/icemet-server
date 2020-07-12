@@ -1,5 +1,6 @@
 #include "saver.hpp"
 
+#include "icemet/pkg.hpp"
 #include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>
@@ -17,12 +18,6 @@ Saver::Saver(Config* cfg, Database* db) :
 	m_log.info("Results %s", m_cfg->paths.results.string().c_str());
 }
 
-bool Saver::init()
-{
-	m_filesAnalysis = static_cast<FileQueue*>(m_inputs[0]->data);
-	return true;
-}
-
 void Saver::move(const fs::path& src, const fs::path& dst) const
 {
 	if (fs::exists(dst))
@@ -36,55 +31,56 @@ void Saver::move(const fs::path& src, const fs::path& dst) const
 	}
 }
 
-void Saver::process(const FilePtr& file) const
+void Saver::processImg(const ImgPtr& img) const
 {
-	if ((file->status() == FILE_STATUS_EMPTY && !m_cfg->saves.empty) ||
-	    (file->status() == FILE_STATUS_SKIP && !m_cfg->saves.skipped) ||
-	    (file->status() == FILE_STATUS_NONE)) {
-		fs::remove(file->path());
+	if ((img->status() == FILE_STATUS_EMPTY && !m_cfg->saves.empty) ||
+	    (img->status() == FILE_STATUS_SKIP && !m_cfg->saves.skipped) ||
+	    (img->status() == FILE_STATUS_NONE)) {
+		fs::remove(img->path());
 		return;
 	}
 	
-	int n = file->particles.size();
+	int n = img->particles.size();
 	
 	// Save files
 	if (m_cfg->saves.original) {
-		fs::create_directories(file->dir(m_cfg->paths.original));
+		fs::create_directories(img->dir(m_cfg->paths.original));
 		
-		fs::path src(file->path());
-		fs::path dst = file->path(m_cfg->paths.original, src.extension());
-		move(src, dst);
+		fs::path src(img->path());
+		fs::path dst = img->path(m_cfg->paths.original, src.extension());
+		if (!src.empty())
+			move(src, dst);
 	}
 	else {
-		fs::remove(file->path());
+		fs::remove(img->path());
 	}
-	if (m_cfg->saves.preproc && !file->preproc.empty()) {
-		fs::create_directories(file->dir(m_cfg->paths.preproc));
+	if (m_cfg->saves.preproc && !img->preproc.empty()) {
+		fs::create_directories(img->dir(m_cfg->paths.preproc));
 		
-		fs::path dst(file->path(m_cfg->paths.preproc, m_cfg->types.results));
-		cv::imwrite(dst.string(), file->preproc.getMat(cv::ACCESS_READ));
+		fs::path dst(img->path(m_cfg->paths.preproc, m_cfg->types.results));
+		cv::imwrite(dst.string(), img->preproc.getMat(cv::ACCESS_READ));
 	}
-	if (m_cfg->saves.recon && file->status() == FILE_STATUS_NOTEMPTY) {
-		fs::create_directories(file->dir(m_cfg->paths.recon));
-		
-		for (int i = 0; i < n; i++) {
-			fs::path dst(file->path(m_cfg->paths.recon, m_cfg->types.results, i+1));
-			cv::imwrite(dst.string(), file->segments[i]->img);
-		}
-	}
-	if (m_cfg->saves.threshold && file->status() == FILE_STATUS_NOTEMPTY) {
-		fs::create_directories(file->dir(m_cfg->paths.threshold));
+	if (m_cfg->saves.recon && img->status() == FILE_STATUS_NOTEMPTY) {
+		fs::create_directories(img->dir(m_cfg->paths.recon));
 		
 		for (int i = 0; i < n; i++) {
-			fs::path dst(file->path(m_cfg->paths.threshold, m_cfg->types.results, i+1));
-			cv::imwrite(dst.string(), file->particles[i]->img);
+			fs::path dst(img->path(m_cfg->paths.recon, m_cfg->types.results, i+1));
+			cv::imwrite(dst.string(), img->segments[i]->img);
 		}
 	}
-	if (m_cfg->saves.preview && file->status() == FILE_STATUS_NOTEMPTY) {
-		fs::create_directories(file->dir(m_cfg->paths.preview));
+	if (m_cfg->saves.threshold && img->status() == FILE_STATUS_NOTEMPTY) {
+		fs::create_directories(img->dir(m_cfg->paths.threshold));
+		
+		for (int i = 0; i < n; i++) {
+			fs::path dst(img->path(m_cfg->paths.threshold, m_cfg->types.results, i+1));
+			cv::imwrite(dst.string(), img->particles[i]->img);
+		}
+	}
+	if (m_cfg->saves.preview && img->status() == FILE_STATUS_NOTEMPTY) {
+		fs::create_directories(img->dir(m_cfg->paths.preview));
 		
 		cv::Mat preview = cv::Mat::zeros(m_cfg->img.size, CV_8UC1);
-		for (const auto& segm : file->segments) {
+		for (const auto& segm : img->segments) {
 			// Invert
 			cv::Mat imgInv;
 			cv::bitwise_not(segm->img, imgInv);
@@ -97,17 +93,17 @@ void Saver::process(const FilePtr& file) const
 			// Draw
 			imgAdj.copyTo(cv::Mat(preview, segm->rect));
 		}
-		fs::path dst(file->path(m_cfg->paths.preview, m_cfg->types.lossy));
+		fs::path dst(img->path(m_cfg->paths.preview, m_cfg->types.lossy));
 		cv::imwrite(dst.string(), preview);
 	}
 	
 	// Write SQL
 	for (int i = 0; i < n; i++) {
-		const auto& segm = file->segments[i];
-		const auto& par = file->particles[i];
+		const auto& segm = img->segments[i];
+		const auto& par = img->particles[i];
 		m_db->writeParticle({
-			0, file->dt(),
-			file->sensor(), file->frame(), (unsigned int)i+1,
+			0, img->dt(),
+			img->sensor(), img->frame(), (unsigned int)i+1,
 			par->x, par->y, par->z,
 			par->diam, par->diamCorr,
 			par->circularity, par->dynRange, par->effPxSz,
@@ -116,22 +112,35 @@ void Saver::process(const FilePtr& file) const
 	}
 }
 
+void Saver::processPkg(const PkgPtr& pkg) const
+{
+	if (m_cfg->saves.original) {
+		fs::path src(pkg->path());
+		fs::path dst = pkg->path(m_cfg->paths.original, src.extension());
+		move(src, dst);
+	}
+}
+
 bool Saver::loop()
 {
-	// Collect files
-	std::queue<FilePtr> files;
-	m_filesAnalysis->collect(files);
+	std::queue<WorkerData> queue;
+	m_inputs[0]->collect(queue);
 	
-	// Process
-	while (!files.empty()) {
-		FilePtr file = files.front();
-		m_log.debug("Saving %s", file->name().c_str());
-		Measure m;
-		process(file);
-		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
-		m_log.info("Done %s", file->name().c_str());
-		files.pop();
+	while (!queue.empty()) {
+		WorkerData data = queue.front();
+		queue.pop();
+		if (data.type() == WORKER_DATA_IMG) {
+			ImgPtr img = data.getImg();
+			m_log.debug("Saving %s", img->name().c_str());
+			Measure m;
+			processImg(img);
+			m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
+			m_log.info("Done %s", img->name().c_str());
+		}
+		else {
+			processPkg(data.getPkg());
+		}
 	}
 	msleep(1);
-	return !m_inputs[0]->closed() || !m_filesAnalysis->empty();
+	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
 }

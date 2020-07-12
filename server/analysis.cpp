@@ -17,19 +17,13 @@ Analysis::Analysis(Config* cfg) :
 	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET),
 	m_cfg(cfg) {}
 
-bool Analysis::init()
-{
-	m_filesRecon = static_cast<FileQueue*>(m_inputs[0]->data);
-	return true;
-}
-
-bool Analysis::analyse(const FilePtr& file, const SegmentPtr& segm, ParticlePtr& par) const
+bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& par) const
 {
 	// Calculate threshold
 	double min, max;
 	cv::Point minLoc, maxLoc;
 	cv::minMaxLoc(segm->img, &min, &max, &minLoc, &maxLoc);
-	double bg = file->param.bgVal;
+	double bg = img->bgVal;
 	double f = m_cfg->particle.thFact;
 	int th = bg - f*(bg-min);
 	
@@ -104,10 +98,10 @@ bool Analysis::analyse(const FilePtr& file, const SegmentPtr& segm, ParticlePtr&
 	return true;
 }
 
-void Analysis::process(FilePtr file)
+void Analysis::process(ImgPtr img)
 {
 	// Sort by size
-	std::sort(file->segments.begin(), file->segments.end(), [](const auto& s1, const auto& s2) {
+	std::sort(img->segments.begin(), img->segments.end(), [](const auto& s1, const auto& s2) {
 		int A1 = s1->rect.width * s1->rect.height;
 		int A2 = s2->rect.width * s2->rect.height;
 		return A1 > A2;
@@ -116,9 +110,9 @@ void Analysis::process(FilePtr file)
 	// Analyse all segments
 	std::vector<SegmentPtr> segments;
 	std::vector<ParticlePtr> particles;
-	for (const auto& segm : file->segments) {
+	for (const auto& segm : img->segments) {
 		ParticlePtr par;
-		if (analyse(file, segm, par)) {
+		if (analyse(img, segm, par)) {
 			segments.push_back(segm);
 			particles.push_back(par);
 		}
@@ -159,32 +153,33 @@ void Analysis::process(FilePtr file)
 		}
 	}
 	
-	file->segments = segmentsUnique;
-	file->particles = particlesUnique;
-	int count = file->particles.size();
-	file->setStatus(count ? FILE_STATUS_NOTEMPTY : FILE_STATUS_EMPTY);
+	img->segments = segmentsUnique;
+	img->particles = particlesUnique;
+	int count = img->particles.size();
+	img->setStatus(count ? FILE_STATUS_NOTEMPTY : FILE_STATUS_EMPTY);
 	m_log.debug("Particles: %d", count);
 }
 
 bool Analysis::loop()
 {
-	// Collect files
-	std::queue<FilePtr> files;
-	m_filesRecon->collect(files);
+	std::queue<WorkerData> queue;
+	m_inputs[0]->collect(queue);
 	
-	// Process
-	while (!files.empty()) {
-		FilePtr file = files.front();
-		if (file->status() == FILE_STATUS_NONE) {
-			m_log.debug("Analysing %s", file->name().c_str());
-			Measure m;
-			process(file);
-			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+	while (!queue.empty()) {
+		WorkerData data = queue.front();
+		queue.pop();
+		if (data.type() == WORKER_DATA_IMG) {
+			ImgPtr img = data.getImg();
+			if (img->status() == FILE_STATUS_NONE) {
+				m_log.debug("Analysing %s", img->name().c_str());
+				Measure m;
+				process(img);
+				m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
+			}
 		}
-		for (const auto& conn : m_outputs)
-			static_cast<FileQueue*>(conn->data)->push(file);
-		files.pop();
+		for (const auto& output : m_outputs)
+			output->push(data);
 	}
 	msleep(1);
-	return !m_inputs[0]->closed() || !m_filesRecon->empty();
+	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
 }

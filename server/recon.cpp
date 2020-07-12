@@ -22,18 +22,11 @@ Recon::Recon(Config* cfg) :
 		m_lpf = m_hologram->createLPF(m_cfg->lpf.f);
 }
 
-bool Recon::init()
-{
-	m_filesPreproc = static_cast<FileQueue*>(m_inputs[0]->data);
-	m_filesRecon = static_cast<FileQueue*>(m_outputs[0]->data);
-	return true;
-}
-
-void Recon::process(FilePtr file)
+void Recon::process(ImgPtr img)
 {
 	const cv::Size2i size = m_cfg->img.size;
 	const cv::Size2i border = m_cfg->img.border;
-	const cv::Rect crop(
+	const cv::Rect2i crop(
 		border.width, border.height,
 		size.width-2*border.width, size.height-2*border.height
 	);
@@ -44,7 +37,7 @@ void Recon::process(FilePtr file)
 	const int segmSizeSmall = m_cfg->segment.sizeSmall;
 	const int pad = m_cfg->segment.pad;
 	
-	const int th = m_cfg->segment.thFact * file->param.bgVal;
+	const int th = m_cfg->segment.thFact * img->bgVal;
 	
 	cv::icemet::ZRange gz = m_cfg->hologram.z;
 	gz.step *= m_cfg->hologram.step;
@@ -55,7 +48,7 @@ void Recon::process(FilePtr file)
 	int nsegments = 0;
 	
 	// Set our image and apply filters
-	m_hologram->setImg(file->preproc);
+	m_hologram->setImg(img->preproc);
 	if (!m_lpf.empty())
 		m_hologram->applyFilter(m_lpf);
 	
@@ -69,7 +62,7 @@ void Recon::process(FilePtr file)
 		
 		// Threshold
 		cv::UMat imgTh;
-		cv::threshold(cv::UMat(imgMin, crop), imgTh, th, 255, cv::THRESH_BINARY_INV);
+		cv::threshold(imgMin, imgTh, th, 255, cv::THRESH_BINARY_INV);
 		
 		// Find all contours and process them
 		std::vector<std::vector<cv::Point>> contours;
@@ -77,17 +70,17 @@ void Recon::process(FilePtr file)
 		cv::findContours(
 			imgTh,
 			contours, hierarchy,
-			cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE,
-			cv::Point(border.width, border.height)
+			cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE
 		);
 		
 		// Create rects from contours
 		ncontours += contours.size();
 		for (const auto& cnt : contours) {
-			cv::Rect rect = cv::boundingRect(cnt);
+			cv::Rect2i rect = cv::boundingRect(cnt);
 			
 			if ((segmSizeMin > 0 && (rect.width < segmSizeMin || rect.height < segmSizeMin)) ||
-			    (segmSizeMax > 0 && (rect.width > segmSizeMax || rect.height > segmSizeMax)))
+			    (segmSizeMax > 0 && (rect.width > segmSizeMax || rect.height > segmSizeMax)) ||
+                (crop & rect).area() == 0)
 				continue;
 			
 			// Select our focus method
@@ -115,33 +108,34 @@ void Recon::process(FilePtr file)
 			segm->method = method;
 			segm->rect = rect;
 			cv::UMat(m_stack[idx], rect).copyTo(segm->img);
-			file->segments.push_back(segm);
+			img->segments.push_back(segm);
 		}
 		iter++;
 	}
-	if ((nsegments = file->segments.size()) == 0)
-		file->setStatus(FILE_STATUS_EMPTY);
+	if ((nsegments = img->segments.size()) == 0)
+		img->setStatus(FILE_STATUS_EMPTY);
 	m_log.debug("Segments: %d, Contours: %d", nsegments, ncontours);
 }
 
 bool Recon::loop()
 {
-	// Collect files
-	std::queue<FilePtr> files;
-	m_filesPreproc->collect(files);
+	std::queue<WorkerData> queue;
+	m_inputs[0]->collect(queue);
 	
-	// Process
-	while (!files.empty()) {
-		FilePtr file = files.front();
-		if (file->status() == FILE_STATUS_NONE) {
-			Measure m;
-			m_log.debug("Reconstructing %s", file->name().c_str());
-			process(file);
-			m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
+	while (!queue.empty()) {
+		WorkerData data = queue.front();
+		queue.pop();
+		if (data.type() == WORKER_DATA_IMG) {
+			ImgPtr img = data.getImg();
+			if (img->status() == FILE_STATUS_NONE) {
+				Measure m;
+				m_log.debug("Reconstructing %s", img->name().c_str());
+				process(img);
+				m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
+			}
 		}
-		m_filesRecon->push(file);
-		files.pop();
+		m_outputs[0]->push(data);
 	}
 	msleep(1);
-	return !m_inputs[0]->closed() || !m_filesPreproc->empty();
+	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
 }

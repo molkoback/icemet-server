@@ -1,8 +1,12 @@
 #ifndef ICEMET_WORKER_H
 #define ICEMET_WORKER_H
 
+#include "icemet/img.hpp"
+#include "icemet/pkg.hpp"
 #include "icemet/util/log.hpp"
 #include "icemet/util/time.hpp"
+
+#include <opencv2/core.hpp>
 
 #include <atomic>
 #include <mutex>
@@ -10,90 +14,55 @@
 #include <string>
 #include <vector>
 
-class Worker;
+typedef enum _worker_data_type {
+	WORKER_DATA_IMG = 0,
+	WORKER_DATA_PKG
+} WorkerDataType;
 
-template<class T>
+class WorkerData {
+private:
+	WorkerDataType m_type;
+	ImgPtr m_img;
+	PkgPtr m_pkg;
+
+public:
+	WorkerData(ImgPtr img) : m_type(WORKER_DATA_IMG), m_img(img) {}
+	WorkerData(PkgPtr pkg) : m_type(WORKER_DATA_PKG), m_pkg(pkg) {}
+	WorkerData(const WorkerData& data) : m_type(data.m_type), m_img(data.m_img), m_pkg(data.m_pkg) {}
+	
+	WorkerDataType type() { return m_type; }
+	ImgPtr getImg() { return m_img; }
+	PkgPtr getPkg() { return m_pkg; }
+};
+
 class WorkerQueue {
 private:
-	std::queue<T> m_queue;
+	std::queue<WorkerData> m_queue;
 	std::mutex m_mutex;
+	std::atomic<bool> m_closed;
 	size_t m_size;
 	
 	void lock() { m_mutex.lock(); }
 	void unlock() { m_mutex.unlock(); }
 
 public:
-	WorkerQueue(size_t size) : m_size(size) {}
-	
-	void push(const T& val)
-	{
-		// Wait until we have space
-		while (true) {
-			lock();
-			if (m_queue.size() < m_size)
-				break;
-			unlock();
-			msleep(1);
-		}
-		
-		// Push to queue
-		m_queue.push(val);
-		unlock();
-	}
-	
-	void collect(std::queue<T>& dst)
-	{
-		lock();
-		while (!m_queue.empty()) {
-			dst.push(m_queue.front());
-			m_queue.pop();
-		}
-		unlock();
-	}
-	
-	bool full()
-	{
-		lock();
-		bool isFull = m_queue.size() >= m_size;
-		unlock();
-		return isFull;
-	}
-	
-	bool empty()
-	{
-		lock();
-		bool isEmpty = m_queue.empty();
-		unlock();
-		return isEmpty;
-	}
-};
-
-class WorkerConnection {
-private:
-	std::atomic<bool> m_closed;
-
-public:
-	WorkerConnection(Worker* provider, Worker* user, void* data) :
-		m_closed(false),
-		provider(provider),
-		user(user),
-		data(data) {}
-	
-	Worker* provider;
-	Worker* user;
-	void* data;
-	
+	WorkerQueue(size_t size) : m_closed(false), m_size(size) {}
+	void push(const WorkerData& data);
+	void collect(std::queue<WorkerData>& dst);
+	bool full();
+	bool empty();
 	void close() { m_closed.store(true); }
 	bool closed() { return m_closed.load(); }
 };
+typedef cv::Ptr<WorkerQueue> WorkerQueuePtr;
 
 class Worker {
 protected:
 	std::string m_name;
 	Log m_log;
 	
-	std::vector<WorkerConnection*> m_inputs;
-	std::vector<WorkerConnection*> m_outputs;
+	std::vector<WorkerQueuePtr> m_inputs;
+	std::vector<WorkerQueuePtr> m_outputs;
 	
 	virtual bool init() { return true; }
 	virtual bool loop() { return false; }
@@ -102,8 +71,7 @@ protected:
 public:
 	Worker(const std::string& name) : m_name(name), m_log(name) {}
 	void run();
-	
-	static void connect(Worker* provider, Worker* user, void* data);
+	void connect(Worker& user, size_t queueSize);
 };
 
 #endif

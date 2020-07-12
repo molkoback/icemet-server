@@ -3,6 +3,6 @@
 
 #include "icemet/util/version.hpp"
 
-const VersionInfo& icemet_server_version();
+const VersionInfo& icemetServerVersion();
 
 #endif

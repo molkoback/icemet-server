@@ -10,7 +10,6 @@ class Stats : public Worker {
 protected:
 	Config* m_cfg;
 	Database* m_db;
-	FileQueue* m_filesAnalysis;
 	double m_V;
 	DateTime m_dt;
 	Timestamp m_len;
@@ -21,7 +20,7 @@ protected:
 	void fillStatsRow(StatsRow& row) const;
 	void statsPoint() const;
 	bool particleValid(const ParticlePtr& par) const;
-	void process(const FilePtr& file);
+	void process(const ImgPtr& img);
 	bool init() override;
 	bool loop() override;
 	void close() override;

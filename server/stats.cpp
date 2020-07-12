@@ -40,7 +40,6 @@ bool Stats::init()
 {
 	if (m_cfg->args.statsOnly && m_cfg->stats.frames <= 0)
 		throw(std::runtime_error("stats_frames required in stats only mode"));
-	m_filesAnalysis = static_cast<FileQueue*>(m_inputs[0]->data);
 	return true;
 }
 
@@ -141,9 +140,9 @@ bool Stats::particleValid(const ParticlePtr& par) const
 	);
 }
 
-void Stats::process(const FilePtr& file)
+void Stats::process(const ImgPtr& img)
 {
-	DateTime dt = file->dt();
+	DateTime dt = img->dt();
 	
 	// Make sure we have datetime
 	if (m_dt.stamp() == 0)
@@ -157,7 +156,7 @@ void Stats::process(const FilePtr& file)
 	
 	// Get particle diameters
 	int count = 0;
-	for (const auto& par : file->particles) {
+	for (const auto& par : img->particles) {
 		if (particleValid(par)) {
 			m_particles.push_back(par->diam);
 			count++;
@@ -169,30 +168,30 @@ void Stats::process(const FilePtr& file)
 
 bool Stats::loop()
 {
-	// Collect files
-	std::queue<FilePtr> files;
-	m_filesAnalysis->collect(files);
+	std::queue<WorkerData> queue;
+	m_inputs[0]->collect(queue);
 	
-	// Process
-	while (!files.empty()) {
-		FilePtr file = files.front();
-		m_log.debug("Analysing %s", file->name().c_str());
-		Measure m;
-		
-		// Skip files that haven't been preprocessed (the first few files)
-		if (file->status() != FILE_STATUS_SKIP)
-		
-		if (m_cfg->args.statsOnly || !file->preproc.empty())
-			process(file);
-		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
-		files.pop();
+	while (!queue.empty()) {
+		WorkerData data = queue.front();
+		queue.pop();
+		if (data.type() == WORKER_DATA_IMG) {
+			ImgPtr img = data.getImg();
+			m_log.debug("Processing %s", img->name().c_str());
+			Measure m;
+			if (img->status() != FILE_STATUS_SKIP)
+				process(img);
+			m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
+		}
+		else {
+			// TODO
+		}
 	}
 	
 	if (m_inputs.empty()) {
 		return false;
 	}
 	msleep(1);
-	return !m_inputs[0]->closed() || !m_filesAnalysis->empty();
+	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
 }
 
 void Stats::close()

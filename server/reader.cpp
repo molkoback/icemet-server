@@ -7,30 +7,24 @@ Reader::Reader(Config* cfg, Database* db) :
 	m_cfg(cfg),
 	m_db(db),
 	m_id(0),
-	m_file(NULL) {}
-
-bool Reader::init()
-{
-	m_filesAnalysis = static_cast<FileQueue*>(m_outputs[0]->data);
-	return true;
-}
+	m_img(NULL) {}
 
 bool Reader::loop()
 {
 	std::vector<ParticleRow> rows;
 	m_db->readParticles(rows, m_id);
 	for (const auto& row : rows) {
-		FilePtr tmp = cv::makePtr<File>(row.sensor, row.dt, row.frame, FILE_STATUS_NOTEMPTY);
+		ImgPtr tmp = cv::makePtr<Image>(File(row.sensor, row.dt, row.frame, FILE_STATUS_NOTEMPTY).name());
 		
 		// Make sure we have a file
-		if (m_file.empty()) {
-			m_file = tmp;
+		if (m_img.empty()) {
+			m_img = tmp;
 		}
 		// File complete
-		else if (*tmp != *m_file) {
-			m_log.debug("Read %s", m_file->name().c_str());
-			m_filesAnalysis->push(m_file);
-			m_file = tmp;
+		else if (*tmp != *m_img) {
+			m_log.debug("Read %s", m_img->name().c_str());
+			m_outputs[0]->push(m_img);
+			m_img = tmp;
 		}
 		
 		// Create particle
@@ -43,7 +37,7 @@ bool Reader::loop()
 		par->diamCorr = row.diamCorr;
 		par->circularity = row.circularity;
 		par->dynRange = row.dynRange;
-		m_file->particles.push_back(par);
+		m_img->particles.push_back(par);
 		m_id = row.id+1;
 	}
 	msleep(10);

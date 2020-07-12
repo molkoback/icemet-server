@@ -3,6 +3,14 @@
 
 #include "icemet/util/version.hpp"
 
-const VersionInfo& icemet_version();
+#include <opencv2/core.hpp>
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
+const VersionInfo& icemetVersion();
+
+fs::path icemetCacheDir();
 
 #endif

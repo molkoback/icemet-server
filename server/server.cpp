@@ -7,7 +7,7 @@
 
 static const VersionInfo info = VersionInfo(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_DEV);
 
-const VersionInfo& icemet_server_version()
+const VersionInfo& icemetServerVersion()
 {
 	return info;
 }

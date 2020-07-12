@@ -26,13 +26,6 @@ Preproc::Preproc(Config* cfg) :
 	);
 }
 
-bool Preproc::init()
-{
-	m_filesOriginal = static_cast<FileQueue*>(m_inputs[0]->data);
-	m_filesPreproc = static_cast<FileQueue*>(m_outputs[0]->data);
-	return true;
-}
-
 int Preproc::dynRange(const cv::UMat& img) const
 {
 	double minVal, maxVal;
@@ -40,12 +33,12 @@ int Preproc::dynRange(const cv::UMat& img) const
 	return maxVal - minVal;
 }
 
-void Preproc::finalize(FilePtr file)
+void Preproc::finalize(ImgPtr img)
 {
-	file->param.bgVal =  Math::median(file->preproc);
+	img->bgVal =  Math::median(img->preproc);
 	
 	if (m_cfg->emptyCheck.reconTh > 0 || m_cfg->noisyCheck.contours > 0) {
-		m_hologram->setImg(file->preproc);
+		m_hologram->setImg(img->preproc);
 		cv::UMat imgMin;
 		cv::icemet::ZRange z = m_cfg->hologram.z;
 		z.step *= 10.0;
@@ -56,7 +49,7 @@ void Preproc::finalize(FilePtr file)
 			double minVal, maxVal;
 			minMaxLoc(imgMin, &minVal, &maxVal);
 			if (maxVal - minVal < m_cfg->emptyCheck.reconTh) {
-				file->setStatus(FILE_STATUS_EMPTY);
+				img->setStatus(FILE_STATUS_EMPTY);
 				goto end;
 			}
 		}
@@ -69,7 +62,7 @@ void Preproc::finalize(FilePtr file)
 				border.width, border.height,
 				size.width-2*border.width, size.height-2*border.height
 			);
-			const int th = m_cfg->segment.thFact * file->param.bgVal;
+			const int th = m_cfg->segment.thFact * img->bgVal;
 			
 			// Threshold
 			cv::UMat imgTh;
@@ -84,97 +77,101 @@ void Preproc::finalize(FilePtr file)
 				cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE
 			);
 			if ((int)contours.size() > m_cfg->noisyCheck.contours) {
-				file->setStatus(FILE_STATUS_SKIP);
+				img->setStatus(FILE_STATUS_SKIP);
 				goto end;
 			}
 		}
 	}
 end:
-	m_filesPreproc->push(file);
+	m_outputs[0]->push(img);
 }
 
-void Preproc::processBgsub(FilePtr file, cv::UMat& imgPP)
+void Preproc::processBgsub(ImgPtr img, cv::UMat& imgPP)
 {
 	// Push to background subtraction stack
 	bool full = m_stack->push(imgPP);
 	
 	// Files go through a queue so we maintain the order
-	m_wait.push(file);
+	m_wait.push(img);
 	if (m_wait.size() >= m_stackLen/2 + 1) {
-		FilePtr fileDone = m_wait.front();
+		ImgPtr imgDone = m_wait.front();
+		m_wait.pop();
 		
 		// Perform median division if the background subtraction stack was full
 		if (full) {
-			fileDone->preproc = cv::UMat(m_cfg->img.size, CV_8UC1);
-			m_stack->meddiv(fileDone->preproc);
+			imgDone->preproc = cv::UMat(m_cfg->img.size, CV_8UC1);
+			m_stack->meddiv(imgDone->preproc);
 			
 			// Check dynamic range
-			if (dynRange(fileDone->preproc) < m_cfg->emptyCheck.preprocTh) {
-				fileDone->setStatus(FILE_STATUS_EMPTY);
-				m_filesPreproc->push(fileDone);
+			if (dynRange(imgDone->preproc) < m_cfg->emptyCheck.preprocTh) {
+				imgDone->setStatus(FILE_STATUS_EMPTY);
+				m_outputs[0]->push(imgDone);
 			}
 			else {
-				finalize(fileDone);
+				finalize(imgDone);
 			}
 		}
 		else {
-			fileDone->setStatus(FILE_STATUS_SKIP);
-			m_filesPreproc->push(fileDone);
+			imgDone->setStatus(FILE_STATUS_SKIP);
+			m_outputs[0]->push(imgDone);
 		}
-		m_wait.pop();
 	}
 }
 
-void Preproc::processNoBgsub(FilePtr file, cv::UMat& imgPP)
+void Preproc::processNoBgsub(ImgPtr img, cv::UMat& imgPP)
 {
-	file->preproc = imgPP;
-	if (dynRange(file->preproc) < m_cfg->emptyCheck.preprocTh) {
-		file->setStatus(FILE_STATUS_EMPTY);
-		m_filesPreproc->push(file);
+	img->preproc = imgPP;
+	if (dynRange(img->preproc) < m_cfg->emptyCheck.preprocTh) {
+		img->setStatus(FILE_STATUS_EMPTY);
+		m_outputs[0]->push(img);
 	}
 	else {
-		finalize(file);
+		finalize(img);
 	}
 }
 
-void Preproc::process(FilePtr file)
+void Preproc::process(ImgPtr img)
 {
 	// Check dynamic range
-	if (dynRange(file->original) < m_cfg->emptyCheck.originalTh) {
-		file->setStatus(FILE_STATUS_EMPTY);
-		m_filesPreproc->push(file);
+	if (dynRange(img->original) < m_cfg->emptyCheck.originalTh) {
+		img->setStatus(FILE_STATUS_EMPTY);
+		m_outputs[0]->push(img);
 	}
 	else {
 		// Crop and rotate
 		cv::UMat imgCrop, imgPP;
-		cv::UMat(file->original, m_cfg->img.rect).copyTo(imgCrop);
+		cv::UMat(img->original, m_cfg->img.rect).copyTo(imgCrop);
 		if (!m_rot.empty())
 			cv::warpAffine(imgCrop, imgPP, m_rot, imgCrop.size());
 		else
 			imgPP = imgCrop;
 		
 		if (m_cfg->bgsub.enabled)
-			processBgsub(file, imgPP);
+			processBgsub(img, imgPP);
 		else
-			processNoBgsub(file, imgPP);
+			processNoBgsub(img, imgPP);
 	}
 }
 
 bool Preproc::loop()
 {
-	// Collect files
-	std::queue<FilePtr> files;
-	m_filesOriginal->collect(files);
+	std::queue<WorkerData> queue;
+	m_inputs[0]->collect(queue);
 	
-	// Process
-	while (!files.empty()) {
-		FilePtr file = files.front();
-		m_log.debug("Processing %s", file->name().c_str());
-		Measure m;
-		process(file);
-		m_log.debug("Done %s (%.2f s)", file->name().c_str(), m.time());
-		files.pop();
+	while (!queue.empty()) {
+		WorkerData data = queue.front();
+		queue.pop();
+		if (data.type() == WORKER_DATA_IMG) {
+			ImgPtr img = data.getImg();
+			m_log.debug("Processing %s", img->name().c_str());
+			Measure m;
+			process(img);
+			m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
+		}
+		else {
+			m_outputs[0]->push(data);
+		}
 	}
 	msleep(1);
-	return !m_inputs[0]->closed() || !m_filesOriginal->empty();
+	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
 }

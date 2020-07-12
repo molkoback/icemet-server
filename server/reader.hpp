@@ -1,19 +1,17 @@
 #ifndef ICEMET_SERVER_READER_H
 #define ICEMET_SERVER_READER_H
 
-#include "server/worker.hpp"
+#include "icemet/img.hpp"
 #include "icemet/config.hpp"
-#include "icemet/file.hpp"
+#include "server/worker.hpp"
 
 class Reader : public Worker {
 protected:
 	Config* m_cfg;
 	Database* m_db;
-	FileQueue* m_filesAnalysis;
 	unsigned int m_id;
-	FilePtr m_file;
+	ImgPtr m_img;
 	
-	bool init() override;
 	bool loop() override;
 
 public:

@@ -1,9 +1,9 @@
 #ifndef ICEMET_SERVER_RECON_H
 #define ICEMET_SERVER_RECON_H
 
-#include "server/worker.hpp"
+#include "icemet/img.hpp"
 #include "icemet/config.hpp"
-#include "icemet/file.hpp"
+#include "server/worker.hpp"
 
 #include <opencv2/icemet.hpp>
 
@@ -12,14 +12,11 @@
 class Recon : public Worker {
 protected:
 	Config* m_cfg;
-	FileQueue* m_filesPreproc;
-	FileQueue* m_filesRecon;
 	cv::Ptr<cv::icemet::Hologram> m_hologram;
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
 	
-	void process(FilePtr file);
-	bool init() override;
+	void process(ImgPtr img);
 	bool loop() override;
 
 public:

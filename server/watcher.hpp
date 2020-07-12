@@ -1,20 +1,21 @@
 #ifndef ICEMET_SERVER_WATCHER_H
 #define ICEMET_SERVER_WATCHER_H
 
-#include "server/worker.hpp"
+#include "icemet/icemet.hpp"
 #include "icemet/config.hpp"
 #include "icemet/file.hpp"
+#include "server/worker.hpp"
 
 #include <queue>
 
 class Watcher : public Worker {
 protected:
 	Config* m_cfg;
-	FileQueue* m_filesOriginal;
 	FilePtr m_prev;
 	
-	void findFiles(std::queue<FilePtr>& files);
-	bool init() override;
+	bool processImg(const fs::path& p);
+	bool processPkg(const fs::path& p);
+	void findFiles(std::queue<FilePtr>& queue);
 	bool loop() override;
 
 public:

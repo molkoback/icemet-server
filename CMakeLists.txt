@@ -8,12 +8,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 find_package(Threads REQUIRED)
+find_package(LibArchive REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(MariaDBConnector REQUIRED)
 find_package(Yaml-cpp REQUIRED)
 
 include_directories(
 	.
+	${LibArchive_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${MARIADB_CONNECTOR_INCLUDE_DIR}
 	${YAML_CPP_INCLUDE_DIR}
@@ -24,7 +26,9 @@ set(LIBICEMET_SRC
 	icemet/database.cpp
 	icemet/file.cpp
 	icemet/icemet.cpp
+	icemet/img.cpp
 	icemet/math.cpp
+	icemet/pkg.cpp
 	icemet/util/log.cpp
 	icemet/util/strfmt.cpp
 	icemet/util/time.cpp
@@ -62,8 +66,9 @@ add_executable(${ICEMETSERVER_NAME} ${ICEMETSERVER_SRC})
 target_link_libraries(${LIBICEMET_NAME}
 	stdc++fs
 	Threads::Threads
-	${OpenCV_LIBRARIES}
+	${LibArchive_LIBRARIES}
 	${MARIADB_CONNECTOR_LIBRARIES}
+	${OpenCV_LIBRARIES}
 	${YAML_CPP_LIBRARIES}
 )
 target_link_libraries(${LIBICEMETSERVER_NAME}

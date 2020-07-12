@@ -1,8 +1,8 @@
 #include "watcher.hpp"
 
+#include "icemet/img.hpp"
+#include "icemet/pkg.hpp"
 #include "icemet/util/time.hpp"
-
-#include <opencv2/imgcodecs.hpp>
 
 #include <algorithm>
 #include <stdexcept>
@@ -16,16 +16,10 @@ Watcher::Watcher(Config* cfg) :
 	m_log.info("Watching %s", m_cfg->paths.watch.string().c_str());
 }
 
-bool Watcher::init()
+void Watcher::findFiles(std::queue<FilePtr>& queue)
 {
-	m_filesOriginal = static_cast<FileQueue*>(m_outputs[0]->data);
-	return true;
-}
-
-void Watcher::findFiles(std::queue<FilePtr>& files)
-{
-	// Find files
-	std::vector<FilePtr> filesVec;
+	// List files
+	std::vector<FilePtr> files;
 	auto iter = fs::recursive_directory_iterator(m_cfg->paths.watch);
 	for (const auto& entry : iter) {
 		if (!entry.is_regular_file())
@@ -34,7 +28,7 @@ void Watcher::findFiles(std::queue<FilePtr>& files)
 		// Check if the path is an ICEMET file
 		fs::path path(entry.path());
 		try {
-			filesVec.push_back(cv::makePtr<File>(path));
+			files.push_back(cv::makePtr<File>(path));
 		}
 		catch (std::exception& e) {
 			m_log.debug("Ignoring: '%s'", path.string().c_str());
@@ -42,42 +36,79 @@ void Watcher::findFiles(std::queue<FilePtr>& files)
 	}
 	
 	// Sort
-	std::sort(filesVec.begin(), filesVec.end(), [](const auto& f1, const auto& f2) {
+	std::sort(files.begin(), files.end(), [](const auto& f1, const auto& f2) {
 		return *f1 < *f2;
 	});
 	
 	// Push to queue
-	for (const auto& file : filesVec)
-		files.push(file);
+	for (const auto& file : files)
+		queue.push(file);
+}
+
+bool Watcher::processImg(const fs::path& p)
+{
+	// Open the image
+	Measure m;
+	ImgPtr img;
+	try {
+		img = cv::makePtr<Image>(p);
+	}
+	catch(std::exception& e) {
+		m_log.debug("Invalid image file: '%s'", p.c_str());
+		return false;
+	}
+	
+	// Push to output queue
+	img->setStatus(FILE_STATUS_NONE);
+	m_log.debug("Opened %s (%.2f s)", img->name().c_str(), m.time());
+	m_outputs[0]->push(img);
+	return true;
+}
+
+bool Watcher::processPkg(const fs::path& p)
+{
+	Measure m1;
+	PkgPtr pkg;
+	try {
+		pkg = createPackage(p);
+	}
+	catch(std::exception& e) {
+		m_log.debug("Invalid package file: '%s'", p.c_str());
+		return false;
+	}
+	m_log.debug("Opened %s (%.2f s)", pkg->name().c_str(), m1.time());
+	
+	while (true) {
+		Measure m2;
+		ImgPtr img = pkg->next();
+		if (img.empty())
+			break;
+		img->setStatus(FILE_STATUS_NONE);
+		m_log.debug("Read %s (%.2f s)", img->name().c_str(), m2.time());
+		m_outputs[0]->push(img);
+	}
+	m_outputs[0]->push(pkg);
+	return true;
 }
 
 bool Watcher::loop()
 {
-	std::queue<FilePtr> files;
-	findFiles(files);
-	while (!files.empty()) {
-		FilePtr file = files.front();
-		
-		// Check if the file is new
+	std::queue<FilePtr> queue;
+	findFiles(queue);
+	while (!queue.empty()) {
+		FilePtr file = queue.front();
+		queue.pop();
 		if (*file > *m_prev) {
-			Measure m;
-			
-			// Open the image
-			std::string fn(file->path().string());
-			cv::Mat mat = cv::imread(fn, cv::IMREAD_GRAYSCALE);
-			if (!mat.data) {
-				m_log.debug("Invalid image file: '%s'", fn.c_str());
-				break;
+			fs::path p = file->path();
+			if (isPackage(p)) {
+				if (processPkg(p))
+					m_prev = file;
 			}
-			mat.getUMat(cv::ACCESS_READ).copyTo(file->original);
-			
-			// Push to output queue
-			file->setStatus(FILE_STATUS_NONE);
-			m_log.debug("Opened %s (%.2f s)", file->name().c_str(), m.time());
-			m_filesOriginal->push(file);
-			m_prev = file;
+			else {
+				if (processPkg(p))
+					m_prev = file;
+			}
 		}
-		files.pop();
 	}
 	
 	if (!m_cfg->args.waitNew)

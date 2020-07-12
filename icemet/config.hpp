@@ -2,7 +2,7 @@
 #define ICEMET_CONFIG_H
 
 #include "icemet/database.hpp"
-#include "icemet/file.hpp"
+#include "icemet/icemet.hpp"
 #include "icemet/util/log.hpp"
 
 #include <opencv2/core.hpp>

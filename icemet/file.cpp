@@ -10,6 +10,11 @@ File::File() :
 	m_frame(0),
 	m_status(FILE_STATUS_NONE) {}
 
+File::File(const std::string& name)
+{
+	setName(name);
+}
+
 File::File(const fs::path& p)
 {
 	setName(p.stem().string());

@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 				return EXIT_SUCCESS;
 			}
 			else if (!arg.compare("-V")) {
-				printf(versionFmt, icemet_server_version().str().c_str());
+				printf(versionFmt, icemetServerVersion().str().c_str());
 				return EXIT_SUCCESS;
 			}
 			else if (!arg.compare("-s")) {
@@ -117,21 +117,14 @@ int main(int argc, char* argv[])
 		Saver saver(&cfg, &db);
 		Stats stats(&cfg, &db);
 		
-		// Create data queues
-		FileQueue filesOriginal(4);
-		FileQueue filesPreproc(2);
-		FileQueue filesRecon(2);
-		FileQueue filesAnalysisSaver(2);
-		FileQueue filesAnalysisStats(2);
-		
 		// Launch worker threads
 		std::vector<std::thread> threads;
 		if (!args.statsOnly) {
-			Worker::connect(&watcher, &preproc, &filesOriginal);
-			Worker::connect(&preproc, &recon, &filesPreproc);
-			Worker::connect(&recon, &analysis, &filesRecon);
-			Worker::connect(&analysis, &saver, &filesAnalysisSaver);
-			Worker::connect(&analysis, &stats, &filesAnalysisStats);
+			watcher.connect(preproc, 4);
+			preproc.connect(recon, 2);
+			recon.connect(analysis, 2);
+			analysis.connect(saver, 2);
+			analysis.connect(stats, 2);
 			
 			threads.push_back(std::thread(&Watcher::run, &watcher));
 			threads.push_back(std::thread(&Preproc::run, &preproc));
@@ -141,7 +134,7 @@ int main(int argc, char* argv[])
 			threads.push_back(std::thread(&Stats::run, &stats));
 		}
 		else {
-			Worker::connect(&reader, &stats, &filesAnalysisStats);
+			reader.connect(stats, 2);
 			
 			threads.push_back(std::thread(&Reader::run, &reader));
 			threads.push_back(std::thread(&Stats::run, &stats));
