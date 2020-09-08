@@ -25,9 +25,9 @@ static bool writeArchive(struct archive* arc, const fs::path& p)
 {
 	const void* buf;
 	size_t size;
-	off_t offset;
+	la_int64_t offset;
 	FILE* fp;
-	if ((fp = fopen(p.c_str(), "wb")) == NULL)
+	if ((fp = fopen(p.string().c_str(), "wb")) == NULL)
 		return false;
 	while (archive_read_data_block(arc, &buf, &size, &offset) == ARCHIVE_OK) {
 		fwrite(buf, 1, size, fp);
@@ -51,7 +51,7 @@ void ICEMETV1Package::open(const fs::path& p)
 	// Open archive
 	struct archive* arc = archive_read_new();
 	archive_read_support_format_zip(arc);
-	if (archive_read_open_filename(arc, p.c_str(), 8192) != ARCHIVE_OK)
+	if (archive_read_open_filename(arc, p.string().c_str(), 8192) != ARCHIVE_OK)
 		throw(std::runtime_error(std::string("Couldn't open archive '") + p.string() + "'"));
 	
 	// Create paths
@@ -69,7 +69,7 @@ void ICEMETV1Package::open(const fs::path& p)
 		}
 		else if (name == "images.avi") {
 			writeArchive(arc, m_video);
-			m_cap = cv::VideoCapture(m_video);
+			m_cap = cv::VideoCapture(m_video.string());
 		}
 		else {
 			throw(std::runtime_error("Invalid archive format"));
@@ -91,13 +91,13 @@ ImgPtr ICEMETV1Package::next()
 
 bool isPackage(const fs::path& p)
 {
-	const std::string ext = p.extension();
+	std::string ext = p.extension().string();
 	return ext == ".iv1";
 }
 
 PkgPtr createPackage(const fs::path& p)
 {
-	std::string ext = p.extension();
+	std::string ext = p.extension().string();
 	if (ext == ".iv1")
 		return cv::makePtr<ICEMETV1Package>(p);
 	else
