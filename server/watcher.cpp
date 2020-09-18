@@ -105,7 +105,7 @@ bool Watcher::loop()
 					m_prev = file;
 			}
 			else {
-				if (processPkg(p))
+				if (processImg(p))
 					m_prev = file;
 			}
 		}
