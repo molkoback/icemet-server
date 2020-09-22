@@ -12,6 +12,7 @@
 #include <queue>
 
 #define AREA_MAX 0.70
+#define SIZE_MIN 200.0
 
 Analysis::Analysis(Config* cfg) :
 	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET),
@@ -19,17 +20,26 @@ Analysis::Analysis(Config* cfg) :
 
 bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& par) const
 {
-	// Calculate threshold
+	// Upscale smaller particles
+	cv::Mat imgScaled;
+	int smallAxis = std::min(segm->img.cols, segm->img.rows);
+	double scaleF = smallAxis < SIZE_MIN ? SIZE_MIN / smallAxis : 1.0;
+	cv::resize(segm->img, imgScaled, cv::Size(), scaleF, scaleF, cv::INTER_LANCZOS4);
+	cv::Size2f size = imgScaled.size();
+	
+	// Save minimum
 	double min, max;
 	cv::Point minLoc, maxLoc;
-	cv::minMaxLoc(segm->img, &min, &max, &minLoc, &maxLoc);
+	cv::minMaxLoc(imgScaled, &min, &max, &minLoc, &maxLoc);
+	
+	// Calculate threshold
 	double bg = img->bgVal;
 	double f = m_cfg->particle.thFact;
 	int th = bg - f*(bg-min);
 	
 	// Apply threshold
 	cv::Mat imgTh;
-	cv::threshold(segm->img, imgTh, th, 255, cv::THRESH_BINARY_INV);
+	cv::threshold(imgScaled, imgTh, th, 255, cv::THRESH_BINARY_INV);
 	
 	// Find contours
 	std::vector<std::vector<cv::Point>> contours;
@@ -39,61 +49,57 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	if (!n) return false;
 	
 	// Find the centermost contour
-	cv::Point_<double> origin(segm->rect.width/2.0, segm->rect.height/2.0);
+	cv::Point_<double> origin(size.width/2.0, size.height/2.0);
+	double area = 0;
 	cv::Point_<double> center;
 	double distMin = std::numeric_limits<double>::infinity();
 	int idx = 0;
 	for (int i = 0; i < n; i++) {
-		cv::Rect rect = cv::boundingRect(contours[i]);
-		cv::Point_<double> c(rect.x + rect.width/2.0, rect.y + rect.height/2.0);
-		double dx = origin.x - c.x;
-		double dy = origin.y - c.y;
+		cv::Moments m = cv::moments(contours[i]);
+		double cx = m.m10 / m.m00;
+		double cy = m.m01 / m.m00;
+		double dx = origin.x - cx;
+		double dy = origin.y - cy;
 		double dist = sqrt(dx*dx + dy*dy);
 		if (dist < distMin) {
 			distMin = dist;
-			center = c;
+			center.x = cx;
+			center.y = cy;
+			area = m.m00;
 			idx = i;
 		}
 	}
 	
-	// Check if the minimum is inside our contour
-	if (cv::pointPolygonTest(contours[idx], minLoc, false) < 0.0)
+	// Check if the minimum is inside our contour and the area is valid
+	if (cv::pointPolygonTest(contours[idx], minLoc, false) < 0.0 ||
+		area > AREA_MAX*size.width*size.height)
 		return false;
-	
-	// Draw filled contour
-	cv::Mat imgPar = cv::Mat::zeros(imgTh.size(), CV_8UC1);
-	cv::drawContours(imgPar, contours, idx, 255, cv::FILLED);
-	
-	// Calculate area and perimeter
-	double area = cv::countNonZero(imgPar);
-	if (area > AREA_MAX*segm->rect.width*segm->rect.height)
-		return false;
-	double perim = cv::arcLength(contours[idx], true);
 	
 	// Allocate particle
 	par = cv::makePtr<Particle>();
-	par->img = imgPar;
 	par->effPxSz = m_cfg->hologram.psz / cv::icemet::Hologram::magnf(m_cfg->hologram.dist, segm->z);
 	
+	// Draw filled contour
+	par->img = cv::Mat::zeros(size, CV_8UC1);
+	cv::drawContours(par->img, contours, idx, 255, cv::FILLED, cv::LINE_8);
+	
 	// Calculate diameter and apply correction
-	double diam = par->effPxSz * Math::equivdiam(area);
-	double diamCorr = 1.0;
-	double D0 = m_cfg->diamCorr.D0;
-	double D1 = m_cfg->diamCorr.D1;
-	if (m_cfg->diamCorr.enabled && diam < D1 && diam > D0) {
-		double f0 = m_cfg->diamCorr.f0;
-		double f1 = m_cfg->diamCorr.f1;
-		diamCorr = (diam-D0) * (f1-f0) / (D1-D0) + f0;
-		diam *= diamCorr;
+	par->diam= par->effPxSz * Math::equivdiam(area) / scaleF;
+	par->diamCorr = 1.0;
+	float D0 = m_cfg->diamCorr.D0;
+	float D1 = m_cfg->diamCorr.D1;
+	if (m_cfg->diamCorr.enabled && par->diam < D1 && par->diam > D0) {
+		float f0 = m_cfg->diamCorr.f0;
+		float f1 = m_cfg->diamCorr.f1;
+		par->diamCorr = (par->diam-D0) * (f1-f0) / (D1-D0) + f0;
+		par->diam *= par->diamCorr;
 	}
 	
 	// Save properties
-	par->x = par->effPxSz * (segm->rect.x + center.x - m_cfg->img.border.width);
-	par->y = par->effPxSz * (segm->rect.y + center.y - m_cfg->img.border.height);
+	par->x = par->effPxSz * (segm->rect.x + center.x - m_cfg->img.border.width) / scaleF;
+	par->y = par->effPxSz * (segm->rect.y + center.y - m_cfg->img.border.height) / scaleF;
 	par->z = segm->z;
-	par->diam = diam;
-	par->diamCorr = diamCorr;
-	par->circularity = Math::heywood(perim, area);
+	par->circularity = Math::heywood(cv::arcLength(contours[idx], true), area);
 	par->dynRange = max - min;
 	return true;
 }
