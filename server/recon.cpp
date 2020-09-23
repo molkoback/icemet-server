@@ -80,7 +80,7 @@ void Recon::process(ImgPtr img)
 			
 			if ((segmSizeMin > 0 && (rect.width < segmSizeMin || rect.height < segmSizeMin)) ||
 			    (segmSizeMax > 0 && (rect.width > segmSizeMax || rect.height > segmSizeMax)) ||
-                (crop & rect).area() == 0)
+                (crop & rect).area() < 0.5*rect.area())
 				continue;
 			
 			// Select our focus method
@@ -90,10 +90,10 @@ void Recon::process(ImgPtr img)
 			) ? cv::icemet::FOCUS_STD : cv::icemet::FOCUS_MIN;
 			
 			// Grow rect
-			rect.x = std::max(rect.x-pad, border.width);
-			rect.y = std::max(rect.y-pad, border.height);
-			rect.width = std::min(rect.width+2*pad, size.width-border.width-rect.x);
-			rect.height = std::min(rect.height+2*pad, size.height-border.height-rect.y);
+			rect.x = std::max(rect.x-pad, 0);
+			rect.y = std::max(rect.y-pad, 0);
+			rect.width = std::min(rect.width+2*pad, size.width-rect.x);
+			rect.height = std::min(rect.height+2*pad, size.height-rect.y);
 			
 			// Focus
 			int idx = 0;
