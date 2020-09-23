@@ -41,10 +41,8 @@ static int cvErrorHandler(int status, const char* func, const char* msg, const c
 	(void)fn;
 	(void)line;
 	(void)data;
-    return 0;
+	return 0;
 }
-
-#include <iostream>
 
 int main(int argc, char* argv[])
 {

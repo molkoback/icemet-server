@@ -25,8 +25,8 @@ img_y: 0
 img_w: 2048
 img_h: 2048
 img_rotation: 0
-empty_th_original: 40 # Before bgsub
-empty_th_preproc: 10 # After bgsub
+empty_th_original: 40 # Before preproc
+empty_th_preproc: 10 # After preproc
 empty_th_recon: 15 # Minimum image
 noisy_contours: -1
 bgsub: true

@@ -54,7 +54,7 @@ bool Watcher::processImg(const fs::path& p)
 		img = cv::makePtr<Image>(p);
 	}
 	catch(std::exception& e) {
-		m_log.debug("Invalid image file: '%s'", p.c_str());
+		m_log.debug("Invalid image file: '%s'", p.string().c_str());
 		return false;
 	}
 	
@@ -73,7 +73,7 @@ bool Watcher::processPkg(const fs::path& p)
 		pkg = createPackage(p);
 	}
 	catch(std::exception& e) {
-		m_log.debug("Invalid package file: '%s'", p.c_str());
+		m_log.debug("Invalid package file: '%s'", p.string().c_str());
 		return false;
 	}
 	m_log.debug("Opened %s (%.2f s)", pkg->name().c_str(), m1.time());

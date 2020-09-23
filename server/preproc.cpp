@@ -35,7 +35,7 @@ int Preproc::dynRange(const cv::UMat& img) const
 
 void Preproc::finalize(ImgPtr img)
 {
-	img->bgVal =  Math::median(img->preproc);
+	img->bgVal = Math::median(img->preproc);
 	
 	if (m_cfg->emptyCheck.reconTh > 0 || m_cfg->noisyCheck.contours > 0) {
 		m_hologram->setImg(img->preproc);
@@ -46,9 +46,7 @@ void Preproc::finalize(ImgPtr img)
 		
 		// Empty check
 		if (m_cfg->emptyCheck.reconTh > 0) {
-			double minVal, maxVal;
-			minMaxLoc(imgMin, &minVal, &maxVal);
-			if (maxVal - minVal < m_cfg->emptyCheck.reconTh) {
+			if (dynRange(imgMin) < m_cfg->emptyCheck.reconTh) {
 				img->setStatus(FILE_STATUS_EMPTY);
 				goto end;
 			}

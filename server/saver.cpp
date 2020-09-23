@@ -33,36 +33,35 @@ void Saver::move(const fs::path& src, const fs::path& dst) const
 
 void Saver::processImg(const ImgPtr& img) const
 {
+	fs::path pathOrig(img->path());
 	if ((img->status() == FILE_STATUS_EMPTY && !m_cfg->saves.empty) ||
 	    (img->status() == FILE_STATUS_SKIP && !m_cfg->saves.skipped) ||
 	    (img->status() == FILE_STATUS_NONE)) {
-		fs::remove(img->path());
+		if (!pathOrig.empty())
+			fs::remove(pathOrig);
 		return;
 	}
 	
-	int n = img->particles.size();
+	// Move or remove original images
+	if (!pathOrig.empty()) {
+		if (m_cfg->saves.original) {
+			fs::create_directories(img->dir(m_cfg->paths.original));
+			move(pathOrig, img->path(m_cfg->paths.original, pathOrig.extension()));
+		}
+		else {
+			fs::remove(pathOrig);
+		}
+	}
 	
-	// Save files
-	if (m_cfg->saves.original) {
-		fs::create_directories(img->dir(m_cfg->paths.original));
-		
-		fs::path src(img->path());
-		fs::path dst = img->path(m_cfg->paths.original, src.extension());
-		if (!src.empty())
-			move(src, dst);
-	}
-	else {
-		fs::remove(img->path());
-	}
+	// Save other images
+	int n = img->particles.size();
 	if (m_cfg->saves.preproc && !img->preproc.empty()) {
 		fs::create_directories(img->dir(m_cfg->paths.preproc));
-		
 		fs::path dst(img->path(m_cfg->paths.preproc, m_cfg->types.results));
 		cv::imwrite(dst.string(), img->preproc.getMat(cv::ACCESS_READ));
 	}
 	if (m_cfg->saves.recon && img->status() == FILE_STATUS_NOTEMPTY) {
 		fs::create_directories(img->dir(m_cfg->paths.recon));
-		
 		for (int i = 0; i < n; i++) {
 			fs::path dst(img->path(m_cfg->paths.recon, m_cfg->types.results, i+1));
 			cv::imwrite(dst.string(), img->segments[i]->img);
@@ -70,7 +69,6 @@ void Saver::processImg(const ImgPtr& img) const
 	}
 	if (m_cfg->saves.threshold && img->status() == FILE_STATUS_NOTEMPTY) {
 		fs::create_directories(img->dir(m_cfg->paths.threshold));
-		
 		for (int i = 0; i < n; i++) {
 			fs::path dst(img->path(m_cfg->paths.threshold, m_cfg->types.results, i+1));
 			cv::imwrite(dst.string(), img->particles[i]->img);
@@ -114,10 +112,13 @@ void Saver::processImg(const ImgPtr& img) const
 
 void Saver::processPkg(const PkgPtr& pkg) const
 {
+	fs::path pathOrig(pkg->path());
 	if (m_cfg->saves.original) {
-		fs::path src(pkg->path());
-		fs::path dst = pkg->path(m_cfg->paths.original, src.extension());
-		move(src, dst);
+		fs::create_directories(pkg->dir(m_cfg->paths.original));
+		move(pathOrig, pkg->path(m_cfg->paths.original, pathOrig.extension()));
+	}
+	else {
+		fs::remove(pathOrig);
 	}
 }
 

@@ -4,11 +4,61 @@
 
 #include <archive.h>
 #include <archive_entry.h>
+#include <opencv2/imgproc.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <cstdio>
 #include <stdexcept>
 #include <string>
+
+class ICEMETV1PackageEntry {
+private:
+	char* m_data;
+	size_t m_size;
+
+public:
+	ICEMETV1PackageEntry() : m_data(NULL), m_size(0) {}
+	~ICEMETV1PackageEntry() { free(m_data); }
+	
+	bool empty() { return m_size == 0; }
+	
+	bool open(struct archive* arc, struct archive_entry* entry)
+	{
+		m_size = archive_entry_size(entry);
+		m_data = (char*)malloc(m_size);
+		
+		size_t offsetData = 0;
+		const void* block;
+		size_t sizeBlock;
+		la_int64_t offsetBlock;
+		int r;
+		while ((r = archive_read_data_block(arc, &block, &sizeBlock, &offsetBlock)) == ARCHIVE_OK) {
+			if (offsetData + sizeBlock > m_size)
+				goto fail;
+			memcpy(m_data + offsetData, block, sizeBlock);
+			offsetData += sizeBlock;
+		}
+		if (r < 0)
+			goto fail;
+		
+		return true;
+		fail:
+		free(m_data);
+		m_data = NULL;
+		m_size = 0;
+		return false;
+	}
+	
+	bool save(const fs::path& path)
+	{
+		FILE* fp;
+		if ((fp = fopen(path.string().c_str(), "wb")) == NULL)
+			return false;
+		size_t n = fwrite(m_data, 1, m_size, fp);
+		fclose(fp);
+		return n == m_size;
+	}
+};
 
 ICEMETV1Package::ICEMETV1Package(const fs::path& p) : Package(p)
 {
@@ -17,33 +67,10 @@ ICEMETV1Package::ICEMETV1Package(const fs::path& p) : Package(p)
 
 ICEMETV1Package::~ICEMETV1Package()
 {
+	if (m_cap.isOpened())
+		m_cap.release();
 	if (!m_tmp.empty() && fs::exists(m_tmp))
 		fs::remove_all(m_tmp);
-}
-
-static bool writeArchive(struct archive* arc, const fs::path& p)
-{
-	const void* buf;
-	size_t size;
-	la_int64_t offset;
-	FILE* fp;
-	if ((fp = fopen(p.string().c_str(), "wb")) == NULL)
-		return false;
-	while (archive_read_data_block(arc, &buf, &size, &offset) == ARCHIVE_OK) {
-		fwrite(buf, 1, size, fp);
-	}
-	fclose(fp);
-	return true;
-}
-
-void ICEMETV1Package::readData()
-{
-	YAML::Node node = YAML::LoadFile(m_data.string());
-	fps = node["fps"].as<float>();
-	len = node["len"].as<unsigned int>();
-	auto names = node["files"].as<std::vector<std::string>>();
-	for (const auto name : names)
-		m_images.push(cv::makePtr<Image>(name));
 }
 
 void ICEMETV1Package::open(const fs::path& p)
@@ -56,20 +83,23 @@ void ICEMETV1Package::open(const fs::path& p)
 	
 	// Create paths
 	m_tmp = icemetCacheDir();
-	m_data = m_tmp / "data.json";
-	m_video = m_tmp / "images.avi";
+	fs::path pathData = m_tmp / "data.json";
+	fs::path pathImages = m_tmp / "images.avi";
 	
 	// Loop entries
 	struct archive_entry* entry;
-	while (archive_read_next_header(arc, &entry) == ARCHIVE_OK) {
+	ICEMETV1PackageEntry entryData;
+	ICEMETV1PackageEntry entryVideo;
+	int r;
+	while ((r = archive_read_next_header(arc, &entry)) == ARCHIVE_OK) {
 		std::string name(archive_entry_pathname(entry));
 		if (name == "data.json") {
-			writeArchive(arc, m_data);
-			readData();
+			if (!entryData.open(arc, entry))
+				throw(std::runtime_error("Incomplete or corrupted archive"));
 		}
 		else if (name == "images.avi") {
-			writeArchive(arc, m_video);
-			m_cap = cv::VideoCapture(m_video.string());
+			if (!entryVideo.open(arc, entry))
+				throw(std::runtime_error("Incomplete or corrupted archive"));
 		}
 		else {
 			throw(std::runtime_error("Invalid archive format"));
@@ -77,6 +107,23 @@ void ICEMETV1Package::open(const fs::path& p)
 	}
 	archive_read_close(arc);
 	archive_read_free(arc);
+	if (r < 0 || entryData.empty() || entryVideo.empty())
+		throw(std::runtime_error("Incomplete or corrupted archive"));
+	
+	// Save entires
+	entryData.save(pathData);
+	entryVideo.save(pathImages);
+	
+	// Open files
+	YAML::Node node = YAML::LoadFile(pathData.string());
+	fps = node["fps"].as<float>();
+	len = node["len"].as<unsigned int>();
+	auto names = node["images"].as<std::vector<std::string>>();
+	for (const auto name : names)
+		m_images.push(cv::makePtr<Image>(name));
+	m_cap = cv::VideoCapture(pathImages.string());
+	if (!m_cap.isOpened())
+		throw(std::runtime_error("Incomplete or corrupted archive"));
 }
 
 ImgPtr ICEMETV1Package::next()
@@ -85,7 +132,12 @@ ImgPtr ICEMETV1Package::next()
 		return ImgPtr();
 	ImgPtr img = m_images.front();
 	m_images.pop();
-	m_cap.read(img->original);
+	
+	cv::UMat imgBGR;
+	if (!m_cap.read(imgBGR))
+		return ImgPtr();
+	
+	cv::cvtColor(imgBGR, img->original, cv::COLOR_BGR2GRAY);
 	return img;
 }
 

@@ -27,11 +27,8 @@ public:
 class ICEMETV1Package : public Package {
 protected:
 	fs::path m_tmp;
-	fs::path m_data;
-	fs::path m_video;
 	cv::VideoCapture m_cap;
 	
-	void readData();
 	void open(const fs::path& p);
 
 public:
