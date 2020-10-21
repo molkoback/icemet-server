@@ -54,7 +54,7 @@ img_ignore_y: 100
 
 # Analysis
 particle_th_factor: 0.35 # th = median_Ipp - X*(median_Ipp-min_Isegm)
-diam_correction: true
+diam_correction: false
 diam_correction_start: 5.0e-6
 diam_correction_end: 12.0e-6
 diam_correction_start_factor: 0.7
