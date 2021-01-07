@@ -15,9 +15,10 @@ typedef struct _arguments {
 	fs::path root;
 	bool waitNew;
 	bool statsOnly;
+	bool particlesOnly;
 	LogLevel loglevel;
 	
-	_arguments() : cfgFile(fs::path()), root(fs::path(".")), waitNew(true), statsOnly(false), loglevel(LOG_INFO) {}
+	_arguments() : cfgFile(fs::path()), root(fs::path(".")), waitNew(true), statsOnly(false), particlesOnly(false), loglevel(LOG_INFO) {}
 } Arguments;
 
 typedef struct _paths {

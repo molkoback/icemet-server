@@ -62,6 +62,9 @@ int main(int argc, char* argv[])
 			else if (!arg.compare("-s")) {
 				args.statsOnly = true;
 			}
+			else if (!arg.compare("-p")) {
+				args.particlesOnly = true;
+			}
 			else if (!arg.compare("-Q")) {
 				args.waitNew = false;
 			}
@@ -117,7 +120,25 @@ int main(int argc, char* argv[])
 		
 		// Launch worker threads
 		std::vector<std::thread> threads;
-		if (!args.statsOnly) {
+		if (args.statsOnly) {
+			reader.connect(stats, 2);
+			
+			threads.push_back(std::thread(&Reader::run, &reader));
+			threads.push_back(std::thread(&Stats::run, &stats));
+		}
+		else if (args.particlesOnly) {
+			watcher.connect(preproc, 4);
+			preproc.connect(recon, 2);
+			recon.connect(analysis, 2);
+			analysis.connect(saver, 2);
+			
+			threads.push_back(std::thread(&Watcher::run, &watcher));
+			threads.push_back(std::thread(&Preproc::run, &preproc));
+			threads.push_back(std::thread(&Recon::run, &recon));
+			threads.push_back(std::thread(&Analysis::run, &analysis));
+			threads.push_back(std::thread(&Saver::run, &saver));
+		}
+		else {
 			watcher.connect(preproc, 4);
 			preproc.connect(recon, 2);
 			recon.connect(analysis, 2);
@@ -129,12 +150,6 @@ int main(int argc, char* argv[])
 			threads.push_back(std::thread(&Recon::run, &recon));
 			threads.push_back(std::thread(&Analysis::run, &analysis));
 			threads.push_back(std::thread(&Saver::run, &saver));
-			threads.push_back(std::thread(&Stats::run, &stats));
-		}
-		else {
-			reader.connect(stats, 2);
-			
-			threads.push_back(std::thread(&Reader::run, &reader));
 			threads.push_back(std::thread(&Stats::run, &stats));
 		}
 		
