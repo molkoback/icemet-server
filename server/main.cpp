@@ -31,7 +31,7 @@ static const char* helpStr =
 static const char* versionFmt =
 "ICEMET Server %s\n"
 "\n"
-"Copyright (C) 2019-2020 Eero Molkoselkä <eero.molkoselka@gmail.com>\n";
+"Copyright (C) 2019-2021 Eero Molkoselkä <eero.molkoselka@gmail.com>\n";
 
 static int cvErrorHandler(int status, const char* func, const char* msg, const char* fn, int line, void* data)
 {
