@@ -50,6 +50,8 @@ typedef struct _stats_row {
 	unsigned int particles;
 } StatsRow;
 
+class DatabaseIterator;
+
 class Database {
 private:
 	ConnectionInfo m_connInfo;
@@ -77,7 +79,18 @@ public:
 	void writeParticle(const ParticleRow& row);
 	void writeStats(const StatsRow& row);
 	
-	void readParticles(std::vector<ParticleRow>& rows, unsigned int minId=0);
+	bool readParticles(DatabaseIterator& iter, ParticleRow& par);
+};
+
+class DatabaseIterator {
+private:
+	MYSQL_RES* m_res;
+
+public:
+	DatabaseIterator() : m_res(NULL) {}
+	DatabaseIterator(const DatabaseIterator& iter) : m_res(iter.m_res) {}
+	~DatabaseIterator();
+	friend Database;
 };
 
 #endif

@@ -1,19 +1,22 @@
 #include "reader.hpp"
 
-#include "icemet/util/time.hpp"
-
 Reader::Reader(Config* cfg, Database* db) :
 	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET),
 	m_cfg(cfg),
 	m_db(db),
-	m_id(0),
 	m_img(NULL) {}
+
+void Reader::push()
+{
+	m_log.debug("Read %s", m_img->name().c_str());
+	m_outputs[0]->push(m_img);
+}
 
 bool Reader::loop()
 {
-	std::vector<ParticleRow> rows;
-	m_db->readParticles(rows, m_id);
-	for (const auto& row : rows) {
+	DatabaseIterator iter;
+	ParticleRow row;
+	while (m_db->readParticles(iter, row)) {
 		ImgPtr tmp = cv::makePtr<Image>(File(row.sensor, row.dt, row.frame, FILE_STATUS_NOTEMPTY).name());
 		
 		// Make sure we have a file
@@ -22,8 +25,7 @@ bool Reader::loop()
 		}
 		// File complete
 		else if (*tmp != *m_img) {
-			m_log.debug("Read %s", m_img->name().c_str());
-			m_outputs[0]->push(m_img);
+			push();
 			m_img = tmp;
 		}
 		
@@ -38,8 +40,8 @@ bool Reader::loop()
 		par->circularity = row.circularity;
 		par->dynRange = row.dynRange;
 		m_img->particles.push_back(par);
-		m_id = row.id+1;
 	}
-	msleep(10);
-	return m_cfg->args.waitNew || !rows.empty();
+	if (!m_img.empty())
+		push();
+	return false;
 }

@@ -5,13 +5,15 @@
 #include "icemet/config.hpp"
 #include "server/worker.hpp"
 
+#include "icemet/util/time.hpp"
+
 class Reader : public Worker {
 protected:
 	Config* m_cfg;
 	Database* m_db;
-	unsigned int m_id;
 	ImgPtr m_img;
 	
+	void push();
 	bool loop() override;
 
 public:

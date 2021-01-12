@@ -6,7 +6,6 @@
 #include "icemet/util/strfmt.hpp"
 
 #define FLOAT_REPR "%.24f"
-#define MAX_ROWS "1000"
 
 static const char* createDBQuery = "CREATE DATABASE `%s`;";
 static const char* createParticleTableQuery = "CREATE TABLE `%s` ("
@@ -53,7 +52,7 @@ static const char* insertStatsQuery = "INSERT INTO `%s` ("
 ");";
 static const char* selectParticlesQuery = "SELECT "
 "ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH "
-"FROM `%s` WHERE ID>=%u ORDER BY ID ASC LIMIT " MAX_ROWS ";";
+"FROM `%s` ORDER BY DateTime ASC;";
 
 Database::Database() :
 	m_mysql(NULL) {}
@@ -188,22 +187,34 @@ void Database::writeStats(const StatsRow& row)
 	);
 }
 
-/* TODO: mysql_free_result() in case of failure */
-void Database::readParticles(std::vector<ParticleRow>& rows, unsigned int minId)
+bool Database::readParticles(DatabaseIterator& iter, ParticleRow& par)
 {
-	MYSQL_RES* res = queryRes(selectParticlesQuery, m_dbInfo.particleTable.c_str(), minId);
-	int nrows = mysql_num_rows(res);
-	for (int i = 0; i < nrows; i++) {
-		MYSQL_ROW row = mysql_fetch_row(res);
-		DateTime dt(row[1]);
-		rows.push_back({
-			(unsigned int)std::stoi(row[0]), dt,
-			(unsigned int)std::stoi(row[2]), (unsigned int)std::stoi(row[3]), (unsigned int)std::stoi(row[4]),
-			std::stof(row[5]), std::stof(row[6]), std::stof(row[7]),
-			std::stof(row[8]), std::stof(row[9]), 
-			std::stof(row[10]), (unsigned char)std::stoi(row[11]), std::stof(row[12]),
-			cv::Rect(std::stoi(row[13]), std::stoi(row[14]), std::stoi(row[15]), std::stoi(row[16]))
-		});
-	}
-	mysql_free_result(res);
+	if (!iter.m_res)
+		iter.m_res = queryRes(selectParticlesQuery, m_dbInfo.particleTable.c_str());
+	
+	MYSQL_ROW row = mysql_fetch_row(iter.m_res);
+	if (row == NULL)
+		return false;
+	
+	par.id = (unsigned int)std::stoi(row[0]);
+	par.dt = DateTime(row[1]);
+	par.sensor = (unsigned int)std::stoi(row[2]);
+	par.frame = (unsigned int)std::stoi(row[3]);
+	par.particle = (unsigned int)std::stoi(row[4]);
+	par.x = std::stof(row[5]);
+	par.y = std::stof(row[6]);
+	par.z = std::stof(row[7]);
+	par.diam = std::stof(row[8]);
+	par.diamCorr = std::stof(row[9]);
+	par.circularity = std::stof(row[10]);
+	par.dynRange = (unsigned char)std::stoi(row[11]);
+	par.effPxSz = std::stof(row[12]);
+	par.sub = cv::Rect(std::stoi(row[13]), std::stoi(row[14]), std::stoi(row[15]), std::stoi(row[16]));
+	return true;
+}
+
+DatabaseIterator::~DatabaseIterator()
+{
+	if (m_res)
+		mysql_free_result(m_res);
 }
