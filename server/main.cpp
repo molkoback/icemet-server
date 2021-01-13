@@ -25,6 +25,7 @@ static const char* helpStr =
 "Options:\n"
 "  -h                Print this help message and exit\n"
 "  -V                Print version info and exit\n"
+"  -p                Particles only.\n"
 "  -s                Stats only. Particles will be fetched from the database.\n"
 "  -Q                Quit after processing all available files.\n"
 "  -d                Enable debug messages.\n";
@@ -59,11 +60,11 @@ int main(int argc, char* argv[])
 				printf(versionFmt, icemetServerVersion().str().c_str());
 				return EXIT_SUCCESS;
 			}
-			else if (!arg.compare("-s")) {
-				args.statsOnly = true;
-			}
 			else if (!arg.compare("-p")) {
 				args.particlesOnly = true;
+			}
+			else if (!arg.compare("-s")) {
+				args.statsOnly = true;
 			}
 			else if (!arg.compare("-Q")) {
 				args.waitNew = false;
