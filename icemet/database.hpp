@@ -62,7 +62,6 @@ private:
 	void exec(const char *fmt, va_list args);
 	void query(const char *fmt, ...);
 	MYSQL_RES* queryRes(const char *fmt, ...);
-	bool tableExists(const char *table);
 
 public:
 	Database();

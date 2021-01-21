@@ -7,8 +7,8 @@
 
 #define FLOAT_REPR "%.24f"
 
-static const char* createDBQuery = "CREATE DATABASE `%s`;";
-static const char* createParticleTableQuery = "CREATE TABLE `%s` ("
+static const char* createDBQuery = "CREATE DATABASE IF NOT EXISTS `%s`;";
+static const char* createParticleTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME(3) NOT NULL,"
 "Sensor TINYINT UNSIGNED NOT NULL,"
@@ -29,7 +29,7 @@ static const char* createParticleTableQuery = "CREATE TABLE `%s` ("
 "PRIMARY KEY (ID),"
 "INDEX (DateTime)"
 ");";
-static const char* createStatsTableQuery = "CREATE TABLE `%s` ("
+static const char* createStatsTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME NOT NULL,"
 "LWC FLOAT NOT NULL,"
@@ -113,16 +113,6 @@ MYSQL_RES* Database::queryRes(const char* fmt, ...)
 	return res;
 }
 
-bool Database::tableExists(const char* table)
-{
-	MYSQL_RES* res = NULL;
-	if (!(res = queryRes("SHOW TABLES LIKE \"%s\"", table)))
-		return false;
-	bool ret = mysql_num_rows(res);
-	mysql_free_result(res);
-	return ret;
-}
-
 void Database::connect(const ConnectionInfo& connInfo)
 {
 	if (!(m_mysql = mysql_init(NULL)))
@@ -137,24 +127,17 @@ void Database::connect(const ConnectionInfo& connInfo)
 	);
 	if (!m_mysql)
 		throw std::runtime_error("Couldnt connect to SQL server");
-	
 	m_connInfo = connInfo;
 }
 
 void Database::open(const DatabaseInfo& dbInfo)
 {
-	// Make sure that database exists
-	if (mysql_select_db(m_mysql, dbInfo.name.c_str())) {
-		query(createDBQuery, dbInfo.name.c_str());
-		mysql_select_db(m_mysql, dbInfo.name.c_str());
-	}
-	
-	// Make sure that tables exist
-	if (!tableExists(dbInfo.particleTable.c_str()))
-		query(createParticleTableQuery, dbInfo.particleTable.c_str());
-	if (!tableExists(dbInfo.statsTable.c_str()))
-		query(createStatsTableQuery, dbInfo.statsTable.c_str());
-	
+	query("SET sql_notes = 0;");
+	query(createDBQuery, dbInfo.name.c_str());
+	mysql_select_db(m_mysql, dbInfo.name.c_str());
+	query(createParticleTableQuery, dbInfo.particleTable.c_str());
+	query(createStatsTableQuery, dbInfo.statsTable.c_str());
+	query("SET sql_notes = 1;");
 	m_dbInfo = dbInfo;
 }
 
