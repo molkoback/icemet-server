@@ -46,7 +46,9 @@ void Preproc::finalize(ImgPtr img)
 		
 		// Empty check
 		if (m_cfg->emptyCheck.reconTh > 0) {
-			if (dynRange(imgMin) < m_cfg->emptyCheck.reconTh) {
+			int dr = dynRange(imgMin);
+			m_log.debug("%s: DynRange recon: %d", img->name().c_str(), dr);
+			if (dr < m_cfg->emptyCheck.reconTh) {
 				img->setStatus(FILE_STATUS_EMPTY);
 				goto end;
 			}
@@ -74,7 +76,9 @@ void Preproc::finalize(ImgPtr img)
 				contours, hierarchy,
 				cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE
 			);
-			if ((int)contours.size() > m_cfg->noisyCheck.contours) {
+			int ncontours = contours.size();
+			m_log.debug("%s: Noisy contours: %d", img->name().c_str(), ncontours);
+			if (ncontours > m_cfg->noisyCheck.contours) {
 				img->setStatus(FILE_STATUS_SKIP);
 				goto end;
 			}
@@ -101,7 +105,9 @@ void Preproc::processBgsub(ImgPtr img, cv::UMat& imgPP)
 			m_stack->meddiv(imgDone->preproc);
 			
 			// Check dynamic range
-			if (dynRange(imgDone->preproc) < m_cfg->emptyCheck.preprocTh) {
+			int dr = dynRange(imgDone->preproc);
+			m_log.debug("%s: DynRange preproc: %d", imgDone->name().c_str(), dr);
+			if (dr < m_cfg->emptyCheck.preprocTh) {
 				imgDone->setStatus(FILE_STATUS_EMPTY);
 				m_outputs[0]->push(imgDone);
 			}
@@ -119,7 +125,9 @@ void Preproc::processBgsub(ImgPtr img, cv::UMat& imgPP)
 void Preproc::processNoBgsub(ImgPtr img, cv::UMat& imgPP)
 {
 	img->preproc = imgPP;
-	if (dynRange(img->preproc) < m_cfg->emptyCheck.preprocTh) {
+	int dr = dynRange(img->preproc);
+	m_log.debug("%s: DynRange preproc: %d", img->name().c_str(), dr);
+	if (dr < m_cfg->emptyCheck.preprocTh) {
 		img->setStatus(FILE_STATUS_EMPTY);
 		m_outputs[0]->push(img);
 	}
@@ -131,7 +139,9 @@ void Preproc::processNoBgsub(ImgPtr img, cv::UMat& imgPP)
 void Preproc::process(ImgPtr img)
 {
 	// Check dynamic range
-	if (dynRange(img->original) < m_cfg->emptyCheck.originalTh) {
+	int dr = dynRange(img->original);
+	m_log.debug("%s: DynRange original: %d", img->name().c_str(), dr);
+	if (dr < m_cfg->emptyCheck.originalTh) {
 		img->setStatus(FILE_STATUS_EMPTY);
 		m_outputs[0]->push(img);
 	}
@@ -161,10 +171,10 @@ bool Preproc::loop()
 		queue.pop();
 		if (data.type() == WORKER_DATA_IMG) {
 			ImgPtr img = data.getImg();
-			m_log.debug("Processing %s", img->name().c_str());
+			m_log.debug("%s: Processing", img->name().c_str());
 			Measure m;
 			process(img);
-			m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
+			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
 		}
 		else {
 			m_outputs[0]->push(data);

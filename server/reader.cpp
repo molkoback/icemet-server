@@ -8,7 +8,7 @@ Reader::Reader(Config* cfg, Database* db) :
 
 void Reader::push()
 {
-	m_log.debug("Read %s", m_img->name().c_str());
+	m_log.debug("%s: Read", m_img->name().c_str());
 	m_outputs[0]->push(m_img);
 }
 

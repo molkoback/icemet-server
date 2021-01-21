@@ -163,7 +163,7 @@ void Stats::process(const ImgPtr& img)
 		}
 	}
 	m_frames++;
-	m_log.debug("Valid particles: %d", count);
+	m_log.debug("%s: Valid particles: %d", img->name().c_str(), count);
 }
 
 bool Stats::loop()
@@ -176,11 +176,11 @@ bool Stats::loop()
 		queue.pop();
 		if (data.type() == WORKER_DATA_IMG) {
 			ImgPtr img = data.getImg();
-			m_log.debug("Processing %s", img->name().c_str());
+			m_log.debug("%s: Processing", img->name().c_str());
 			Measure m;
 			if (img->status() != FILE_STATUS_SKIP)
 				process(img);
-			m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
+			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
 		}
 		else {
 			// TODO

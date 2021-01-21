@@ -132,11 +132,11 @@ bool Saver::loop()
 		queue.pop();
 		if (data.type() == WORKER_DATA_IMG) {
 			ImgPtr img = data.getImg();
-			m_log.debug("Saving %s", img->name().c_str());
+			m_log.debug("%s: Saving", img->name().c_str());
 			Measure m;
 			processImg(img);
-			m_log.debug("Done %s (%.2f s)", img->name().c_str(), m.time());
-			m_log.info("Done %s", img->name().c_str());
+			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+			m_log.info("%s", img->name().c_str());
 		}
 		else {
 			processPkg(data.getPkg());
