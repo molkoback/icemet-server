@@ -26,11 +26,15 @@ Preproc::Preproc(Config* cfg) :
 	);
 }
 
-int Preproc::dynRange(const cv::UMat& img) const
+bool Preproc::isEmpty(const cv::UMat& img, int th, const std::string& imgName, const std::string& checkName) const
 {
+	if (th <= 0)
+		return false;
 	double minVal, maxVal;
 	minMaxLoc(img, &minVal, &maxVal);
-	return maxVal - minVal;
+	int delta = maxVal - minVal;
+	m_log.debug("%s: EmptyVal %s: %d", imgName.c_str(), checkName.c_str(), delta);
+	return delta < th;
 }
 
 void Preproc::finalize(ImgPtr img)
@@ -45,13 +49,9 @@ void Preproc::finalize(ImgPtr img)
 		m_hologram->min(imgMin, z);
 		
 		// Empty check
-		if (m_cfg->emptyCheck.reconTh > 0) {
-			int dr = dynRange(imgMin);
-			m_log.debug("%s: DynRange recon: %d", img->name().c_str(), dr);
-			if (dr < m_cfg->emptyCheck.reconTh) {
-				img->setStatus(FILE_STATUS_EMPTY);
-				goto end;
-			}
+		if (isEmpty(imgMin, m_cfg->emptyCheck.reconTh, img->name(), "recon")) {
+			img->setStatus(FILE_STATUS_EMPTY);
+			goto end;
 		}
 		
 		// Noisy check
@@ -77,7 +77,7 @@ void Preproc::finalize(ImgPtr img)
 				cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE
 			);
 			int ncontours = contours.size();
-			m_log.debug("%s: Noisy contours: %d", img->name().c_str(), ncontours);
+			m_log.debug("%s: NoisyVal: %d", img->name().c_str(), ncontours);
 			if (ncontours > m_cfg->noisyCheck.contours) {
 				img->setStatus(FILE_STATUS_SKIP);
 				goto end;
@@ -104,10 +104,8 @@ void Preproc::processBgsub(ImgPtr img, cv::UMat& imgPP)
 			imgDone->preproc = cv::UMat(m_cfg->img.size, CV_8UC1);
 			m_stack->meddiv(imgDone->preproc);
 			
-			// Check dynamic range
-			int dr = dynRange(imgDone->preproc);
-			m_log.debug("%s: DynRange preproc: %d", imgDone->name().c_str(), dr);
-			if (dr < m_cfg->emptyCheck.preprocTh) {
+			// Check empty
+			if (isEmpty(imgDone->preproc, m_cfg->emptyCheck.preprocTh, imgDone->name(), "preproc")) {
 				imgDone->setStatus(FILE_STATUS_EMPTY);
 				m_outputs[0]->push(imgDone);
 			}
@@ -124,10 +122,9 @@ void Preproc::processBgsub(ImgPtr img, cv::UMat& imgPP)
 
 void Preproc::processNoBgsub(ImgPtr img, cv::UMat& imgPP)
 {
+	// Check empty
 	img->preproc = imgPP;
-	int dr = dynRange(img->preproc);
-	m_log.debug("%s: DynRange preproc: %d", img->name().c_str(), dr);
-	if (dr < m_cfg->emptyCheck.preprocTh) {
+	if (isEmpty(img->preproc, m_cfg->emptyCheck.preprocTh, img->name(), "preproc")) {
 		img->setStatus(FILE_STATUS_EMPTY);
 		m_outputs[0]->push(img);
 	}
@@ -138,10 +135,8 @@ void Preproc::processNoBgsub(ImgPtr img, cv::UMat& imgPP)
 
 void Preproc::process(ImgPtr img)
 {
-	// Check dynamic range
-	int dr = dynRange(img->original);
-	m_log.debug("%s: DynRange original: %d", img->name().c_str(), dr);
-	if (dr < m_cfg->emptyCheck.originalTh) {
+	// Check empty
+	if (isEmpty(img->original, m_cfg->emptyCheck.originalTh, img->name(), "original")) {
 		img->setStatus(FILE_STATUS_EMPTY);
 		m_outputs[0]->push(img);
 	}

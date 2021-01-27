@@ -19,7 +19,7 @@ protected:
 	std::queue<ImgPtr> m_wait; // Length: m_stackLen/2 + 1
 	cv::Ptr<cv::icemet::Hologram> m_hologram;
 	
-	int dynRange(const cv::UMat& img) const;
+	bool isEmpty(const cv::UMat& img, int th, const std::string& imgName, const std::string& checkName) const;
 	void finalize(ImgPtr img);
 	void processBgsub(ImgPtr img, cv::UMat& imgPP);
 	void processNoBgsub(ImgPtr img, cv::UMat& imgPP);
