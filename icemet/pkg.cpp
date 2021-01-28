@@ -107,23 +107,28 @@ void ICEMETV1Package::open(const fs::path& p)
 	}
 	archive_read_close(arc);
 	archive_read_free(arc);
-	if (r < 0 || entryData.empty() || entryVideo.empty())
+	if (r < 0 || entryData.empty())
 		throw(std::runtime_error("Incomplete or corrupted archive"));
 	
 	// Save entires
 	entryData.save(pathData);
-	entryVideo.save(pathImages);
+	if (!entryVideo.empty())
+		entryVideo.save(pathImages);
 	
 	// Open files
 	YAML::Node node = YAML::LoadFile(pathData.string());
 	fps = node["fps"].as<float>();
 	len = node["len"].as<unsigned int>();
 	auto names = node["images"].as<std::vector<std::string>>();
-	for (const auto name : names)
-		m_images.push(cv::makePtr<Image>(name));
-	m_cap = cv::VideoCapture(pathImages.string());
-	if (!m_cap.isOpened())
-		throw(std::runtime_error("Incomplete or corrupted archive"));
+	if (!names.empty()) {
+		if (entryVideo.empty())
+			throw(std::runtime_error("Incomplete or corrupted archive"));
+		for (const auto name : names)
+			m_images.push(cv::makePtr<Image>(name));
+		m_cap = cv::VideoCapture(pathImages.string());
+		if (!m_cap.isOpened())
+			throw(std::runtime_error("Incomplete or corrupted archive"));
+	}
 }
 
 ImgPtr ICEMETV1Package::next()
