@@ -11,7 +11,7 @@ Preproc::Preproc(Config* cfg) :
 	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET),
 	m_cfg(cfg)
 {
-	if (m_cfg->bgsub.enabled) {
+	if (m_cfg->bgsub.stackLen >= 3) {
 		m_stackLen = m_cfg->bgsub.stackLen;
 		m_stack = cv::icemet::BGSubStack::create(m_cfg->img.size, m_stackLen);
 	}
@@ -41,7 +41,7 @@ void Preproc::finalize(ImgPtr img)
 {
 	img->bgVal = Math::median(img->preproc);
 	
-	if (m_cfg->emptyCheck.reconTh > 0 || m_cfg->noisyCheck.contours > 0) {
+	if (m_cfg->emptyCheck.reconTh > 0 || m_cfg->noisyCheck.reconTh > 0) {
 		m_hologram->setImg(img->preproc);
 		cv::UMat imgMin;
 		cv::icemet::ZRange z = m_cfg->hologram.z;
@@ -55,7 +55,7 @@ void Preproc::finalize(ImgPtr img)
 		}
 		
 		// Noisy check
-		if (m_cfg->noisyCheck.contours > 0) {
+		if (m_cfg->noisyCheck.reconTh > 0) {
 			const cv::Size2i size = m_cfg->img.size;
 			const cv::Size2i border = m_cfg->img.border;
 			const cv::Rect crop(
@@ -78,7 +78,7 @@ void Preproc::finalize(ImgPtr img)
 			);
 			int ncontours = contours.size();
 			m_log.debug("%s: NoisyVal: %d", img->name().c_str(), ncontours);
-			if (ncontours > m_cfg->noisyCheck.contours) {
+			if (ncontours > m_cfg->noisyCheck.reconTh) {
 				img->setStatus(FILE_STATUS_SKIP);
 				goto end;
 			}
@@ -149,7 +149,7 @@ void Preproc::process(ImgPtr img)
 		else
 			imgPP = imgCrop;
 		
-		if (m_cfg->bgsub.enabled)
+		if (!m_stack.empty())
 			processBgsub(img, imgPP);
 		else
 			processNoBgsub(img, imgPP);

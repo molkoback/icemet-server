@@ -86,24 +86,22 @@ void Config::load(const fs::path& fn)
 		img.border.height = node["img_ignore_y"].as<int>();
 		img.rotation = node["img_rotation"].as<float>();
 		
-		bgsub.enabled = node["bgsub"].as<bool>();
 		bgsub.stackLen = node["bgsub_stack_len"].as<int>();
 		
 		emptyCheck.originalTh = node["empty_th_original"].as<int>();
 		emptyCheck.preprocTh = node["empty_th_preproc"].as<int>();
 		emptyCheck.reconTh = node["empty_th_recon"].as<int>();
 		
-		noisyCheck.contours = node["noisy_contours"].as<int>();
+		noisyCheck.reconTh = node["noisy_th_recon"].as<int>();
 		
-		lpf.enabled = node["filt_lowpass"].as<bool>();
-		lpf.f = node["filt_lowpass_f"].as<float>();
+		lpf.f = node["filt_lowpass"].as<float>();
 		
-		hologram.z.start = node["holo_z_start"].as<float>();
-		hologram.z.stop = node["holo_z_end"].as<float>();
-		hologram.z.step = node["holo_z_step"].as<float>();
+		hologram.z.start = node["holo_z0"].as<float>();
+		hologram.z.stop = node["holo_z1"].as<float>();
+		hologram.z.step = node["holo_dz"].as<float>();
 		hologram.psz = node["holo_pixel_size"].as<float>();
 		hologram.lambda = node["holo_lambda"].as<float>();
-		hologram.dist = node["holo_collimated"].as<bool>() ? 0.0 : node["holo_distance"].as<float>();
+		hologram.dist = node["holo_distance"].as<float>();
 		hologram.step = node["recon_step"].as<int>();
 		hologram.focusK = node["focus_k"].as<float>();
 		
@@ -112,23 +110,24 @@ void Config::load(const fs::path& fn)
 		segment.sizeMax = node["segment_size_max"].as<int>();
 		segment.sizeSmall = node["segment_size_small"].as<int>();
 		segment.pad = node["segment_pad"].as<int>();
+		segment.scale = node["segment_scale"].as<float>();
 		
+		particle.thFact = node["particle_th_factor"].as<float>();
 		particle.zMin = node["particle_z_min"].as<float>();
 		particle.zMax = node["particle_z_max"].as<float>();
-		particle.thFact = node["particle_th_factor"].as<float>();
 		particle.diamMin = node["particle_diam_min"].as<float>();
 		particle.diamMax = node["particle_diam_max"].as<float>();
 		particle.diamStep = node["particle_diam_step"].as<float>();
-		particle.circMin = node["particle_circularity_min"].as<float>();
-		particle.circMax = node["particle_circularity_max"].as<float>();
-		particle.dynRangeMin = node["particle_dnr_min"].as<int>();
-		particle.dynRangeMax = node["particle_dnr_max"].as<int>();
+		particle.circMin = node["particle_circ_min"].as<float>();
+		particle.circMax = node["particle_circ_max"].as<float>();
+		particle.dynRangeMin = node["particle_dynrange_min"].as<int>();
+		particle.dynRangeMax = node["particle_dynrange_max"].as<int>();
 		
-		diamCorr.enabled = node["diam_correction"].as<bool>();
-		diamCorr.D0 = node["diam_correction_start"].as<float>();
-		diamCorr.D1 = node["diam_correction_end"].as<float>();
-		diamCorr.f0 = node["diam_correction_start_factor"].as<float>();
-		diamCorr.f1 = node["diam_correction_end_factor"].as<float>();
+		diamCorr.enabled = node["diam_corr"].as<bool>();
+		diamCorr.D0 = node["diam_corr_d0"].as<float>();
+		diamCorr.D1 = node["diam_corr_d1"].as<float>();
+		diamCorr.f0 = node["diam_corr_f0"].as<float>();
+		diamCorr.f1 = node["diam_corr_f1"].as<float>();
 		
 		stats.time = node["stats_time"].as<int>();
 		stats.frames = node["stats_frames"].as<int>();

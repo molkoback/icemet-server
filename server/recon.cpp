@@ -18,7 +18,7 @@ Recon::Recon(Config* cfg) :
 		m_cfg->hologram.psz, m_cfg->hologram.lambda,
 		m_cfg->hologram.dist
 	);
-	if (m_cfg->lpf.enabled)
+	if (m_cfg->lpf.f)
 		m_lpf = m_hologram->createLPF(m_cfg->lpf.f);
 }
 

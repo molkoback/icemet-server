@@ -12,7 +12,6 @@
 #include <queue>
 
 #define AREA_MAX 0.70
-#define SIZE_MIN 200.0
 
 Analysis::Analysis(Config* cfg) :
 	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET),
@@ -23,7 +22,7 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	// Upscale smaller particles
 	cv::Mat imgScaled;
 	int smallAxis = std::min(segm->img.cols, segm->img.rows);
-	double scaleF = smallAxis < SIZE_MIN ? SIZE_MIN / smallAxis : 1.0;
+	double scaleF = smallAxis < m_cfg->segment.scale ? m_cfg->segment.scale / smallAxis : 1.0;
 	cv::resize(segm->img, imgScaled, cv::Size(), scaleF, scaleF, cv::INTER_LANCZOS4);
 	cv::Size2f size = imgScaled.size();
 	

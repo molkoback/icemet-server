@@ -54,7 +54,6 @@ typedef struct _image_param {
 } ImageParam;
 
 typedef struct _bgsub_param {
-	bool enabled;
 	int stackLen;
 } BGSubParam;
 
@@ -65,11 +64,10 @@ typedef struct _empty_check_param {
 } EmptyCheckParam;
 
 typedef struct _noisy_check_param {
-	int contours;
+	int reconTh;
 } NoisyCheckParam;
 
 typedef struct _filter_param {
-	bool enabled;
 	float f;
 } FilterParam;
 
@@ -89,6 +87,7 @@ typedef struct _segment_param {
 	int sizeMax;
 	int sizeSmall;
 	int pad;
+	float scale;
 } SegmentParam;
 
 typedef struct _particle_param {

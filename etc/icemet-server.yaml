@@ -2,7 +2,7 @@
 #
 
 # Files
-path_watch: "~/.icemet/watch"
+path_watch: "~/.icemet/files"
 path_results: "~/.icemet/results"
 save_results: "oprtv" # o=original, p=preproc, r=recon, t=threshold, v=preview
 save_empty: true
@@ -28,19 +28,16 @@ img_rotation: 0
 empty_th_original: 40 # Before preproc
 empty_th_preproc: 10 # After preproc
 empty_th_recon: 15 # Minimum image
-noisy_contours: -1
-bgsub: true
+noisy_th_recon: -1 # Minimum image
 bgsub_stack_len: 7
-filt_lowpass: false
-filt_lowpass_f: 100000
+filt_lowpass: 0
 
 # Reconstruction
-holo_z_start: 8.3e-3
-holo_z_end: 38.6e-3
-holo_z_step: 0.020e-3
+holo_z0: 8.3e-3
+holo_z1: 38.6e-3
+holo_dz: 0.020e-3
 holo_pixel_size: 3.45e-6
 holo_lambda: 660e-9
-holo_collimated: false
 holo_distance: 56.4e-3
 recon_step: 1515
 focus_k: 20
@@ -53,12 +50,13 @@ img_ignore_x: 100
 img_ignore_y: 100
 
 # Analysis
+segment_scale: 200.0
 particle_th_factor: 0.35 # th = median_Ipp - X*(median_Ipp-min_Isegm)
-diam_correction: false
-diam_correction_start: 5.0e-6
-diam_correction_end: 12.0e-6
-diam_correction_start_factor: 0.7
-diam_correction_end_factor: 1.0
+diam_corr: false
+diam_corr_d0: 0.00e-6
+diam_corr_d1: 5.00e-6
+diam_corr_f0: 0.000
+diam_corr_f1: 1.000
 
 # Statistics
 stats_time: 60
@@ -68,10 +66,10 @@ particle_z_max: 33.6e-3
 particle_diam_min: 5.0e-6
 particle_diam_max: 200.0e-6
 particle_diam_step: 0.1e-6
-particle_circularity_min: 0.0
-particle_circularity_max: 1.1
-particle_dnr_min: 45
-particle_dnr_max: 255
+particle_circ_min: 0.0
+particle_circ_max: 1.1
+particle_dynrange_min: 45
+particle_dynrange_max: 255
 
 # OpenCL
 ocl_device: "NVIDIA:GPU:0"
