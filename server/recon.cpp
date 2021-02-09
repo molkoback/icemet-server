@@ -14,8 +14,6 @@ Recon::Recon(Config* cfg) :
 	m_cfg(cfg)
 {
 	m_hologram = cv::makePtr<Hologram>(m_cfg->hologram.psz, m_cfg->hologram.lambda, m_cfg->hologram.dist);
-	if (m_cfg->lpf.f)
-		m_lpf = m_hologram->createLPF(m_cfg->lpf.f);
 }
 
 void Recon::process(ImgPtr img)
@@ -45,8 +43,11 @@ void Recon::process(ImgPtr img)
 	
 	// Set our image and apply filters
 	m_hologram->setImg(img->preproc);
-	if (!m_lpf.empty())
+	if (m_cfg->lpf.f) {
+		if (m_lpf.empty())
+			m_lpf = m_hologram->createLPF(m_cfg->lpf.f);
 		m_hologram->applyFilter(m_lpf);
+	}
 	
 	// Reconstruct whole range in steps
 	for (; gz.start < gz.stop; gz.start += gz.step) {

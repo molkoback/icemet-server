@@ -272,6 +272,7 @@ void Hologram::applyFilter(const cv::UMat& H)
 
 cv::UMat Hologram::createFilter(float f, FilterType type) const
 {
+	CV_Assert(!m_sizePad.empty());
 	float sigma = f * pow(log(1.0/pow(FILTER_F, 2)), -1.0/(2.0*FILTER_N));
 	cv::UMat H(m_sizePad, CV_32FC2);
 	size_t gsize[2] = {(size_t)m_sizePad.width, (size_t)m_sizePad.height};
