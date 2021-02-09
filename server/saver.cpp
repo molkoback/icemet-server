@@ -10,10 +10,8 @@
 
 #include <queue>
 
-Saver::Saver(Config* cfg, Database* db) :
-	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET),
-	m_cfg(cfg),
-	m_db(db)
+Saver::Saver(ICEMETServerContext* ctx) :
+	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET, ctx)
 {
 	m_log.info("Results %s", m_cfg->paths.results.string().c_str());
 }

@@ -2,7 +2,6 @@
 #define ICEMET_SERVER_PREPROC_H
 
 #include "icemet/img.hpp"
-#include "server/config.hpp"
 #include "icemet/hologram.hpp"
 #include "server/worker.hpp"
 
@@ -12,7 +11,6 @@
 
 class Preproc : public Worker {
 protected:
-	Config* m_cfg;
 	cv::Mat m_rot;
 	size_t m_stackLen;
 	BGSubStackPtr m_stack;
@@ -27,7 +25,7 @@ protected:
 	bool loop() override;
 
 public:
-	Preproc(Config* cfg);
+	Preproc(ICEMETServerContext* ctx);
 };
 
 #endif

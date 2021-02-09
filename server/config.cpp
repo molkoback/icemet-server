@@ -7,18 +7,12 @@
 #include <exception>
 #include <stdexcept>
 
-Config::Config(const Arguments& args) : args(args)
-{
-	load(args.cfgFile);
-}
-
 Config::Config(const fs::path& fn)
 {
 	load(fn);
 }
 
 Config::Config(const Config& cfg) :
-	args(cfg.args),
 	paths(cfg.paths),
 	saves(cfg.saves),
 	types(cfg.types),

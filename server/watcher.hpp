@@ -2,7 +2,6 @@
 #define ICEMET_SERVER_WATCHER_H
 
 #include "icemet/icemet.hpp"
-#include "server/config.hpp"
 #include "icemet/file.hpp"
 #include "server/worker.hpp"
 
@@ -10,7 +9,6 @@
 
 class Watcher : public Worker {
 protected:
-	Config* m_cfg;
 	FilePtr m_prev;
 	
 	bool processImg(const fs::path& p);
@@ -19,7 +17,7 @@ protected:
 	bool loop() override;
 
 public:
-	Watcher(Config* cfg);
+	Watcher(ICEMETServerContext* ctx);
 };
 
 #endif

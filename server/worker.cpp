@@ -46,6 +46,13 @@ bool WorkerQueue::empty()
 	return isEmpty;
 }
 
+Worker::Worker(const std::string& name, ICEMETServerContext* ctx) :
+	m_name(name),
+	m_ctx(ctx),
+	m_log(name),
+	m_cfg(ctx->cfg),
+	m_db(ctx->db) {}
+
 void Worker::run()
 {
 	m_log.debug("Running");

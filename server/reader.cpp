@@ -1,9 +1,7 @@
 #include "reader.hpp"
 
-Reader::Reader(Config* cfg, Database* db) :
-	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET),
-	m_cfg(cfg),
-	m_db(db),
+Reader::Reader(ICEMETServerContext* ctx) :
+	Worker(COLOR_BRIGHT_CYAN "READER" COLOR_RESET, ctx),
 	m_img(NULL) {}
 
 void Reader::push()

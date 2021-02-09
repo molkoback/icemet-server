@@ -4,22 +4,10 @@
 #include "icemet/database.hpp"
 #include "icemet/hologram.hpp"
 #include "icemet/icemet.hpp"
-#include "icemet/util/log.hpp"
 
 #include <opencv2/core.hpp>
 
 #include <string>
-
-typedef struct _arguments {
-	fs::path cfgFile;
-	fs::path root;
-	bool waitNew;
-	bool statsOnly;
-	bool particlesOnly;
-	LogLevel loglevel;
-	
-	_arguments() : cfgFile(fs::path()), root(fs::path(".")), waitNew(true), statsOnly(false), particlesOnly(false), loglevel(LOG_INFO) {}
-} Arguments;
 
 typedef struct _paths {
 	fs::path watch;
@@ -127,12 +115,10 @@ private:
 public:
 	Config() {}
 	Config(const fs::path& fn);
-	Config(const Arguments& args);
 	Config(const Config& cfg);
 	
 	void load(const fs::path& fn);
 	
-	Arguments args;
 	Paths paths;
 	Saves saves;
 	Types types;

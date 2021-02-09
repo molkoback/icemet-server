@@ -10,10 +10,8 @@
 #include <queue>
 #include <stdexcept>
 
-Stats::Stats(Config* cfg, Database* db) :
-	Worker(COLOR_BLUE "STATS" COLOR_RESET),
-	m_cfg(cfg),
-	m_db(db)
+Stats::Stats(ICEMETServerContext* ctx) :
+	Worker(COLOR_BLUE "STATS" COLOR_RESET, ctx)
 {
 	int wpx = m_cfg->img.size.width - 2*m_cfg->img.border.width;
 	int hpx = m_cfg->img.size.height - 2*m_cfg->img.border.height;
@@ -38,7 +36,7 @@ Stats::Stats(Config* cfg, Database* db) :
 
 bool Stats::init()
 {
-	if (m_cfg->args.statsOnly && m_cfg->stats.frames <= 0)
+	if (m_ctx->args->statsOnly && m_cfg->stats.frames <= 0)
 		throw(std::runtime_error("stats_frames required in stats only mode"));
 	return true;
 }

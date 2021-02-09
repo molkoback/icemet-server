@@ -9,9 +9,8 @@
 #include <algorithm>
 #include <queue>
 
-Recon::Recon(Config* cfg) :
-	Worker(COLOR_GREEN "RECON" COLOR_RESET),
-	m_cfg(cfg)
+Recon::Recon(ICEMETServerContext* ctx) :
+	Worker(COLOR_GREEN "RECON" COLOR_RESET, ctx)
 {
 	m_hologram = cv::makePtr<Hologram>(m_cfg->hologram.psz, m_cfg->hologram.lambda, m_cfg->hologram.dist);
 }

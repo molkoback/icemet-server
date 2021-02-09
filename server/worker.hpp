@@ -5,6 +5,7 @@
 #include "icemet/pkg.hpp"
 #include "icemet/util/log.hpp"
 #include "icemet/util/time.hpp"
+#include "server/server.hpp"
 
 #include <opencv2/core.hpp>
 
@@ -59,7 +60,10 @@ typedef cv::Ptr<WorkerQueue> WorkerQueuePtr;
 class Worker {
 protected:
 	std::string m_name;
+	ICEMETServerContext* m_ctx;
 	Log m_log;
+	Config* m_cfg;
+	Database* m_db;
 	
 	std::vector<WorkerQueuePtr> m_inputs;
 	std::vector<WorkerQueuePtr> m_outputs;
@@ -69,7 +73,7 @@ protected:
 	virtual void close() {}
 
 public:
-	Worker(const std::string& name) : m_name(name), m_log(name) {}
+	Worker(const std::string& name, ICEMETServerContext* ctx);
 	void run();
 	void connect(Worker& user, size_t queueSize);
 };

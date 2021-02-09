@@ -14,9 +14,8 @@
 
 #define AREA_MAX 0.70
 
-Analysis::Analysis(Config* cfg) :
-	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET),
-	m_cfg(cfg) {}
+Analysis::Analysis(ICEMETServerContext* ctx) :
+	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET, ctx) {}
 
 bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& par) const
 {

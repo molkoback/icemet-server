@@ -1,15 +1,12 @@
 #ifndef ICEMET_SERVER_STATS_H
 #define ICEMET_SERVER_STATS_H
 
-#include "server/worker.hpp"
-#include "server/config.hpp"
 #include "icemet/file.hpp"
 #include "icemet/util/time.hpp"
+#include "server/worker.hpp"
 
 class Stats : public Worker {
 protected:
-	Config* m_cfg;
-	Database* m_db;
 	double m_V;
 	DateTime m_dt;
 	Timestamp m_len;
@@ -26,7 +23,7 @@ protected:
 	void close() override;
 
 public:
-	Stats(Config* cfg, Database* db);
+	Stats(ICEMETServerContext* ctx);
 };
 
 #endif

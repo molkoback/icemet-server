@@ -1,4 +1,4 @@
-#include "server/server.hpp" 
+#include "server/server.hpp"
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 7

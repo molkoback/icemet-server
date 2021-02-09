@@ -2,7 +2,6 @@
 #define ICEMET_SERVER_RECON_H
 
 #include "icemet/img.hpp"
-#include "server/config.hpp"
 #include "icemet/hologram.hpp"
 #include "server/worker.hpp"
 
@@ -10,7 +9,6 @@
 
 class Recon : public Worker {
 protected:
-	Config* m_cfg;
 	HologramPtr m_hologram;
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
@@ -19,7 +17,7 @@ protected:
 	bool loop() override;
 
 public:
-	Recon(Config* cfg);
+	Recon(ICEMETServerContext* ctx);
 };
 
 #endif

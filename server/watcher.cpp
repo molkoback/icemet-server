@@ -8,9 +8,8 @@
 #include <stdexcept>
 #include <vector>
 
-Watcher::Watcher(Config* cfg) :
-	Worker(COLOR_BRIGHT_CYAN "WATCHER" COLOR_RESET),
-	m_cfg(cfg),
+Watcher::Watcher(ICEMETServerContext* ctx) :
+	Worker(COLOR_BRIGHT_CYAN "WATCHER" COLOR_RESET, ctx),
 	m_prev(cv::makePtr<File>())
 {
 	m_log.info("Watching %s", m_cfg->paths.watch.string().c_str());
@@ -111,7 +110,7 @@ bool Watcher::loop()
 		}
 	}
 	
-	if (!m_cfg->args.waitNew)
+	if (!m_ctx->args->waitNew)
 		return false;
 	ssleep(1);
 	return !m_outputs.empty();

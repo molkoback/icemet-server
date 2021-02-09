@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 		cv::redirectError(cvErrorHandler);
 		
 		// Read config
-		Config cfg(args);
+		Config cfg(args.cfgFile);
 		
 		// Setup logging
 		Log::setLevel(args.loglevel);
@@ -111,13 +111,14 @@ int main(int argc, char* argv[])
 		log.info("Stats table '%s'", cfg.dbInfo.statsTable.c_str());
 		
 		// Create workers
-		Watcher watcher(&cfg);
-		Reader reader(&cfg, &db);
-		Preproc preproc(&cfg);
-		Recon recon(&cfg);
-		Analysis analysis(&cfg);
-		Saver saver(&cfg, &db);
-		Stats stats(&cfg, &db);
+		ICEMETServerContext ctx{&args, &cfg, &db};
+		Watcher watcher(&ctx);
+		Reader reader(&ctx);
+		Preproc preproc(&ctx);
+		Recon recon(&ctx);
+		Analysis analysis(&ctx);
+		Saver saver(&ctx);
+		Stats stats(&ctx);
 		
 		// Launch worker threads
 		std::vector<std::thread> threads;

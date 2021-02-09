@@ -7,9 +7,8 @@
 
 #include <exception>
 
-Preproc::Preproc(Config* cfg) :
-	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET),
-	m_cfg(cfg),
+Preproc::Preproc(ICEMETServerContext* ctx) :
+	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET, ctx),
 	m_skip(0)
 {
 	if (m_cfg->bgsub.stackLen > 0) {
