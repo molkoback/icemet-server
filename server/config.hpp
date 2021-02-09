@@ -1,5 +1,5 @@
-#ifndef ICEMET_CONFIG_H
-#define ICEMET_CONFIG_H
+#ifndef ICEMET_SERVER_CONFIG_H
+#define ICEMET_SERVER_CONFIG_H
 
 #include "icemet/database.hpp"
 #include "icemet/hologram.hpp"

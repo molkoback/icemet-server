@@ -23,7 +23,6 @@ include_directories(
 )
 
 set(LIBICEMET_SRC
-	icemet/config.cpp
 	icemet/database.cpp
 	icemet/file.cpp
 	icemet/hologram.cpp
@@ -38,6 +37,7 @@ set(LIBICEMET_SRC
 )
 set(LIBICEMETSERVER_SRC
 	server/analysis.cpp
+	server/config.cpp
 	server/preproc.cpp
 	server/reader.cpp
 	server/recon.cpp

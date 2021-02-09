@@ -2,7 +2,7 @@
 #define ICEMET_SERVER_STATS_H
 
 #include "server/worker.hpp"
-#include "icemet/config.hpp"
+#include "server/config.hpp"
 #include "icemet/file.hpp"
 #include "icemet/util/time.hpp"
 

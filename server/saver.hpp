@@ -4,7 +4,7 @@
 #include "icemet/icemet.hpp"
 #include "icemet/img.hpp"
 #include "icemet/pkg.hpp"
-#include "icemet/config.hpp"
+#include "server/config.hpp"
 #include "server/worker.hpp"
 
 class Saver : public Worker {

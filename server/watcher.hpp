@@ -2,7 +2,7 @@
 #define ICEMET_SERVER_WATCHER_H
 
 #include "icemet/icemet.hpp"
-#include "icemet/config.hpp"
+#include "server/config.hpp"
 #include "icemet/file.hpp"
 #include "server/worker.hpp"
 

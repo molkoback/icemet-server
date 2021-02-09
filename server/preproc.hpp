@@ -2,7 +2,7 @@
 #define ICEMET_SERVER_PREPROC_H
 
 #include "icemet/img.hpp"
-#include "icemet/config.hpp"
+#include "server/config.hpp"
 #include "icemet/hologram.hpp"
 #include "server/worker.hpp"
 
