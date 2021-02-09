@@ -5,7 +5,6 @@
 #include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>
-#include <opencv2/icemet.hpp>
 
 #include <string>
 #include <vector>

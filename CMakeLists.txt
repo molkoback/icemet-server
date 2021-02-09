@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMake/)
 
 project(ICEMET_SERVER)
 
@@ -14,7 +14,8 @@ find_package(MariaDBConnector REQUIRED)
 find_package(Yaml-cpp REQUIRED)
 
 include_directories(
-	.
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_BINARY_DIR}
 	${LibArchive_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${MARIADB_CONNECTOR_INCLUDE_DIR}
@@ -25,6 +26,7 @@ set(LIBICEMET_SRC
 	icemet/config.cpp
 	icemet/database.cpp
 	icemet/file.cpp
+	icemet/hologram.cpp
 	icemet/icemet.cpp
 	icemet/img.cpp
 	icemet/math.cpp
@@ -76,4 +78,8 @@ target_link_libraries(${LIBICEMETSERVER_NAME}
 )
 target_link_libraries(${ICEMETSERVER_NAME}
 	${LIBICEMETSERVER_NAME}
+)
+
+execute_process(
+	COMMAND python3 ${CMAKE_SOURCE_DIR}/scripts/create-opencl-headers.py ${CMAKE_SOURCE_DIR}/opencl ./opencl
 )

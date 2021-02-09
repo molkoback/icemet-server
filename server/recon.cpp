@@ -13,11 +13,7 @@ Recon::Recon(Config* cfg) :
 	Worker(COLOR_GREEN "RECON" COLOR_RESET),
 	m_cfg(cfg)
 {
-	m_hologram = cv::icemet::Hologram::create(
-		m_cfg->img.size,
-		m_cfg->hologram.psz, m_cfg->hologram.lambda,
-		m_cfg->hologram.dist
-	);
+	m_hologram = cv::makePtr<Hologram>(m_cfg->hologram.psz, m_cfg->hologram.lambda, m_cfg->hologram.dist);
 	if (m_cfg->lpf.f)
 		m_lpf = m_hologram->createLPF(m_cfg->lpf.f);
 }
@@ -39,9 +35,9 @@ void Recon::process(ImgPtr img)
 	
 	const int th = m_cfg->segment.thFact * img->bgVal;
 	
-	cv::icemet::ZRange gz = m_cfg->hologram.z;
+	ZRange gz = m_cfg->hologram.z;
 	gz.step *= m_cfg->hologram.step;
-	cv::icemet::ZRange lz = m_cfg->hologram.z;
+	ZRange lz = m_cfg->hologram.z;
 	
 	int iter = 0;
 	int ncontours = 0;
@@ -84,10 +80,10 @@ void Recon::process(ImgPtr img)
 				continue;
 			
 			// Select our focus method
-			cv::icemet::FocusMethod method = (
+			FocusMethod method = (
 				rect.width > segmSizeSmall ||
 				rect.height > segmSizeSmall
-			) ? cv::icemet::FOCUS_STD : cv::icemet::FOCUS_MIN;
+			) ? FOCUS_STD : FOCUS_MIN;
 			
 			// Grow rect
 			rect.x = std::max(rect.x-pad, 0);
@@ -98,7 +94,7 @@ void Recon::process(ImgPtr img)
 			// Focus
 			int idx = 0;
 			double score = 0.0;
-			cv::icemet::Hologram::focus(m_stack, rect, idx, score, method, 0, last, focusK);
+			Hologram::focus(m_stack, rect, idx, score, method, 0, last, focusK);
 			
 			// Create segment
 			SegmentPtr segm = cv::makePtr<Segment>();

@@ -1,11 +1,11 @@
 #include "stats.hpp"
 
+#include "icemet/hologram.hpp"
 #include "icemet/math.hpp"
 #include "icemet/util/strfmt.hpp"
 #include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>
-#include <opencv2/icemet.hpp>
 
 #include <queue>
 #include <stdexcept>
@@ -24,8 +24,8 @@ Stats::Stats(Config* cfg, Database* db) :
 	
 	double h = z1 - z0;
 	int Apx = wpx * hpx;
-	double pszZ0 = psz / cv::icemet::Hologram::magnf(dist, z0);
-	double pszZ1 = psz / cv::icemet::Hologram::magnf(dist, z1);
+	double pszZ0 = psz / Hologram::magnf(dist, z0);
+	double pszZ1 = psz / Hologram::magnf(dist, z1);
 	double AZ0 = Apx * pszZ0*pszZ0;
 	double AZ1 = Apx * pszZ1*pszZ1;
 	m_V = Math::Vcone(h, AZ0, AZ1);
@@ -66,7 +66,7 @@ void Stats::fillStatsRow(StatsRow& row) const
 	
 	// Create histogram
 	cv::Mat counts, bins;
-	cv::icemet::hist(
+	Math::hist(
 		m_particles.getUMat(cv::ACCESS_READ),
 		counts, bins,
 		m_cfg->particle.diamMin, m_cfg->particle.diamMax, m_cfg->particle.diamStep

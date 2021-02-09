@@ -9,21 +9,17 @@
 
 Preproc::Preproc(Config* cfg) :
 	Worker(COLOR_BRIGHT_GREEN "PREPROC" COLOR_RESET),
-	m_cfg(cfg)
+	m_cfg(cfg),
+	m_skip(0)
 {
-	if (m_cfg->bgsub.stackLen >= 3) {
-		m_stackLen = m_cfg->bgsub.stackLen;
-		m_stack = cv::icemet::BGSubStack::create(m_cfg->img.size, m_stackLen);
+	if (m_cfg->bgsub.stackLen > 0) {
+		m_stack = cv::makePtr<BGSubStack>(m_cfg->bgsub.stackLen);
 	}
 	if (m_cfg->img.rotation != 0.0) {
 		cv::Point2f center(m_cfg->img.size.width/2.0, m_cfg->img.size.height/2.0);
 		m_rot = cv::getRotationMatrix2D(center, m_cfg->img.rotation, 1.0);
 	}
-	m_hologram = cv::icemet::Hologram::create(
-		m_cfg->img.size,
-		m_cfg->hologram.psz, m_cfg->hologram.lambda,
-		m_cfg->hologram.dist
-	);
+	m_hologram = cv::makePtr<Hologram>(m_cfg->hologram.psz, m_cfg->hologram.lambda, m_cfg->hologram.dist);
 }
 
 bool Preproc::isEmpty(const cv::UMat& img, int th, const std::string& imgName, const std::string& checkName) const
@@ -44,14 +40,14 @@ void Preproc::finalize(ImgPtr img)
 	if (m_cfg->emptyCheck.reconTh > 0 || m_cfg->noisyCheck.reconTh > 0) {
 		m_hologram->setImg(img->preproc);
 		cv::UMat imgMin;
-		cv::icemet::ZRange z = m_cfg->hologram.z;
+		ZRange z = m_cfg->hologram.z;
 		z.step *= 10.0;
 		m_hologram->min(imgMin, z);
 		
 		// Empty check
 		if (isEmpty(imgMin, m_cfg->emptyCheck.reconTh, img->name(), "recon")) {
 			img->setStatus(FILE_STATUS_EMPTY);
-			goto end;
+			return;
 		}
 		
 		// Noisy check
@@ -80,80 +76,68 @@ void Preproc::finalize(ImgPtr img)
 			m_log.debug("%s: NoisyVal: %d", img->name().c_str(), ncontours);
 			if (ncontours > m_cfg->noisyCheck.reconTh) {
 				img->setStatus(FILE_STATUS_SKIP);
-				goto end;
 			}
-		}
-	}
-end:
-	m_outputs[0]->push(img);
-}
-
-void Preproc::processBgsub(ImgPtr img, cv::UMat& imgPP)
-{
-	// Push to background subtraction stack
-	bool full = m_stack->push(imgPP);
-	
-	// Files go through a queue so we maintain the order
-	m_wait.push(img);
-	if (m_wait.size() >= m_stackLen/2 + 1) {
-		ImgPtr imgDone = m_wait.front();
-		m_wait.pop();
-		
-		// Perform median division if the background subtraction stack was full
-		if (full) {
-			imgDone->preproc = cv::UMat(m_cfg->img.size, CV_8UC1);
-			m_stack->meddiv(imgDone->preproc);
-			
-			// Check empty
-			if (isEmpty(imgDone->preproc, m_cfg->emptyCheck.preprocTh, imgDone->name(), "preproc")) {
-				imgDone->setStatus(FILE_STATUS_EMPTY);
-				m_outputs[0]->push(imgDone);
-			}
-			else {
-				finalize(imgDone);
-			}
-		}
-		else {
-			imgDone->setStatus(FILE_STATUS_SKIP);
-			m_outputs[0]->push(imgDone);
 		}
 	}
 }
 
-void Preproc::processNoBgsub(ImgPtr img, cv::UMat& imgPP)
+void Preproc::processNoBgsub(ImgPtr img)
 {
 	// Check empty
-	img->preproc = imgPP;
 	if (isEmpty(img->preproc, m_cfg->emptyCheck.preprocTh, img->name(), "preproc")) {
 		img->setStatus(FILE_STATUS_EMPTY);
-		m_outputs[0]->push(img);
 	}
 	else {
 		finalize(img);
 	}
 }
 
-void Preproc::process(ImgPtr img)
+bool Preproc::processBgsub(ImgPtr img, ImgPtr& imgDone)
+{
+	if (m_stack->push(img)) {
+		imgDone = m_stack->meddiv();
+		
+		// Check empty
+		if (isEmpty(imgDone->preproc, m_cfg->emptyCheck.preprocTh, imgDone->name(), "preproc")) {
+			imgDone->setStatus(FILE_STATUS_EMPTY);
+		}
+		else {
+			finalize(imgDone);
+		}
+		return true;
+	}
+	else if (m_skip < m_stack->len() / 2) {
+		imgDone = m_stack->get(m_skip++);
+		imgDone->preproc = cv::UMat();
+		imgDone->setStatus(FILE_STATUS_SKIP);
+		return true;
+	}
+	return false;
+}
+
+bool Preproc::process(ImgPtr img, ImgPtr& imgDone)
 {
 	// Check empty
 	if (isEmpty(img->original, m_cfg->emptyCheck.originalTh, img->name(), "original")) {
 		img->setStatus(FILE_STATUS_EMPTY);
-		m_outputs[0]->push(img);
+		imgDone = img;
+		return true;
 	}
-	else {
-		// Crop and rotate
-		cv::UMat imgCrop, imgPP;
-		cv::UMat(img->original, m_cfg->img.rect).copyTo(imgCrop);
-		if (!m_rot.empty())
-			cv::warpAffine(imgCrop, imgPP, m_rot, imgCrop.size());
-		else
-			imgPP = imgCrop;
-		
-		if (!m_stack.empty())
-			processBgsub(img, imgPP);
-		else
-			processNoBgsub(img, imgPP);
+	
+	// Crop and rotate
+	cv::UMat tmp;
+	cv::UMat(img->original, m_cfg->img.rect).copyTo(tmp);
+	if (!m_rot.empty())
+		cv::warpAffine(tmp, img->preproc, m_rot, tmp.size());
+	else
+		img->preproc = tmp;
+	
+	if (m_stack.empty()) {
+		processNoBgsub(img);
+		imgDone = img;
+		return true;
 	}
+	return processBgsub(img, imgDone);
 }
 
 bool Preproc::loop()
@@ -168,8 +152,11 @@ bool Preproc::loop()
 			ImgPtr img = data.getImg();
 			m_log.debug("%s: Processing", img->name().c_str());
 			Measure m;
-			process(img);
+			ImgPtr imgDone;
+			bool ret = process(img, imgDone);
 			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+			if (ret)
+				m_outputs[0]->push(imgDone);
 		}
 		else {
 			m_outputs[0]->push(data);

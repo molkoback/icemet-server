@@ -1,5 +1,6 @@
 #include "analysis.hpp"
 
+#include "icemet/hologram.hpp"
 #include "icemet/math.hpp"
 #include "icemet/util/time.hpp"
 
@@ -76,7 +77,7 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	
 	// Allocate particle
 	par = cv::makePtr<Particle>();
-	par->effPxSz = m_cfg->hologram.psz / cv::icemet::Hologram::magnf(m_cfg->hologram.dist, segm->z);
+	par->effPxSz = m_cfg->hologram.psz / Hologram::magnf(m_cfg->hologram.dist, segm->z);
 	
 	// Draw filled contour
 	par->img = cv::Mat::zeros(size, CV_8UC1);

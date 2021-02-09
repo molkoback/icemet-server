@@ -1,12 +1,12 @@
 #include "saver.hpp"
 
+#include "icemet/math.hpp"
 #include "icemet/pkg.hpp"
 #include "icemet/util/time.hpp"
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv2/icemet.hpp>
 
 #include <queue>
 
@@ -86,7 +86,7 @@ void Saver::processImg(const ImgPtr& img) const
 			// Adjust
 			cv::Mat imgTh, imgAdj;
 			unsigned char th = cv::threshold(imgInv, imgTh, 0, 255, cv::THRESH_OTSU);
-			cv::icemet::adjust(imgInv, imgAdj, th, 255, 0, 255);
+			Math::adjust(imgInv, imgAdj, th, 255, 0, 255);
 			
 			// Draw
 			imgAdj.copyTo(cv::Mat(preview, segm->rect));

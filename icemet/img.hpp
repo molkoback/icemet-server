@@ -2,9 +2,9 @@
 #define ICEMET_IMAGE_H
 
 #include "icemet/file.hpp"
+#include "icemet/hologram.hpp"
 
 #include <opencv2/core.hpp>
-#include <opencv2/icemet.hpp>
 
 #include <string>
 #include <vector>
@@ -13,12 +13,12 @@ typedef struct _segment {
 	float z;
 	int iter;
 	double score;
-	cv::icemet::FocusMethod method;
+	FocusMethod method;
 	cv::Rect rect;
 	cv::Mat img;
 	
 	_segment() {}
-	_segment(float z_, int iter_, double score_, cv::icemet::FocusMethod method_, const cv::Rect& rect_, const cv::UMat& img_) :
+	_segment(float z_, int iter_, double score_, FocusMethod method_, const cv::Rect& rect_, const cv::UMat& img_) :
 		z(z_), iter(iter_), score(score_), method(method_), rect(rect_)
 	{
 		img_.copyTo(img);
@@ -75,5 +75,26 @@ public:
 	std::vector<ParticlePtr> particles;
 };
 typedef cv::Ptr<Image> ImgPtr;
+
+class BGSubStack {
+private:
+	size_t m_len;
+	cv::Size2i m_size;
+	size_t m_idx;
+	bool m_full;
+	std::vector<ImgPtr> m_images;
+	cv::UMat m_stack;
+	cv::Mat m_means;
+
+public:
+	BGSubStack(size_t len);
+	
+	size_t len() { return m_len; }
+	
+	bool push(const ImgPtr& img);
+	ImgPtr get(size_t idx);
+	ImgPtr meddiv();
+};
+typedef cv::Ptr<BGSubStack> BGSubStackPtr;
 
 #endif

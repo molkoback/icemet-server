@@ -3,16 +3,15 @@
 
 #include "icemet/img.hpp"
 #include "icemet/config.hpp"
+#include "icemet/hologram.hpp"
 #include "server/worker.hpp"
-
-#include <opencv2/icemet.hpp>
 
 #include <vector>
 
 class Recon : public Worker {
 protected:
 	Config* m_cfg;
-	cv::Ptr<cv::icemet::Hologram> m_hologram;
+	HologramPtr m_hologram;
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
 	

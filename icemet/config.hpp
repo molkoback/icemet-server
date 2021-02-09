@@ -2,11 +2,11 @@
 #define ICEMET_CONFIG_H
 
 #include "icemet/database.hpp"
+#include "icemet/hologram.hpp"
 #include "icemet/icemet.hpp"
 #include "icemet/util/log.hpp"
 
 #include <opencv2/core.hpp>
-#include <opencv2/icemet.hpp>
 
 #include <string>
 
@@ -72,7 +72,7 @@ typedef struct _filter_param {
 } FilterParam;
 
 typedef struct _hologram_param {
-	cv::icemet::ZRange z;
+	ZRange z;
 	float dist;
 	float psz;
 	float lambda;
