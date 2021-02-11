@@ -100,9 +100,8 @@ bool operator!=(const File& f1, const File& f2) { return !(f1 == f2); }
 bool operator<(const File& f1, const File& f2)
 {
 	return (
-		(f1.m_sensor<f2.m_sensor) ||
-		(f1.m_sensor==f2.m_sensor && f1.m_dt<f2.m_dt) ||
-		(f1.m_sensor==f2.m_sensor && f1.m_dt==f2.m_dt && f1.m_frame<f2.m_frame)
+		(f1.m_dt<f2.m_dt) ||
+		(f1.m_dt==f2.m_dt && f1.m_frame<f2.m_frame)
 	);
 }
 bool operator<=(const File& f1, const File& f2) { return f1==f2 || f1<f2; }
