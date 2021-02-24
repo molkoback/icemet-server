@@ -69,9 +69,12 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 		}
 	}
 	
-	// Check if the minimum is inside our contour and the area is valid
+	// Make sure the minimum is inside our contour and area and perimeter are valid
+	double perim = cv::arcLength(contours[idx], true);
 	if (cv::pointPolygonTest(contours[idx], minLoc, false) < 0.0 ||
-		area > AREA_MAX*size.width*size.height)
+	    area > AREA_MAX*size.width*size.height ||
+	    area == 0.0 ||
+	    perim == 0.0)
 		return false;
 	
 	// Allocate particle
@@ -98,7 +101,7 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	par->x = par->effPxSz * (segm->rect.x + center.x - m_cfg->img.border.width) / scaleF;
 	par->y = par->effPxSz * (segm->rect.y + center.y - m_cfg->img.border.height) / scaleF;
 	par->z = segm->z;
-	par->circularity = Math::heywood(cv::arcLength(contours[idx], true), area);
+	par->circularity = Math::heywood(perim, area);
 	par->dynRange = max - min;
 	return true;
 }
