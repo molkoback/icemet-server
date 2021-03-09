@@ -12,8 +12,6 @@
 #include <limits>
 #include <queue>
 
-#define AREA_MAX 0.70
-
 Analysis::Analysis(ICEMETServerContext* ctx) :
 	Worker(COLOR_CYAN "ANALYSIS" COLOR_RESET, ctx) {}
 
@@ -47,35 +45,32 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	int n = contours.size();
 	if (!n) return false;
 	
-	// Find the centermost contour
-	cv::Point_<double> origin(size.width/2.0, size.height/2.0);
+	// Find the largest contour
 	double area = 0;
-	cv::Point_<double> center;
-	double distMin = std::numeric_limits<double>::infinity();
 	int idx = 0;
 	for (int i = 0; i < n; i++) {
-		cv::Moments m = cv::moments(contours[i]);
-		double cx = m.m10 / m.m00;
-		double cy = m.m01 / m.m00;
-		double dx = origin.x - cx;
-		double dy = origin.y - cy;
-		double dist = sqrt(dx*dx + dy*dy);
-		if (dist < distMin) {
-			distMin = dist;
-			center.x = cx;
-			center.y = cy;
-			area = m.m00;
+		double a = cv::contourArea(contours[i]);
+		if (a > area) {
+			area = a;
 			idx = i;
 		}
 	}
 	
-	// Make sure the minimum is inside our contour and area and perimeter are valid
+	// Make sure the area and perimeter are valid, the minimum is inside the contour and the contour doesn't touch the edges
+	cv::Rect bbox = cv::boundingRect(contours[idx]);
 	double perim = cv::arcLength(contours[idx], true);
-	if (cv::pointPolygonTest(contours[idx], minLoc, false) < 0.0 ||
-	    area > AREA_MAX*size.width*size.height ||
-	    area == 0.0 ||
-	    perim == 0.0)
+	if (area == 0.0 || perim == 0.0 ||
+	    cv::pointPolygonTest(contours[idx], minLoc, false) < 0.0 ||
+	    bbox.x == 0 || bbox.y == 0 ||
+	    (bbox.x+bbox.width) == size.width ||
+	    (bbox.y+bbox.height) == size.height)
 		return false;
+	
+	// Find the contour center
+	cv::Moments m = cv::moments(contours[idx]);
+	cv::Point_<double> center;
+	center.x = m.m10 / m.m00;
+	center.y = m.m01 / m.m00;
 	
 	// Allocate particle
 	par = cv::makePtr<Particle>();
