@@ -70,9 +70,12 @@ __kernel void meddiv(
 	
 	// Fill median array
 	uchar A[STACK_LEN_MAX];
-	for (int i = 0; i < len; i++)
-		A[i] = (float)stack[i*size + gid] / means[i] * means[idx];
+	for (int i = 0; i < len; i++) {
+		float val = (float)stack[i*size + gid] / max(1.f, means[i]) * means[idx];
+		A[i] = clamp(val, 0.f, 255.f);
+	}
 	
 	// Division
-	dst[gid] = (float)A[idx] / (float)median(A, len) * means[idx];
+	float val = (float)A[idx] / max(1.f, (float)median(A, len)) * means[idx];
+	dst[gid] = clamp(val, 0.f, 255.f);
 }

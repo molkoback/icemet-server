@@ -6,13 +6,7 @@ __kernel void adjust(
 )
 {
 	int i = get_global_id(0);
-	float val = src[i];
-	
-	if (val < a0)
-		val = a0;
-	else if (val > a1)
-		val = a1;
-	
+	float val = clamp(src[i], a0, a1);
 	val -= a0;
 	val /= a1 - a0;
 	val *= b1 - b0;

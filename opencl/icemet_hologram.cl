@@ -76,7 +76,7 @@ __kernel void min_8u(
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if (x >= dst_w || y >= dst_h) return;
-	uchar val = length(src[y*src_w + x]);
+	uchar val = clamp(length(src[y*src_w + x]), 0.f, 255.f);
 	dst[y*dst_w + x] = min(val, dst[y*dst_w + x]);
 }
 
@@ -89,7 +89,7 @@ __kernel void amplitude_min_8u(
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if (x >= dst_w || y >= dst_h) return;
-	uchar val = length(src[y*src_w + x]);
+	uchar val = clamp(length(src[y*src_w + x]), 0.f, 255.f);
 	img_min[y*dst_w + x] = min(val, img_min[y*dst_w + x]);
 	dst[y*dst_w + x] = val;
 }
