@@ -18,6 +18,7 @@ sql_passwd: ""
 sql_database: "icemet"
 sql_table_particles: "particles"
 sql_table_stats: "stats"
+sql_table_meta: "meta"
 
 # Preprocessing
 img_x: 200

@@ -5,7 +5,9 @@
 #include <yaml-cpp/yaml.h>
 
 #include <exception>
+#include <fstream>
 #include <stdexcept>
+#include <streambuf>
 
 Config::Config(const fs::path& fn)
 {
@@ -39,7 +41,9 @@ fs::path Config::strToPath(const std::string& str) const
 void Config::load(const fs::path& fn)
 {
 	try {
-		YAML::Node node = YAML::LoadFile(fn.string());
+		std::ifstream stream(fn);
+		m_str = std::string((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+		YAML::Node node = YAML::Load(m_str);
 		
 		connInfo.host = node["sql_host"].as<std::string>();
 		connInfo.port = node["sql_port"].as<int>();
@@ -47,11 +51,12 @@ void Config::load(const fs::path& fn)
 		connInfo.passwd = node["sql_passwd"].as<std::string>();
 		
 		dbInfo.name = node["sql_database"].as<std::string>();
-		dbInfo.particleTable = node["sql_table_particles"].as<std::string>();
+		dbInfo.particlesTable = node["sql_table_particles"].as<std::string>();
 		dbInfo.statsTable = node["sql_table_stats"].as<std::string>();
+		dbInfo.metaTable = node["sql_table_meta"].as<std::string>();
 		
 		paths.watch = strToPath(node["path_watch"].as<std::string>());
-		paths.results = strToPath(node["path_results"].as<std::string>()) / fs::path(dbInfo.name) / fs::path(dbInfo.particleTable);
+		paths.results = strToPath(node["path_results"].as<std::string>()) / fs::path(dbInfo.name) / fs::path(dbInfo.particlesTable);
 		paths.original = paths.results / fs::path("original");
 		paths.preproc = paths.results / fs::path("preproc");
 		paths.min = paths.results / fs::path("min");

@@ -3,6 +3,7 @@
 
 #include "icemet/file.hpp"
 #include "icemet/util/time.hpp"
+#include "icemet/util/version.hpp"
 
 #include <mysql/mysql.h>
 #include <opencv2/core.hpp>
@@ -21,8 +22,9 @@ typedef struct _connection_info {
 
 typedef struct _database_info {
 	std::string name;
-	std::string particleTable;
+	std::string particlesTable;
 	std::string statsTable;
+	std::string metaTable;
 } DatabaseInfo;
 
 typedef struct _particle_row {
@@ -49,6 +51,15 @@ typedef struct _stats_row {
 	unsigned int frames;
 	unsigned int particles;
 } StatsRow;
+
+typedef struct _meta_row {
+	unsigned int id;
+	DateTime dt;
+	std::string particlesTable;
+	std::string statsTable;
+	VersionInfo version;
+	std::string config;
+} MetaRow;
 
 class DatabaseIterator;
 
@@ -77,6 +88,7 @@ public:
 	
 	void writeParticle(const ParticleRow& row);
 	void writeStats(const StatsRow& row);
+	void writeMeta(const MetaRow& row);
 	
 	bool readParticles(DatabaseIterator& iter, ParticleRow& par);
 };

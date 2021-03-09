@@ -1,6 +1,7 @@
 #include "icemet/database.hpp"
 #include "icemet/util/log.hpp"
 #include "icemet/util/strfmt.hpp"
+#include "icemet/util/time.hpp"
 #include "analysis.hpp"
 #include "preproc.hpp"
 #include "reader.hpp"
@@ -87,6 +88,7 @@ int main(int argc, char* argv[])
 	}
 	
 	Log log("MAIN");
+	log.info("ICEMET Server %s", icemetServerVersion().str().c_str());
 	try {
 		// Suppress OpenCV errors
 		cv::redirectError(cvErrorHandler);
@@ -105,10 +107,24 @@ int main(int argc, char* argv[])
 		log.info("OpenCL device %s:%s", device, cv::ocl::Device::getDefault().name().c_str());
 		
 		// Connect to database
+		if (args.particlesOnly)
+			cfg.dbInfo.statsTable.clear();
 		Database db(cfg.connInfo, cfg.dbInfo);
 		log.info("Database %s:%d/%s", cfg.connInfo.host.c_str(), cfg.connInfo.port, cfg.dbInfo.name.c_str());
-		log.info("Particle table '%s'", cfg.dbInfo.particleTable.c_str());
-		log.info("Stats table '%s'", cfg.dbInfo.statsTable.c_str());
+		log.info("Particles table '%s'", cfg.dbInfo.particlesTable.c_str());
+		if (!cfg.dbInfo.statsTable.empty())
+			log.info("Stats table '%s'", cfg.dbInfo.statsTable.c_str());
+		if (!cfg.dbInfo.metaTable.empty()) {
+			log.info("Meta table '%s'", cfg.dbInfo.metaTable.c_str());
+			db.writeMeta({
+				0, DateTime::now(),
+				cfg.dbInfo.particlesTable,
+				cfg.dbInfo.statsTable,
+				icemetServerVersion(),
+				cfg.str()
+			});
+		}
+		
 		
 		// Create workers
 		ICEMETServerContext ctx{&args, &cfg, &db};

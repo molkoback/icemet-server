@@ -68,6 +68,11 @@ std::string DateTime::str() const
 	return strfmt("%s.%03d", buf, m_stamp % 1000);
 }
 
+DateTime DateTime::now()
+{
+	return DateTime(time(0)*1000);
+}
+
 double Measure::time()
 {
 	auto now = chr::high_resolution_clock::now();

@@ -54,6 +54,8 @@ public:
 	friend bool operator<=(const DateTime& dt1, const DateTime& dt2) { return dt1==dt2 || dt1<dt2; }
 	friend bool operator>(const DateTime& dt1, const DateTime& dt2) { return !(dt1==dt2 || dt1<dt2); }
 	friend bool operator>=(const DateTime& dt1, const DateTime& dt2) { return !(dt1<dt2); }
+	
+	static DateTime now();
 };
 
 class Measure {

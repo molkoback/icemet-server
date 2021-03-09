@@ -8,7 +8,7 @@
 #define FLOAT_REPR "%.24f"
 
 static const char* createDBQuery = "CREATE DATABASE IF NOT EXISTS `%s`;";
-static const char* createParticleTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
+static const char* createParticlesTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME(3) NOT NULL,"
 "Sensor TINYINT UNSIGNED NOT NULL,"
@@ -40,15 +40,30 @@ static const char* createStatsTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "PRIMARY KEY (ID),"
 "INDEX (DateTime)"
 ");";
+static const char* createMetaTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
+"ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
+"DateTime DATETIME NOT NULL,"
+"ParticlesTable TEXT NOT NULL,"
+"StatsTable TEXT NOT NULL,"
+"Version VARCHAR(15) NOT NULL,"
+"Config TEXT NOT NULL,"
+"PRIMARY KEY (ID),"
+"INDEX (DateTime)"
+");";
 static const char* insertParticleQuery = "INSERT INTO `%s` ("
 "ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH"
-")VALUES("
+") VALUES ("
 "NULL, '%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
 ");";
 static const char* insertStatsQuery = "INSERT INTO `%s` ("
 "ID, DateTime, LWC, MVD, Conc, Frames, Particles"
-")VALUES("
+") VALUES ("
 "NULL, '%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u"
+");";
+static const char* insertMetaQuery = "INSERT INTO `%s` ("
+"ID, DateTime, ParticlesTable, StatsTable, Version, Config"
+") VALUES ("
+"NULL, '%s', '%s', '%s', '%s', '%s'"
 ");";
 static const char* selectParticlesQuery = "SELECT "
 "ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH "
@@ -135,8 +150,12 @@ void Database::open(const DatabaseInfo& dbInfo)
 	query("SET sql_notes = 0;");
 	query(createDBQuery, dbInfo.name.c_str());
 	mysql_select_db(m_mysql, dbInfo.name.c_str());
-	query(createParticleTableQuery, dbInfo.particleTable.c_str());
-	query(createStatsTableQuery, dbInfo.statsTable.c_str());
+	if (!dbInfo.particlesTable.empty())
+		query(createParticlesTableQuery, dbInfo.particlesTable.c_str());
+	if (!dbInfo.statsTable.empty())
+		query(createStatsTableQuery, dbInfo.statsTable.c_str());
+	if (!dbInfo.metaTable.empty())
+		query(createMetaTableQuery, dbInfo.metaTable.c_str());
 	query("SET sql_notes = 1;");
 	m_dbInfo = dbInfo;
 }
@@ -150,7 +169,7 @@ void Database::close()
 void Database::writeParticle(const ParticleRow& row)
 {
 	query(
-		insertParticleQuery, m_dbInfo.particleTable.c_str(),
+		insertParticleQuery, m_dbInfo.particlesTable.c_str(),
 		row.dt.str().c_str(),
 		row.sensor, row.frame, row.particle,
 		row.x, row.y, row.z,
@@ -170,10 +189,22 @@ void Database::writeStats(const StatsRow& row)
 	);
 }
 
+void Database::writeMeta(const MetaRow& row)
+{
+	query(
+		insertMetaQuery, m_dbInfo.metaTable.c_str(),
+		row.dt.str().c_str(),
+		row.particlesTable.c_str(),
+		row.statsTable.c_str(),
+		row.version.str().c_str(),
+		row.config.c_str()
+	);
+}
+
 bool Database::readParticles(DatabaseIterator& iter, ParticleRow& par)
 {
 	if (!iter.m_res)
-		iter.m_res = queryRes(selectParticlesQuery, m_dbInfo.particleTable.c_str());
+		iter.m_res = queryRes(selectParticlesQuery, m_dbInfo.particlesTable.c_str());
 	
 	MYSQL_ROW row = mysql_fetch_row(iter.m_res);
 	if (row == NULL)

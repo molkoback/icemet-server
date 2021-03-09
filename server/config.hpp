@@ -112,6 +112,7 @@ typedef struct _ocl_param {
 
 class Config {
 private:
+	std::string m_str;
 	fs::path strToPath(const std::string& str) const;
 
 public:
@@ -120,6 +121,7 @@ public:
 	Config(const Config& cfg);
 	
 	void load(const fs::path& fn);
+	const std::string& str() { return m_str; };
 	
 	Paths paths;
 	Saves saves;
