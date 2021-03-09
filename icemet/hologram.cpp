@@ -4,6 +4,7 @@
 
 #include <opencv2/core/ocl.hpp>
 
+#include <limits>
 #include <map>
 
 #define FILTER_N 6
@@ -92,20 +93,28 @@ static const FocusParam* getFocusParam(FocusMethod method)
 	return &focusParam[method];
 }
 
-static double KSearch(std::function<double(double)> f, double begin, double end, double K, cv::TermCriteria termcrit=cv::TermCriteria(cv::TermCriteria::MAX_ITER+cv::TermCriteria::EPS, 1000, 2.0))
+static double SSearch(std::function<double(double)> f, double begin, double end, double step, cv::TermCriteria termcrit=cv::TermCriteria(cv::TermCriteria::MAX_ITER+cv::TermCriteria::EPS, 1000, 1.0))
 {
+	CV_Assert(step > 0.0 && step < (end-begin)/2.0);
+	double nsteps = (end - begin) / step;
 	int count = 0;
 	while (fabs(end - begin) > termcrit.epsilon && count++ < termcrit.maxCount) {
-		double low = begin + (end - begin) / K;
-		double high = end - (end - begin) / K;
-		
-		if (f(low) < f(high))
-			begin = low;
-		else
-			end = high;
+		double fmax = -std::numeric_limits<double>::max();
+		double imax = 0.0;
+		for (double i = begin+step; i < end-step/2; i+=step) {
+			double fsum = f(i-step) + 2*f(i) + f(std::min(end, i+step));
+			if (fsum > fmax) {
+				fmax = fsum;
+				imax = i;
+			}
+		}
+		begin = std::max(begin, imax - step);
+		end = std::min(end, imax + step);
+		step = std::max(termcrit.epsilon, (end - begin) / nsteps);
 	}
 	return (end + begin) / 2.0;
 }
+
 void Hologram::propagate(float z)
 {
 	size_t gsizeProp[1] = {(size_t)(m_sizePad.width * m_sizePad.height)};
@@ -217,7 +226,7 @@ void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, ZRange z)
 	}
 }
 
-float Hologram::focus(ZRange z, FocusMethod method, float K)
+float Hologram::focus(ZRange z, FocusMethod method, double step)
 {
 	const FocusParam* param = getFocusParam(method);
 	cv::UMat slice(m_sizeOrig, param->type);
@@ -235,10 +244,10 @@ float Hologram::focus(ZRange z, FocusMethod method, float K)
 			return newScore;
 		}
 	};
-	return z.z(KSearch(f, 0, z.n()-1, K));
+	return z.z(SSearch(f, 0, z.n()-1, step));
 }
 
-float Hologram::focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method, float K)
+float Hologram::focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method, double step)
 {
 	const FocusParam* param = getFocusParam(method);
 	if (src.empty())
@@ -260,7 +269,7 @@ float Hologram::focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect
 			return newScore;
 		}
 	};
-	idx = KSearch(f, 0, z.n()-1, K);
+	idx = SSearch(f, 0, z.n()-1, step);
 	score = f(idx);
 	return z.z(idx);
 }
@@ -301,7 +310,7 @@ float Hologram::magnf(float dist, float z)
 	return dist == 0.0 ? 1.0 : dist / (dist - z);
 }
 
-void Hologram::focus(std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method, int begin, int end, float K)
+void Hologram::focus(std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method, int begin, int end, double step)
 {
 	int sz = src.size();
 	end = end < 0 || end > sz-1 ? sz-1 : end;
@@ -322,6 +331,6 @@ void Hologram::focus(std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx,
 			return newScore;
 		}
 	};
-	idx = KSearch(f, begin, end, K);
+	idx = SSearch(f, begin, end, step);
 	score = f(idx);
 }

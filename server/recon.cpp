@@ -24,19 +24,17 @@ void Recon::process(ImgPtr img)
 		size.width-2*border.width, size.height-2*border.height
 	);
 	
-	const float focusK = m_cfg->hologram.focusK;
+	const double focusStep = m_cfg->hologram.focusStep;
 	const int segmSizeMin = m_cfg->segment.sizeMin;
 	const int segmSizeMax = m_cfg->segment.sizeMax;
 	const int segmSizeSmall = m_cfg->segment.sizeSmall;
 	const int pad = m_cfg->segment.pad;
-	
 	const int th = m_cfg->segment.thFact * img->bgVal;
 	
 	ZRange gz = m_cfg->hologram.z;
-	gz.step *= m_cfg->hologram.step;
+	gz.step *= m_cfg->hologram.reconStep;
 	ZRange lz = m_cfg->hologram.z;
 	
-	int iter = 0;
 	int ncontours = 0;
 	int nsegments = 0;
 	
@@ -49,16 +47,15 @@ void Recon::process(ImgPtr img)
 	}
 	
 	// Reconstruct whole range in steps
-	for (; gz.start < gz.stop; gz.start += gz.step) {
-		lz.start = gz.start;
+	int nsteps = gz.n();
+	for (int step = 0; step < nsteps; step++, lz.start += gz.step) {
 		lz.stop = std::min(lz.start+gz.step, gz.stop);
 		int last = lz.n() - 1;
-		cv::UMat imgMin;
-		m_hologram->reconMin(m_stack, imgMin, lz);
+		m_hologram->reconMin(m_stack, img->min, lz);
 		
 		// Threshold
 		cv::UMat imgTh;
-		cv::threshold(imgMin, imgTh, th, 255, cv::THRESH_BINARY_INV);
+		cv::threshold(img->min, imgTh, th, 255, cv::THRESH_BINARY_INV);
 		
 		// Find all contours and process them
 		std::vector<std::vector<cv::Point>> contours;
@@ -94,19 +91,18 @@ void Recon::process(ImgPtr img)
 			// Focus
 			int idx = 0;
 			double score = 0.0;
-			Hologram::focus(m_stack, rect, idx, score, method, 0, last, focusK);
+			Hologram::focus(m_stack, rect, idx, score, method, 0, last, focusStep);
 			
 			// Create segment
 			SegmentPtr segm = cv::makePtr<Segment>();
 			segm->z = lz.z(idx);
-			segm->iter = iter;
+			segm->step = step;
 			segm->score = score;
 			segm->method = method;
 			segm->rect = rect;
 			cv::UMat(m_stack[idx], rect).copyTo(segm->img);
 			img->segments.push_back(segm);
 		}
-		iter++;
 	}
 	if ((nsegments = img->segments.size()) == 0)
 		img->setStatus(FILE_STATUS_EMPTY);

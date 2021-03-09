@@ -62,8 +62,8 @@ public:
 	void min(cv::UMat& dst, ZRange z);
 	void reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, ZRange z);
 	
-	float focus(ZRange z, FocusMethod method=FOCUS_STD, float K=3.0);
-	float focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method=FOCUS_STD, float K=3.0);
+	float focus(ZRange z, FocusMethod method=FOCUS_STD, double step=1.0);
+	float focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method=FOCUS_STD, double step=1.0);
 	
 	void applyFilter(const cv::UMat& H);
 	cv::UMat createFilter(float f, FilterType type) const;
@@ -72,7 +72,7 @@ public:
 	
 	static float magnf(float dist, float z);
 	
-	static void focus(std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method=FOCUS_STD, int begin=0, int end=-1, float K=3.0);
+	static void focus(std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method=FOCUS_STD, int begin=0, int end=-1, double step=1.0);
 };
 typedef cv::Ptr<Hologram> HologramPtr;
 

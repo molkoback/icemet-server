@@ -143,8 +143,8 @@ void Analysis::process(ImgPtr img)
 			// Check overlap
 			if ((segm->rect & segmOld->rect).area() > 0) {
 				// Decide the better particle
-				if ((segm->iter == segmOld->iter && segm->rect.area() > segmOld->rect.area()) ||
-				    (segm->iter != segmOld->iter && (
+				if ((segm->step == segmOld->step && segm->rect.area() > segmOld->rect.area()) ||
+				    (segm->step != segmOld->step && (
 						(segm->method == segmOld->method && segm->score > segmOld->score) ||
 						(segm->method != segmOld->method && par->dynRange > parOld->dynRange)
 					))) {

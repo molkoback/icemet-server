@@ -58,6 +58,11 @@ void Saver::processImg(const ImgPtr& img) const
 		fs::path dst(img->path(m_cfg->paths.preproc, m_cfg->types.results));
 		cv::imwrite(dst.string(), img->preproc.getMat(cv::ACCESS_READ));
 	}
+	if (m_cfg->saves.min && !img->min.empty()) {
+		fs::create_directories(img->dir(m_cfg->paths.min));
+		fs::path dst(img->path(m_cfg->paths.min, m_cfg->types.results));
+		cv::imwrite(dst.string(), img->min.getMat(cv::ACCESS_READ));
+	}
 	if (m_cfg->saves.recon && img->status() == FILE_STATUS_NOTEMPTY) {
 		fs::create_directories(img->dir(m_cfg->paths.recon));
 		for (int i = 0; i < n; i++) {

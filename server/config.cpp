@@ -54,6 +54,7 @@ void Config::load(const fs::path& fn)
 		paths.results = strToPath(node["path_results"].as<std::string>()) / fs::path(dbInfo.name) / fs::path(dbInfo.particleTable);
 		paths.original = paths.results / fs::path("original");
 		paths.preproc = paths.results / fs::path("preproc");
+		paths.min = paths.results / fs::path("min");
 		paths.recon = paths.results / fs::path("recon");
 		paths.threshold = paths.results / fs::path("threshold");
 		paths.preview = paths.results / fs::path("preview");
@@ -61,6 +62,7 @@ void Config::load(const fs::path& fn)
 		std::string savesStr(node["save_results"].as<std::string>());
 		saves.original = savesStr.find('o') != std::string::npos;
 		saves.preproc = savesStr.find('p') != std::string::npos;
+		saves.min = savesStr.find('m') != std::string::npos;
 		saves.recon = savesStr.find('r') != std::string::npos;
 		saves.threshold = savesStr.find('t') != std::string::npos;
 		saves.preview = savesStr.find('v') != std::string::npos;
@@ -96,8 +98,8 @@ void Config::load(const fs::path& fn)
 		hologram.psz = node["holo_pixel_size"].as<float>();
 		hologram.lambda = node["holo_lambda"].as<float>();
 		hologram.dist = node["holo_distance"].as<float>();
-		hologram.step = node["recon_step"].as<int>();
-		hologram.focusK = node["focus_k"].as<float>();
+		hologram.reconStep = node["recon_step"].as<int>();
+		hologram.focusStep = node["focus_step"].as<double>();
 		
 		segment.thFact = node["segment_th_factor"].as<float>();
 		segment.sizeMin = node["segment_size_min"].as<int>();

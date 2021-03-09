@@ -11,20 +11,20 @@
 
 typedef struct _segment {
 	float z;
-	int iter;
+	int step;
 	double score;
 	FocusMethod method;
 	cv::Rect rect;
 	cv::Mat img;
 	
 	_segment() {}
-	_segment(float z_, int iter_, double score_, FocusMethod method_, const cv::Rect& rect_, const cv::UMat& img_) :
-		z(z_), iter(iter_), score(score_), method(method_), rect(rect_)
+	_segment(float z_, int step_, double score_, FocusMethod method_, const cv::Rect& rect_, const cv::UMat& img_) :
+		z(z_), step(step_), score(score_), method(method_), rect(rect_)
 	{
 		img_.copyTo(img);
 	}
 	_segment(const _segment& s) :
-		z(s.z), iter(s.iter), score(s.score), method(s.method), rect(s.rect)
+		z(s.z), step(s.step), score(s.score), method(s.method), rect(s.rect)
 	{
 		s.img.copyTo(img);
 	}
@@ -71,6 +71,7 @@ public:
 	unsigned char bgVal;
 	cv::UMat original;
 	cv::UMat preproc;
+	cv::UMat min;
 	std::vector<SegmentPtr> segments;
 	std::vector<ParticlePtr> particles;
 };

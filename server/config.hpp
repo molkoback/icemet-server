@@ -14,6 +14,7 @@ typedef struct _paths {
 	fs::path results;
 	fs::path original;
 	fs::path preproc;
+	fs::path min;
 	fs::path recon;
 	fs::path threshold;
 	fs::path preview;
@@ -22,6 +23,7 @@ typedef struct _paths {
 typedef struct _saves {
 	bool original;
 	bool preproc;
+	bool min;
 	bool recon;
 	bool threshold;
 	bool preview;
@@ -64,8 +66,8 @@ typedef struct _hologram_param {
 	float dist;
 	float psz;
 	float lambda;
-	int step;
-	float focusK;
+	int reconStep;
+	double focusStep;
 } HologramParam;
 
 typedef struct _segment_param {
