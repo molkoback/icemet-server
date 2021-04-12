@@ -118,9 +118,10 @@ void Stats::statsPoint() const
 	fillStatsRow(row);
 	m_db->writeStats(row);
 	m_log.info(
-		"[%02d:%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
-		 m_dt.hour(), m_dt.min(), m_dt.sec(),
-		 row.lwc, row.mvd*1000000, row.conc/1000000
+		"[%d-%02d-%02d %02d:%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
+		m_dt.year(), m_dt.month(), m_dt.day(),
+		m_dt.hour(), m_dt.min(), m_dt.sec(),
+		row.lwc, row.mvd*1000000, row.conc/1000000
 	);
 }
 
