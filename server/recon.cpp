@@ -73,14 +73,14 @@ void Recon::process(ImgPtr img)
 			
 			if ((segmSizeMin > 0 && (rect.width < segmSizeMin || rect.height < segmSizeMin)) ||
 			    (segmSizeMax > 0 && (rect.width > segmSizeMax || rect.height > segmSizeMax)) ||
-                (crop & rect).area() < 0.5*rect.area())
+			    (crop & rect).area() < 0.5*rect.area())
 				continue;
 			
 			// Select our focus method
 			FocusMethod method = (
 				rect.width > segmSizeSmall ||
 				rect.height > segmSizeSmall
-			) ? FOCUS_STD : FOCUS_MIN;
+			) ? FOCUS_ICEMET : FOCUS_MIN;
 			
 			// Grow rect
 			rect.x = std::max(rect.x-pad, 0);

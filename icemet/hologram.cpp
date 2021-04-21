@@ -80,12 +80,27 @@ static double scoreToG(const cv::UMat& slice)
 	return sqrt(stddev[0] / mean[0]);
 }
 
+static double scoreICEMET(const cv::UMat& slice)
+{
+	size_t gsize[2] = {(size_t)slice.cols, (size_t)slice.rows};
+	cv::UMat filt(slice.size(), CV_32FC1);
+	cv::Vec<double,1> mean;
+	cv::Vec<double,1> stddev;
+	cv::ocl::Kernel("sqrt_stdfilt_3x3", icemet_hologram_ocl()).args(
+		cv::ocl::KernelArg::PtrReadOnly(slice),
+		cv::ocl::KernelArg::WriteOnly(filt)
+	).run(2, gsize, NULL, true);
+	cv::meanStdDev(filt, mean, stddev);
+	return stddev[0];
+}
+
 static const FocusParam focusParam[] {
 	{CV_32FC1, RECON_OUTPUT_AMPLITUDE, scoreMin},
 	{CV_32FC1, RECON_OUTPUT_AMPLITUDE, scoreMax},
 	{CV_32FC1, RECON_OUTPUT_AMPLITUDE, scoreRange},
 	{CV_32FC1, RECON_OUTPUT_AMPLITUDE, scoreSTD},
-	{CV_32FC2, RECON_OUTPUT_COMPLEX, scoreToG}
+	{CV_32FC2, RECON_OUTPUT_COMPLEX, scoreToG},
+	{CV_32FC1, RECON_OUTPUT_AMPLITUDE, scoreICEMET}
 };
 
 static const FocusParam* getFocusParam(FocusMethod method)

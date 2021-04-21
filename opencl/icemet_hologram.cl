@@ -168,6 +168,31 @@ __kernel void stdfilt_3x3(
 	dst[y*w + x] = sqrt(var);
 }
 
+__kernel void sqrt_stdfilt_3x3(
+	__global float* src,
+	__global float* dst, int step, int offset, int h, int w
+)
+{
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	if (x >= w || y >= h) return;
+	
+	float sum = 0.0;
+	float sqsum = 0.0;
+	int n = 0;
+	for (int xx = max(x-1, 0); xx <= min(x+1, w-1); xx++) {
+		for (int yy = max(y-1, 0); yy <= min(y+1, h-1); yy++) {
+			float val = sqrt(src[yy*w + xx]);
+			sum += val;
+			sqsum += val*val;
+			n++;
+		}
+	}
+	float mean = sum / n;
+	float var = sqsum / n - mean*mean;
+	dst[y*w + x] = sqrt(var);
+}
+
 __kernel void gradient(
 	__global cfloat* src,
 	__global float* dst, int step, int offset, int h, int w

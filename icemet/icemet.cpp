@@ -14,7 +14,7 @@ static bool seeded = false;
 const VersionInfo& icemetVersion()
 {
 	return info;
-} 
+}
 
 static std::string randstr(unsigned int len)
 {
