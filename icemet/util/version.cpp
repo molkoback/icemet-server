@@ -2,14 +2,20 @@
 
 #include "icemet/util/strfmt.hpp"
 
-VersionInfo::VersionInfo(unsigned int major, unsigned int minor, unsigned int patch, bool dev=false) :
+VersionInfo::VersionInfo(unsigned int major, unsigned int minor, unsigned int patch, bool dev, const std::string& commit) :
 	m_major(major),
 	m_minor(minor), 
 	m_patch(patch),
-	m_dev(dev) {}
+	m_dev(dev),
+	m_commit(commit) {}
 
 std::string VersionInfo::str() const
 {
-	std::string end = m_dev ? std::string("-dev") : std::string();
+	std::string end;
+	if (m_dev) {
+		end += "-dev";
+		if (!m_commit.empty())
+			end += ":" + m_commit;
+	}
 	return strfmt("%d.%d.%d%s", m_major, m_minor, m_patch, end.c_str());
 }
