@@ -37,6 +37,8 @@ static const char* createStatsTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "Conc FLOAT NOT NULL,"
 "Frames INT UNSIGNED NOT NULL,"
 "Particles INT UNSIGNED NOT NULL,"
+"Temp FLOAT,"
+"Wind FLOAT,"
 "PRIMARY KEY (ID),"
 "INDEX (DateTime)"
 ");";
@@ -56,10 +58,10 @@ static const char* insertParticleQuery = "INSERT INTO `%s` ("
 "NULL, '%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
 ");";
 static const char* insertStatsQuery = "INSERT INTO `%s` ("
-"ID, DateTime, LWC, MVD, Conc, Frames, Particles"
+"ID, DateTime, LWC, MVD, Conc, Frames, Particles, Temp, Wind"
 ") VALUES ("
 "NULL, '%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u"
-");";
+", NULL, NULL);";
 static const char* insertMetaQuery = "INSERT INTO `%s` ("
 "ID, DateTime, ParticlesTable, StatsTable, Version, Config"
 ") VALUES ("
