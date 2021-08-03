@@ -53,15 +53,15 @@ static const char* createMetaTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "INDEX (DateTime)"
 ");";
 static const char* insertParticleQuery = "INSERT INTO `%s` ("
-"ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH"
+"DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH"
 ") VALUES ("
-"NULL, '%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
+"'%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
 ");";
 static const char* insertStatsQuery = "INSERT INTO `%s` ("
-"ID, DateTime, LWC, MVD, Conc, Frames, Particles, Temp, Wind"
+"DateTime, LWC, MVD, Conc, Frames, Particles"
 ") VALUES ("
-"NULL, '%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u"
-", NULL, NULL);";
+"'%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u"
+");";
 static const char* insertMetaQuery = "INSERT INTO `%s` ("
 "ID, DateTime, ParticlesTable, StatsTable, Version, Config"
 ") VALUES ("
