@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.0 - Enstalvi
+2021-09-07
+- SQRT+STD focus method.
+- Temperature and wind speed columns in stats.
+- Date in stats messages.
+
 ## 1.8.0 - プリコネ
 2021-03-09
 - Include icemet-opencv in this repository.
