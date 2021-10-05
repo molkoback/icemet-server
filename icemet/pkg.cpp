@@ -81,10 +81,9 @@ void ICEMETV1Package::open(const fs::path& p)
 	if (archive_read_open_filename(arc, p.string().c_str(), 8192) != ARCHIVE_OK)
 		throw(std::runtime_error(std::string("Couldn't open archive '") + p.string() + "'"));
 	
-	// Create paths
+	// Paths
 	m_tmp = icemetCacheDir();
-	fs::path pathData = m_tmp / "data.json";
-	fs::path pathImages = m_tmp / "images.avi";
+	fs::path pathImages, pathData;
 	
 	// Loop entries
 	struct archive_entry* entry;
@@ -93,13 +92,15 @@ void ICEMETV1Package::open(const fs::path& p)
 	int r;
 	while ((r = archive_read_next_header(arc, &entry)) == ARCHIVE_OK) {
 		std::string name(archive_entry_pathname(entry));
-		if (name == "data.json") {
+		if (name.rfind("data", 0) == 0) {
 			if (!entryData.open(arc, entry))
 				throw(std::runtime_error("Incomplete or corrupted archive"));
+			pathData = m_tmp / name;
 		}
-		else if (name == "images.avi") {
+		else if (name.rfind("images", 0) == 0) {
 			if (!entryVideo.open(arc, entry))
 				throw(std::runtime_error("Incomplete or corrupted archive"));
+			pathImages = m_tmp / name;
 		}
 		else {
 			throw(std::runtime_error("Invalid archive format"));
@@ -123,7 +124,7 @@ void ICEMETV1Package::open(const fs::path& p)
 	if (!names.empty()) {
 		if (entryVideo.empty())
 			throw(std::runtime_error("Incomplete or corrupted archive"));
-		for (const auto name : names)
+		for (auto name : names)
 			m_images.push(cv::makePtr<Image>(name));
 		m_cap = cv::VideoCapture(pathImages.string());
 		if (!m_cap.isOpened())
@@ -149,13 +150,13 @@ ImgPtr ICEMETV1Package::next()
 bool isPackage(const fs::path& p)
 {
 	std::string ext = p.extension().string();
-	return ext == ".iv1";
+	return ext == ".iv1" || ext == ".ip1";
 }
 
 PkgPtr createPackage(const fs::path& p)
 {
 	std::string ext = p.extension().string();
-	if (ext == ".iv1")
+	if (ext == ".iv1" || ext == ".ip1")
 		return cv::makePtr<ICEMETV1Package>(p);
 	else
 		throw(std::runtime_error("Unknown package type '" + ext + "'"));
