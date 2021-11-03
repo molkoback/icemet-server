@@ -4,7 +4,7 @@
 # Files
 path_watch: "~/.icemet/files"
 path_results: "~/.icemet/results"
-save_results: "oprtv" # o=original, p=preproc, m=min, r=recon, t=threshold, v=preview
+save_results: "opmrtv"
 save_empty: true
 save_skipped: true
 type_results: "png"
@@ -26,10 +26,10 @@ img_y: 0
 img_w: 2048
 img_h: 2048
 img_rotation: 0
-empty_th_original: 40 # Before preproc
-empty_th_preproc: 10 # After preproc
-empty_th_recon: 15 # Minimum image
-noisy_th_recon: -1 # Minimum image
+empty_th_original: 40
+empty_th_preproc: 10
+empty_th_recon: 15
+noisy_th_recon: -1
 bgsub_stack_len: 7
 filt_lowpass: 0
 
@@ -42,7 +42,7 @@ holo_lambda: 660e-9
 holo_distance: 56.4e-3
 recon_step: 1515
 focus_step: 20
-segment_th_factor: 0.60 # th = X * median_Ipp
+segment_th_factor: 0.60
 segment_size_min: 2
 segment_size_max: -1
 segment_size_small: 4
@@ -51,8 +51,8 @@ img_ignore_x: 100
 img_ignore_y: 100
 
 # Analysis
-segment_scale: 200.0
-particle_th_factor: 0.35 # th = median_Ipp - X*(median_Ipp-min_Isegm)
+segment_scale: 50.0
+particle_th_factor: 0.35
 diam_corr: false
 diam_corr_d0: 0.00e-6
 diam_corr_d1: 5.00e-6
@@ -61,7 +61,9 @@ diam_corr_f1: 1.000
 
 # Statistics
 stats_time: 60
-stats_frames: -1 # Use fixed framerate
+stats_frames: -1
+stats_temp: null
+stats_wind: null
 particle_z_min: 13.3e-3
 particle_z_max: 33.6e-3
 particle_diam_min: 5.0e-6

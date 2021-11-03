@@ -104,6 +104,8 @@ typedef struct _diameter_correction {
 typedef struct _stats_param {
 	unsigned int time;
 	int frames;
+	float temp;
+	float wind;
 } StatsParam;
 
 typedef struct _ocl_param {

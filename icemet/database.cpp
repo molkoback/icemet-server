@@ -58,9 +58,9 @@ static const char* insertParticleQuery = "INSERT INTO `%s` ("
 "'%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
 ");";
 static const char* insertStatsQuery = "INSERT INTO `%s` ("
-"DateTime, LWC, MVD, Conc, Frames, Particles"
+"DateTime, LWC, MVD, Conc, Frames, Particles, Temp, Wind"
 ") VALUES ("
-"'%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u"
+"'%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u, %s, %s"
 ");";
 static const char* insertMetaQuery = "INSERT INTO `%s` ("
 "ID, DateTime, ParticlesTable, StatsTable, Version, Config"
@@ -183,11 +183,14 @@ void Database::writeParticle(const ParticleRow& row)
 
 void Database::writeStats(const StatsRow& row)
 {
+	std::string temp = IS_NAN(row.temp) ? "NULL" : strfmt(FLOAT_REPR, row.temp);
+	std::string wind = IS_NAN(row.wind) ? "NULL" : strfmt(FLOAT_REPR, row.wind);
 	query(
 		insertStatsQuery, m_dbInfo.statsTable.c_str(),
 		row.dt.str().c_str(),
 		row.lwc, row.mvd, row.conc,
-		row.frames, row.particles
+		row.frames, row.particles,
+		temp.c_str(), wind.c_str()
 	);
 }
 

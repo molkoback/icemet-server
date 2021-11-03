@@ -109,7 +109,7 @@ void Stats::fillStatsRow(StatsRow& row) const
 	// Concentration
 	float conc = particles / Vtot;
 	
-	row = {0, m_dt, lwc, mvd, conc, frames, particles};
+	row = {0, m_dt, lwc, mvd, conc, frames, particles, m_cfg->stats.temp, m_cfg->stats.wind};
 }
 
 void Stats::statsPoint() const

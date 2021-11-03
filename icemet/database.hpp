@@ -2,6 +2,7 @@
 #define ICEMET_DATABASE_H
 
 #include "icemet/file.hpp"
+#include "icemet/icemet.hpp"
 #include "icemet/util/time.hpp"
 #include "icemet/util/version.hpp"
 
@@ -50,6 +51,8 @@ typedef struct _stats_row {
 	float conc;
 	unsigned int frames;
 	unsigned int particles;
+	float temp = NAN_FLOAT;
+	float wind = NAN_FLOAT;
 } StatsRow;
 
 typedef struct _meta_row {

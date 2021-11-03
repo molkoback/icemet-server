@@ -75,6 +75,8 @@ Config template: [icemet-server.yaml](etc/icemet-server.yaml)
 ### Statistics
  - `stats_time <int>` Time between stats points in seconds.
  - `stats_frames <int>` Fixed number of frames used for stats calculation. Required only in the stats only mode.
+ - `stats_temp <float>` Constant air temperature in deg C.
+ - `stats_wind <float>` Constant wind speed in m/s.
  - `particle_z_(min|max) <float>` Particle min/max z-position for stats calculation.
  - `particle_diam_(min|max) <float>` Particle min/max size for stats calculation.
  - `particle_diam_step <float>` Bin step used in MVD calculation.

@@ -132,6 +132,8 @@ void Config::load(const fs::path& fn)
 		
 		stats.time = node["stats_time"].as<int>();
 		stats.frames = node["stats_frames"].as<int>();
+		stats.temp = node["stats_temp"].IsNull() ? NAN_FLOAT : node["stats_temp"].as<float>();
+		stats.wind = node["stats_wind"].IsNull() ? NAN_FLOAT : node["stats_wind"].as<float>();
 		
 		ocl.device = node["ocl_device"].as<std::string>();
 	}
