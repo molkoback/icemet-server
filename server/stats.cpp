@@ -41,12 +41,11 @@ bool Stats::init()
 	return true;
 }
 
-void Stats::reset(const DateTime& dt)
+void Stats::reset()
 {
 	m_particles = cv::Mat(0, 0, CV_64F);
 	m_frames = 0;
-	
-	m_dt.setStamp(dt.stamp() / m_len * m_len);
+	m_dt = DateTime();
 }
 
 void Stats::fillStatsRow(StatsRow& row) const
@@ -112,7 +111,7 @@ void Stats::fillStatsRow(StatsRow& row) const
 	row = {0, m_dt, lwc, mvd, conc, frames, particles, m_cfg->stats.temp, m_cfg->stats.wind};
 }
 
-void Stats::statsPoint() const
+void Stats::statsPoint()
 {
 	StatsRow row;
 	fillStatsRow(row);
@@ -123,6 +122,7 @@ void Stats::statsPoint() const
 		m_dt.hour(), m_dt.min(), m_dt.sec(),
 		row.lwc, row.mvd*1000000, row.conc/1000000
 	);
+	reset();
 }
 
 bool Stats::particleValid(const ParticlePtr& par) const
@@ -145,13 +145,11 @@ void Stats::process(const ImgPtr& img)
 	
 	// Make sure we have datetime
 	if (m_dt.stamp() == 0)
-		reset(dt);
+		m_dt.setStamp(dt.stamp() / m_len * m_len);
 	
-	// Create a new stats point if the minutes differ
-	if (dt.stamp() - m_dt.stamp() >= m_len) {
+	// Create a new stats point if the minutes (m_len) differ
+	if (dt.stamp() - m_dt.stamp() >= m_len)
 		statsPoint();
-		reset(dt);
-	}
 	
 	// Get particle diameters
 	int count = 0;
@@ -182,7 +180,7 @@ bool Stats::loop()
 			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
 		}
 		else {
-			// TODO
+			statsPoint();
 		}
 	}
 	

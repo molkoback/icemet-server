@@ -13,9 +13,9 @@ protected:
 	cv::Mat m_particles;
 	unsigned int m_frames;
 	
-	void reset(const DateTime& dt=DateTime());
+	void reset();
 	void fillStatsRow(StatsRow& row) const;
-	void statsPoint() const;
+	void statsPoint();
 	bool particleValid(const ParticlePtr& par) const;
 	void process(const ImgPtr& img);
 	bool init() override;
