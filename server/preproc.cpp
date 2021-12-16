@@ -116,6 +116,13 @@ bool Preproc::processBgsub(ImgPtr img, ImgPtr& imgDone)
 
 bool Preproc::process(ImgPtr img, ImgPtr& imgDone)
 {
+	// Make sure we have an image
+	if (img->original.empty()) {
+		img->setStatus(FILE_STATUS_EMPTY);
+		imgDone = img;
+		return true;
+	}
+	
 	// Check empty
 	if (isEmpty(img->original, m_cfg->emptyCheck.originalTh, img->name(), "original")) {
 		img->setStatus(FILE_STATUS_EMPTY);
@@ -149,6 +156,7 @@ bool Preproc::loop()
 		queue.pop();
 		if (data.type() == WORKER_DATA_IMG) {
 			ImgPtr img = data.getImg();
+			img->setStatus(FILE_STATUS_NONE); // Images are marked _X before preproc
 			m_log.debug("%s: Processing", img->name().c_str());
 			Measure m;
 			ImgPtr imgDone;

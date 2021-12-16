@@ -58,7 +58,6 @@ bool Watcher::processImg(const fs::path& p)
 	}
 	
 	// Push to output queue
-	img->setStatus(FILE_STATUS_NONE);
 	m_log.debug("%s: Opened (%.2f s)", img->name().c_str(), m.time());
 	m_outputs[0]->push(img);
 	return true;
@@ -66,6 +65,7 @@ bool Watcher::processImg(const fs::path& p)
 
 bool Watcher::processPkg(const fs::path& p)
 {
+	// Open the package
 	Measure m1;
 	PkgPtr pkg;
 	try {
@@ -77,12 +77,12 @@ bool Watcher::processPkg(const fs::path& p)
 	}
 	m_log.debug("%s: Opened (%.2f s)", pkg->name().c_str(), m1.time());
 	
+	// Loop through images
 	while (true) {
 		Measure m2;
 		ImgPtr img = pkg->next();
 		if (img.empty())
 			break;
-		img->setStatus(FILE_STATUS_NONE);
 		m_log.debug("%s: Read (%.2f s)", img->name().c_str(), m2.time());
 		m_outputs[0]->push(img);
 	}

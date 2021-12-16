@@ -88,7 +88,7 @@ void ICEMETV1Package::open(const fs::path& p)
 	// Loop entries
 	struct archive_entry* entry;
 	ICEMETV1PackageEntry entryData;
-	ICEMETV1PackageEntry entryVideo;
+	ICEMETV1PackageEntry entryImages;
 	int r;
 	while ((r = archive_read_next_header(arc, &entry)) == ARCHIVE_OK) {
 		std::string name(archive_entry_pathname(entry));
@@ -98,7 +98,7 @@ void ICEMETV1Package::open(const fs::path& p)
 			pathData = m_tmp / name;
 		}
 		else if (name.rfind("images", 0) == 0) {
-			if (!entryVideo.open(arc, entry))
+			if (!entryImages.open(arc, entry))
 				throw(std::runtime_error("Incomplete or corrupted archive"));
 			pathImages = m_tmp / name;
 		}
@@ -111,38 +111,40 @@ void ICEMETV1Package::open(const fs::path& p)
 	if (r < 0 || entryData.empty())
 		throw(std::runtime_error("Incomplete or corrupted archive"));
 	
-	// Save entires
+	// Read image names
 	entryData.save(pathData);
-	if (!entryVideo.empty())
-		entryVideo.save(pathImages);
-	
-	// Open files
 	YAML::Node node = YAML::LoadFile(pathData.string());
 	fps = node["fps"].as<float>();
 	len = node["len"].as<unsigned int>();
 	auto names = node["images"].as<std::vector<std::string>>();
 	if (!names.empty()) {
-		if (entryVideo.empty())
-			throw(std::runtime_error("Incomplete or corrupted archive"));
 		for (auto name : names)
 			m_images.push(cv::makePtr<Image>(name));
+	}
+	
+	// Open video
+	if (!entryImages.empty()) {
+		entryImages.save(pathImages);
 		m_cap = cv::VideoCapture(pathImages.string());
 		if (!m_cap.isOpened())
-			throw(std::runtime_error("Incomplete or corrupted archive"));
+			throw(std::runtime_error("Invalid video file"));
 	}
 }
 
 ImgPtr ICEMETV1Package::next()
 {
+	// TODO: Error handling
 	if (m_images.empty())
 		return ImgPtr();
 	ImgPtr img = m_images.front();
 	m_images.pop();
 	
-	cv::UMat imgBGR;
-	if (!m_cap.read(imgBGR))
-		return ImgPtr();
+	if (img->status() == FILE_STATUS_EMPTY)
+		return img;
 	
+	cv::UMat imgBGR;
+	if (!m_cap.isOpened() || !m_cap.read(imgBGR))
+		return ImgPtr();
 	cv::cvtColor(imgBGR, img->original, cv::COLOR_BGR2GRAY);
 	return img;
 }
