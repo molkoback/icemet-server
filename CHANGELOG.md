@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.10.0 - Tatti
+2022-03-03
+- Support multiple video formats.
+- Temp and Wind stats columns.
+- Instant stats points for packages.
+
 ## 1.9.0 - Enstalvi
 2021-09-07
 - SQRT+STD focus method.
