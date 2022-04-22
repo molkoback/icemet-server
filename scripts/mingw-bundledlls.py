@@ -22,7 +22,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
 import subprocess
 import os.path
 import argparse
@@ -41,33 +40,13 @@ if env_path_prefixes is not None:
 else:
     path_prefixes = DEFAULT_PATH_PREFIXES
 
-# This blacklist may need extending
-blacklist = [
-    "advapi32.dll", "kernel32.dll", "msvcrt.dll", "ole32.dll", "user32.dll",
-    "ws2_32.dll", "comdlg32.dll", "gdi32.dll", "imm32.dll", "oleaut32.dll",
-    "shell32.dll", "winmm.dll", "winspool.drv", "wldap32.dll",
-    "ntdll.dll", "d3d9.dll", "mpr.dll", "crypt32.dll", "dnsapi.dll",
-    "shlwapi.dll", "version.dll", "iphlpapi.dll", "msimg32.dll", "setupapi.dll",
-    "opengl32.dll", "dwmapi.dll", "uxtheme.dll", "secur32.dll", "gdiplus.dll",
-    "usp10.dll", "comctl32.dll", "wsock32.dll", "netapi32.dll", "userenv.dll",
-    "avicap32.dll", "avrt.dll", "bcrypt.dll"
-]
-
-
 def find_full_path(filename, path_prefixes):
     for path_prefix in path_prefixes:
         path = os.path.join(path_prefix, filename)
         print(path)
         if os.path.exists(path):
             return path
-
-    else:
-        raise RuntimeError(
-            "Can't find " + filename + ". If it is an inbuilt Windows DLL, "
-            "please add it to the blacklist variable in the script and send "
-            "a pull request!"
-        )
-
+    return None
 
 def gather_deps(path, path_prefixes, seen):
     ret = [path]
@@ -79,20 +58,18 @@ def gather_deps(path, path_prefixes, seen):
 
         dep = line.split("DLL Name: ")[1].strip()
         ldep = dep.lower()
-
-        if ldep in blacklist:
-            continue
-
         if ldep in seen:
             continue
 
         dep_path = find_full_path(dep, path_prefixes)
+        if not dep_path:
+            continue
+        
         seen.add(ldep)
         subdeps = gather_deps(dep_path, path_prefixes, seen)
         ret.extend(subdeps)
 
     return ret
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -138,7 +115,6 @@ def main():
 
             if args.upx:
                 subprocess.call(["upx", target])
-
 
 if __name__ == "__main__":
     main()
