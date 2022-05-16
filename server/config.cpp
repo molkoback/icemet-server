@@ -97,9 +97,10 @@ void Config::load(const fs::path& fn)
 		
 		lpf.f = node["filt_lowpass"].as<float>();
 		
-		hologram.z.start = node["holo_z0"].as<float>();
-		hologram.z.stop = node["holo_z1"].as<float>();
-		hologram.z.step = node["holo_dz"].as<float>();
+		hologram.z0 = node["holo_z0"].as<float>();
+		hologram.z1 = node["holo_z1"].as<float>();
+		hologram.dz0 = node["holo_dz0"].as<float>();
+		hologram.dz1 = node["holo_dz1"].as<float>();
 		hologram.psz = node["holo_pixel_size"].as<float>();
 		hologram.lambda = node["holo_lambda"].as<float>();
 		hologram.dist = node["holo_distance"].as<float>();

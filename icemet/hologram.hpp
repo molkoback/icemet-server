@@ -26,17 +26,19 @@ typedef enum _filter_type {
 } FilterType;
 
 class ZRange {
+private:
+	std::vector<float> m_z;
+	std::vector<float> m_dz;
+
 public:
-	ZRange() : start(0), stop(0), step(0) {}
-	ZRange(float start_, float stop_, float step_) : start(start_), stop(stop_), step(step_) {}
+	ZRange() {}
+	ZRange(float z0, float z1, float dz0, float dz1);
 	
-	int n();
-	float z(int i);
-	int i(float z);
+	void setParam(float z0, float z1, float dz0, float dz1);
 	
-	float start;
-	float stop;
-	float step;
+	int n() const;
+	float z(int i) const;
+	float dz(int i) const;
 };
 
 class Hologram {
@@ -60,11 +62,11 @@ public:
 	void setImg(const cv::UMat& img);
 	void recon(cv::UMat& dst, float z, ReconOutput output=RECON_OUTPUT_AMPLITUDE);
 	
-	void min(cv::UMat& dst, ZRange z);
-	void reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, ZRange z);
+	void min(cv::UMat& dst, const ZRange& range);
+	void reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, const ZRange& range);
 	
-	float focus(ZRange z, FocusMethod method=FOCUS_STD, double step=1.0);
-	float focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method=FOCUS_STD, double step=1.0);
+	float focus(const ZRange& range, FocusMethod method=FOCUS_STD, double step=1.0);
+	float focus(const ZRange& range, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method=FOCUS_STD, double step=1.0);
 	
 	void applyFilter(const cv::UMat& H);
 	cv::UMat createFilter(float f, FilterType type) const;

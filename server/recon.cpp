@@ -13,6 +13,7 @@ Recon::Recon(ICEMETServerContext* ctx) :
 	Worker(COLOR_GREEN "RECON" COLOR_RESET, ctx)
 {
 	m_hologram = cv::makePtr<Hologram>(m_cfg->hologram.psz, m_cfg->hologram.lambda, m_cfg->hologram.dist);
+	m_range = ZRange(m_cfg->hologram.z0, m_cfg->hologram.z1, m_cfg->hologram.dz0, m_cfg->hologram.dz1);
 }
 
 void Recon::process(ImgPtr img)
@@ -24,16 +25,14 @@ void Recon::process(ImgPtr img)
 		size.width-2*border.width, size.height-2*border.height
 	);
 	
+	const int reconStep = m_cfg->hologram.reconStep;
 	const double focusStep = m_cfg->hologram.focusStep;
+	
 	const int segmSizeMin = m_cfg->segment.sizeMin;
 	const int segmSizeMax = m_cfg->segment.sizeMax;
 	const int segmSizeSmall = m_cfg->segment.sizeSmall;
 	const int pad = m_cfg->segment.pad;
 	const int th = m_cfg->segment.thFact * img->bgVal;
-	
-	ZRange gz = m_cfg->hologram.z;
-	gz.step *= m_cfg->hologram.reconStep;
-	ZRange lz = m_cfg->hologram.z;
 	
 	int ncontours = 0;
 	int nsegments = 0;
@@ -46,12 +45,13 @@ void Recon::process(ImgPtr img)
 		m_hologram->applyFilter(m_lpf);
 	}
 	
-	// Reconstruct whole range in steps
-	int nsteps = gz.n();
-	for (int step = 0; step < nsteps; step++, lz.start += gz.step) {
-		lz.stop = std::min(lz.start+gz.step, gz.stop);
-		int last = lz.n() - 1;
-		m_hologram->reconMin(m_stack, img->min, lz);
+	// Reconstruct whole m_range in steps
+	const int nsteps = m_range.n() / reconStep + 1;
+	for (int step = 0; step < nsteps; step++) {
+		int i0 = step * reconStep;
+		int i1 = std::min((step+1) * reconStep, m_range.n()-1);
+		ZRange stepRange(m_range.z(i0), m_range.z(i1), m_range.dz(i0), m_range.dz(i1));
+		m_hologram->reconMin(m_stack, img->min, stepRange);
 		
 		// Threshold
 		cv::UMat imgTh;
@@ -91,11 +91,11 @@ void Recon::process(ImgPtr img)
 			// Focus
 			int idx = 0;
 			double score = 0.0;
-			Hologram::focus(m_stack, rect, idx, score, method, 0, last, focusStep);
+			Hologram::focus(m_stack, rect, idx, score, method, 0, stepRange.n()-1, focusStep);
 			
 			// Create segment
 			SegmentPtr segm = cv::makePtr<Segment>();
-			segm->z = lz.z(idx);
+			segm->z = stepRange.z(idx);
 			segm->step = step;
 			segm->score = score;
 			segm->method = method;
@@ -104,6 +104,7 @@ void Recon::process(ImgPtr img)
 			img->segments.push_back(segm);
 		}
 	}
+	
 	if ((nsegments = img->segments.size()) == 0)
 		img->setStatus(FILE_STATUS_EMPTY);
 	m_log.debug("%s: Segments: %d, Contours: %d", img->name().c_str(), nsegments, ncontours);

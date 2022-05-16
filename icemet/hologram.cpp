@@ -16,19 +16,40 @@ typedef struct _focus_param {
 	std::function<double(const cv::UMat&)> scoreFunc;
 } FocusParam;
 
-int ZRange::n()
+ZRange::ZRange(float z0, float z1, float dz0, float dz1)
 {
-	return roundf((stop - start) / step);
+	setParam(z0, z1, dz0, dz1);
 }
 
-float ZRange::z(int i)
+void ZRange::setParam(float z0, float z1, float dz0, float dz1)
 {
-	return start + i*step;
+	m_z.clear();
+	m_dz.clear();
+	float a = (dz0 - dz1) / (z0*z0 - z1*z1);
+	float b = dz0 - a * z0*z0;
+	float z = z0;
+	float dz = dz0;
+	while (z < z1) {
+		m_z.push_back(z);
+		m_dz.push_back(dz);
+		z += dz;
+		dz = a * z*z + b;
+	}
 }
 
-int ZRange::i(float z)
+int ZRange::n() const
 {
-	return roundf((z - start) / step);
+	return m_z.size();
+}
+
+float ZRange::z(int i) const
+{
+	return m_z[i];
+}
+
+float ZRange::dz(int i) const
+{
+	return m_dz[i];
 }
 
 static double scoreMin(const cv::UMat& slice)
@@ -204,15 +225,15 @@ void Hologram::recon(cv::UMat& dst, float z, ReconOutput output)
 	}
 }
 
-void Hologram::min(cv::UMat& dst, ZRange z)
+void Hologram::min(cv::UMat& dst, const ZRange& range)
 {
 	size_t gsize[2] = {(size_t)m_sizePad.width, (size_t)m_sizePad.height};
-	int n = z.n();
+	int n = range.n();
 	
 	if (dst.empty())
 		dst = cv::UMat(m_sizeOrig, CV_8UC1, cv::Scalar(255));
 	for (int i = 0; i < n; i++) {
-		propagate(z.z(i));
+		propagate(range.z(i));
 		cv::ocl::Kernel("min_8u", icemet_hologram_ocl()).args(
 			cv::ocl::KernelArg::ReadOnly(m_complex),
 			cv::ocl::KernelArg::WriteOnly(dst)
@@ -220,10 +241,10 @@ void Hologram::min(cv::UMat& dst, ZRange z)
 	}
 }
 
-void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, ZRange z)
+void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, const ZRange& range)
 {
 	size_t gsize[2] = {(size_t)m_sizePad.width, (size_t)m_sizePad.height};
-	int n = z.n();
+	int n = range.n();
 	
 	if (dstMin.empty())
 		dstMin = cv::UMat(m_sizeOrig, CV_8UC1, cv::Scalar(255));
@@ -232,7 +253,7 @@ void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, ZRange z)
 		dst.emplace_back(m_sizeOrig, CV_8UC1);
 	
 	for (int i = 0; i < n; i++) {
-		propagate(z.z(i));
+		propagate(range.z(i));
 		cv::ocl::Kernel("amplitude_min_8u", icemet_hologram_ocl()).args(
 			cv::ocl::KernelArg::ReadOnly(m_complex),
 			cv::ocl::KernelArg::WriteOnly(dst[i]),
@@ -241,7 +262,7 @@ void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, ZRange z)
 	}
 }
 
-float Hologram::focus(ZRange z, FocusMethod method, double step)
+float Hologram::focus(const ZRange& range, FocusMethod method, double step)
 {
 	const FocusParam* param = getFocusParam(method);
 	cv::UMat slice(m_sizeOrig, param->type);
@@ -253,20 +274,20 @@ float Hologram::focus(ZRange z, FocusMethod method, double step)
 			return it->second;
 		}
 		else {
-			recon(slice, z.z(i), param->output);
+			recon(slice, range.z(i), param->output);
 			double newScore = param->scoreFunc(slice);
 			scores[i] = newScore;
 			return newScore;
 		}
 	};
-	return z.z(SSearch(f, 0, z.n()-1, step));
+	return range.z(SSearch(f, 0, range.n()-1, step));
 }
 
-float Hologram::focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method, double step)
+float Hologram::focus(const ZRange& range, std::vector<cv::UMat>& src, const cv::Rect& rect, int &idx, double &score, FocusMethod method, double step)
 {
 	const FocusParam* param = getFocusParam(method);
 	if (src.empty())
-		src = std::vector<cv::UMat>(z.n());
+		src = std::vector<cv::UMat>(range.n());
 	cv::UMat slice(rect.size(), param->type);
 	std::map<int,double> scores;
 	auto f = [&](double x) {
@@ -277,16 +298,16 @@ float Hologram::focus(ZRange z, std::vector<cv::UMat>& src, const cv::Rect& rect
 		}
 		else {
 			if (src[i].empty())
-				recon(src[i], z.z(i), param->output);
+				recon(src[i], range.z(i), param->output);
 			cv::UMat(src[i], rect).convertTo(slice, param->type);
 			double newScore = param->scoreFunc(slice);
 			scores[i] = newScore;
 			return newScore;
 		}
 	};
-	idx = SSearch(f, 0, z.n()-1, step);
+	idx = SSearch(f, 0, range.n()-1, step);
 	score = f(idx);
-	return z.z(idx);
+	return range.z(idx);
 }
 
 void Hologram::applyFilter(const cv::UMat& H)

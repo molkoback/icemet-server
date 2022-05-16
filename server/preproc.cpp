@@ -19,6 +19,7 @@ Preproc::Preproc(ICEMETServerContext* ctx) :
 		m_rot = cv::getRotationMatrix2D(center, m_cfg->img.rotation, 1.0);
 	}
 	m_hologram = cv::makePtr<Hologram>(m_cfg->hologram.psz, m_cfg->hologram.lambda, m_cfg->hologram.dist);
+	m_range = ZRange(m_cfg->hologram.z0, m_cfg->hologram.z1, m_cfg->hologram.dz0*10, m_cfg->hologram.dz1*10);
 }
 
 bool Preproc::isEmpty(const cv::UMat& img, int th, const std::string& imgName, const std::string& checkName) const
@@ -39,9 +40,7 @@ void Preproc::finalize(ImgPtr img)
 	if (m_cfg->emptyCheck.reconTh > 0 || m_cfg->noisyCheck.reconTh > 0) {
 		m_hologram->setImg(img->preproc);
 		cv::UMat imgMin;
-		ZRange z = m_cfg->hologram.z;
-		z.step *= 10.0;
-		m_hologram->min(imgMin, z);
+		m_hologram->min(imgMin, m_range);
 		
 		// Empty check
 		if (isEmpty(imgMin, m_cfg->emptyCheck.reconTh, img->name(), "recon")) {

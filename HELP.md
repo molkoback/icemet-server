@@ -49,7 +49,8 @@ Config template: [icemet-server.yaml](etc/icemet-server.yaml)
 - `filt_lowpass <int>` Super-gaussian lowpass filter frequency. 0 for no filter.
 
 ### Reconstruction
- - `holo_(z0|z1|dz) <float>` Hologram reconstruction start, end and step in meters.
+ - `holo_(z0|z1) <float>` Hologram reconstruction range start and stop in meters.
+  - `holo_(dz0|dz1) <float>` Hologram reconstruction step start and stop in meters.
  - `holo_pixel_size <float>` Camera single pixel size in meters.
  - `holo_lambda <float>` Laser wavelength in meters.
  - `holo_distance <float>` Distance between the camera and laser in meters for uncollimated beams. 0 for collimated beams.

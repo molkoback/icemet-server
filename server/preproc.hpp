@@ -12,10 +12,10 @@
 class Preproc : public Worker {
 protected:
 	cv::Mat m_rot;
-	size_t m_stackLen;
 	BGSubStackPtr m_stack;
 	size_t m_skip;
 	HologramPtr m_hologram;
+	ZRange m_range;
 	
 	bool isEmpty(const cv::UMat& img, int th, const std::string& imgName, const std::string& checkName) const;
 	void finalize(ImgPtr img);

@@ -36,7 +36,8 @@ filt_lowpass: 0
 # Reconstruction
 holo_z0: 8.3e-3
 holo_z1: 38.6e-3
-holo_dz: 0.020e-3
+holo_dz0: 20e-6
+holo_dz1: 20e-6
 holo_pixel_size: 3.45e-6
 holo_lambda: 660e-9
 holo_distance: 56.4e-3

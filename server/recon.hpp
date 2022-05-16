@@ -10,6 +10,7 @@
 class Recon : public Worker {
 protected:
 	HologramPtr m_hologram;
+	ZRange m_range;
 	std::vector<cv::UMat> m_stack;
 	cv::UMat m_lpf;
 	

@@ -62,7 +62,10 @@ typedef struct _filter_param {
 } FilterParam;
 
 typedef struct _hologram_param {
-	ZRange z;
+	float z0;
+	float z1;
+	float dz0;
+	float dz1;
 	float dist;
 	float psz;
 	float lambda;
