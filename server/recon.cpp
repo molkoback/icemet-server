@@ -46,16 +46,21 @@ void Recon::process(ImgPtr img)
 	}
 	
 	// Reconstruct whole m_range in steps
+	img->min = cv::UMat(size, CV_8UC1, cv::Scalar(255));
 	const int nsteps = m_range.n() / reconStep + 1;
 	for (int step = 0; step < nsteps; step++) {
 		int i0 = step * reconStep;
 		int i1 = std::min((step+1) * reconStep, m_range.n()-1);
 		ZRange stepRange(m_range.z(i0), m_range.z(i1), m_range.dz(i0), m_range.dz(i1));
-		m_hologram->reconMin(m_stack, img->min, stepRange);
+		
+		// Reconstruct
+		cv::UMat imgMin;
+		m_hologram->reconMin(m_stack, imgMin, stepRange);
+		cv::min(imgMin, img->min, img->min);
 		
 		// Threshold
 		cv::UMat imgTh;
-		cv::threshold(img->min, imgTh, th, 255, cv::THRESH_BINARY_INV);
+		cv::threshold(imgMin, imgTh, th, 255, cv::THRESH_BINARY_INV);
 		
 		// Find all contours and process them
 		std::vector<std::vector<cv::Point>> contours;
