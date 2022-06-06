@@ -5,11 +5,72 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
 #include <yaml-cpp/yaml.h>
 
 #include <cstdio>
 #include <stdexcept>
 #include <string>
+#include <vector>
+
+class VideoReader : public ImageReader {
+protected:
+	cv::VideoCapture m_cap;
+
+public:
+	VideoReader(const fs::path& p) : ImageReader(p)
+	{
+		m_cap = cv::VideoCapture(m_path.string());
+		if (!m_cap.isOpened())
+			throw(std::runtime_error("Invalid video file"));
+	}
+	
+	~VideoReader()
+	{
+		m_cap.release();
+	}
+	
+	bool read(cv::UMat& dst)
+	{
+		cv::UMat imgBGR;
+		if (!m_cap.isOpened() || !m_cap.read(imgBGR))
+			return false;
+		cv::cvtColor(imgBGR, dst, cv::COLOR_BGR2GRAY);
+		return true;
+	}
+};
+
+class BinaryReader : public ImageReader {
+protected:
+	cv::Size2i m_size;
+	size_t m_area;
+	FILE* m_fp;
+	char* m_buf;
+
+public:
+	BinaryReader(const fs::path& p, cv::Size2i size) : ImageReader(p), m_size(size), m_area(size.area()), m_fp(NULL), m_buf(NULL)
+	{
+		if (!(m_fp = fopen(m_path.string().c_str(), "rb")))
+			throw(std::runtime_error("Invalid video file"));
+		m_buf = new char[m_area];
+	}
+	
+	~BinaryReader()
+	{
+		if (m_fp != NULL) {
+			fclose(m_fp);
+			delete [] m_buf;
+		}
+	}
+	
+	bool read(cv::UMat& dst)
+	{
+		if (m_fp == NULL || fread(m_buf, 1, m_area, m_fp) != m_area)
+			return false;
+		cv::Mat(m_size.height, m_size.width, CV_8UC1, m_buf).copyTo(dst);
+		return true;
+	}
+};
 
 class ICEMETV1PackageEntry {
 private:
@@ -18,14 +79,18 @@ private:
 
 public:
 	ICEMETV1PackageEntry() : m_data(NULL), m_size(0) {}
-	~ICEMETV1PackageEntry() { free(m_data); }
+	~ICEMETV1PackageEntry()
+	{
+		if (m_data != NULL)
+			delete [] m_data;
+	}
 	
 	bool empty() { return m_size == 0; }
 	
 	bool open(struct archive* arc, struct archive_entry* entry)
 	{
 		m_size = archive_entry_size(entry);
-		m_data = (char*)malloc(m_size);
+		m_data = new char[m_size];
 		
 		size_t offsetData = 0;
 		const void* block;
@@ -40,10 +105,10 @@ public:
 		}
 		if (r < 0)
 			goto fail;
-		
 		return true;
+		
 		fail:
-		free(m_data);
+		delete [] m_data;
 		m_data = NULL;
 		m_size = 0;
 		return false;
@@ -67,8 +132,7 @@ ICEMETV1Package::ICEMETV1Package(const fs::path& p) : Package(p)
 
 ICEMETV1Package::~ICEMETV1Package()
 {
-	if (m_cap.isOpened())
-		m_cap.release();
+	m_reader.release();
 	if (!m_tmp.empty() && fs::exists(m_tmp))
 		fs::remove_all(m_tmp);
 }
@@ -111,23 +175,27 @@ void ICEMETV1Package::open(const fs::path& p)
 	if (r < 0 || entryData.empty())
 		throw(std::runtime_error("Incomplete or corrupted archive"));
 	
-	// Read image names
+	// Read parameters
 	entryData.save(pathData);
 	YAML::Node node = YAML::LoadFile(pathData.string());
+	auto names = node["images"].as<std::vector<std::string>>();
+	for (auto name : names)
+		m_images.push(cv::makePtr<Image>(name));
 	fps = node["fps"].as<float>();
 	len = node["len"].as<unsigned int>();
-	auto names = node["images"].as<std::vector<std::string>>();
-	if (!names.empty()) {
-		for (auto name : names)
-			m_images.push(cv::makePtr<Image>(name));
-	}
 	
-	// Open video
+	// Create image reader
 	if (!entryImages.empty()) {
 		entryImages.save(pathImages);
-		m_cap = cv::VideoCapture(pathImages.string());
-		if (!m_cap.isOpened())
-			throw(std::runtime_error("Invalid video file"));
+		if (pathImages.extension().compare(".bin") == 0) {
+			auto vecSize = node["size"].as<std::vector<int>>();
+			if (vecSize.size() != 2)
+				throw(std::runtime_error("Incomplete or corrupted archive"));
+			m_reader = cv::makePtr<BinaryReader>(pathImages, cv::Size2i(vecSize[0], vecSize[1]));
+		}
+		else {
+			m_reader = cv::makePtr<VideoReader>(pathImages);
+		}
 	}
 }
 
@@ -142,10 +210,8 @@ ImgPtr ICEMETV1Package::next()
 	if (img->status() == FILE_STATUS_EMPTY)
 		return img;
 	
-	cv::UMat imgBGR;
-	if (!m_cap.isOpened() || !m_cap.read(imgBGR))
+	if (!m_reader->read(img->original))
 		return ImgPtr();
-	cv::cvtColor(imgBGR, img->original, cv::COLOR_BGR2GRAY);
 	return img;
 }
 

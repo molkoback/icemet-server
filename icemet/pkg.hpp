@@ -5,7 +5,6 @@
 #include "icemet/img.hpp"
 
 #include <opencv2/core.hpp>
-#include <opencv2/videoio.hpp>
 
 #include <queue>
 
@@ -24,10 +23,20 @@ public:
 	unsigned int len;
 };
 
+class ImageReader {
+protected:
+	fs::path m_path;
+
+public:
+	ImageReader(const fs::path& p) : m_path(p) {}
+	virtual ~ImageReader() {}
+	virtual bool read(cv::UMat& dst) = 0;
+};
+
 class ICEMETV1Package : public Package {
 protected:
 	fs::path m_tmp;
-	cv::VideoCapture m_cap;
+	cv::Ptr<ImageReader> m_reader;
 	
 	void open(const fs::path& p);
 
