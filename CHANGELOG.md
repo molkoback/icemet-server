@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.11.0 - Ufo
+2022-06-28
+- Dynamic ZRange
+- Binary packages
+
 ## 1.10.0 - Tatti
 2022-03-03
 - Support multiple video formats.
