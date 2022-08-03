@@ -26,6 +26,7 @@ static const char* helpStr =
 "Options:\n"
 "  -h                Print this help message and exit\n"
 "  -V                Print version info and exit\n"
+"  -t                Test config file and exit\n"
 "  -p                Particles only.\n"
 "  -s                Stats only. Particles will be fetched from the database.\n"
 "  -Q                Quit after processing all available files.\n"
@@ -61,6 +62,9 @@ int main(int argc, char* argv[])
 				printf(versionFmt, icemetServerVersion().str().c_str());
 				return EXIT_SUCCESS;
 			}
+			else if (!arg.compare("-t")) {
+				args.testConfig = true;
+			}
 			else if (!arg.compare("-p")) {
 				args.particlesOnly = true;
 			}
@@ -95,6 +99,10 @@ int main(int argc, char* argv[])
 		
 		// Read config
 		Config cfg(args.cfgFile);
+		if (args.testConfig) {
+			log.info("Config file OK");
+			return EXIT_SUCCESS;
+		}
 		
 		// Setup logging
 		Log::setLevel(args.loglevel);

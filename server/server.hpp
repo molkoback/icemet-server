@@ -11,11 +11,12 @@ typedef struct _arguments {
 	fs::path cfgFile;
 	fs::path root;
 	bool waitNew;
+	bool testConfig;
 	bool statsOnly;
 	bool particlesOnly;
 	LogLevel loglevel;
 	
-	_arguments() : cfgFile(fs::path()), root(fs::path(".")), waitNew(true), statsOnly(false), particlesOnly(false), loglevel(LOG_INFO) {}
+	_arguments() : cfgFile(fs::path()), root(fs::path(".")), waitNew(true), testConfig(false), statsOnly(false), particlesOnly(false), loglevel(LOG_INFO) {}
 } Arguments;
 
 typedef struct _icemet_server_context {
