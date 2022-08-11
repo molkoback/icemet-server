@@ -24,9 +24,9 @@
 static const char* usageStr = "Usage: icemet-server [options] config.yaml\n";
 static const char* helpStr =
 "Options:\n"
-"  -h                Print this help message and exit\n"
-"  -V                Print version info and exit\n"
-"  -t                Test config file and exit\n"
+"  -h                Print this help message and exit.\n"
+"  -V                Print version info and exit.\n"
+"  -t                Test config file and exit.\n"
 "  -p                Particles only.\n"
 "  -s                Stats only. Particles will be fetched from the database.\n"
 "  -Q                Quit after processing all available files.\n"
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
 		}
 	}
 	if (args.cfgFile.empty()) {
-		printf(usageStr);
+		printf("%s", usageStr);
 		return EXIT_FAILURE;
 	}
 	
