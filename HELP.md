@@ -5,6 +5,7 @@
 ### Options
 - `-h` Print this help message and exit.
 - `-V` Print version info and exit.
+- `-t` Test config file and exit.
 - `-p` Particles only.
 - `-s` Stats only. Particles will be fetched from the database.
 - `-Q` Quit after processing all available files.

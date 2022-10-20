@@ -183,6 +183,7 @@ int main(int argc, char* argv[])
 		for (auto it = threads.begin(); it != threads.end(); ++it)
 			it->join();
 		log.info("Done");
+		return EXIT_SUCCESS;
 	}
 	catch (std::exception& e) {
 		log.critical(e.what());
