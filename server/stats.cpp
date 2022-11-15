@@ -45,7 +45,7 @@ void Stats::reset()
 {
 	m_particles = cv::Mat(0, 0, CV_64F);
 	m_frames = 0;
-	m_dt = DateTime();
+	m_dt = DateTime(0);
 }
 
 void Stats::fillStatsRow(StatsRow& row) const
@@ -159,7 +159,8 @@ void Stats::process(const ImgPtr& img)
 			count++;
 		}
 	}
-	m_frames++;
+	if (img->status() != FILE_STATUS_SKIP)
+		m_frames++;
 	m_log.debug("%s: Valid particles: %d", img->name().c_str(), count);
 }
 
@@ -175,12 +176,12 @@ bool Stats::loop()
 			ImgPtr img = data.getImg();
 			m_log.debug("%s: Processing", img->name().c_str());
 			Measure m;
-			if (img->status() != FILE_STATUS_SKIP)
-				process(img);
+			process(img);
 			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
 		}
 		else {
-			statsPoint();
+			if (m_dt != DateTime(0))
+				statsPoint();
 		}
 	}
 	
@@ -193,6 +194,6 @@ bool Stats::loop()
 
 void Stats::close()
 {
-	if (m_frames)
+	if (m_dt != DateTime(0))
 		statsPoint();
 }
