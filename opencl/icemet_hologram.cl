@@ -164,7 +164,7 @@ __kernel void stdfilt_3x3(
 		}
 	}
 	float mean = sum / n;
-	float var = sqsum / n - mean*mean;
+	float var = fabs(sqsum / n - mean*mean);
 	dst[y*w + x] = sqrt(var);
 }
 
@@ -189,7 +189,7 @@ __kernel void sqrt_stdfilt_3x3(
 		}
 	}
 	float mean = sum / n;
-	float var = sqsum / n - mean*mean;
+	float var = fabs(sqsum / n - mean*mean);
 	dst[y*w + x] = sqrt(var);
 }
 

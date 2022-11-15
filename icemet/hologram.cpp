@@ -134,7 +134,7 @@ static double SSearch(std::function<double(double)> f, double begin, double end,
 	CV_Assert(step > 0.0 && step < (end-begin)/2.0);
 	double nsteps = (end - begin) / step;
 	int count = 0;
-	while (fabs(end - begin) > termcrit.epsilon && count++ < termcrit.maxCount) {
+	while (count++ < termcrit.maxCount) {
 		double fmax = -std::numeric_limits<double>::max();
 		double imax = 0.0;
 		for (double i = begin+step; i < end-step/2; i+=step) {
@@ -146,6 +146,7 @@ static double SSearch(std::function<double(double)> f, double begin, double end,
 		}
 		begin = std::max(begin, imax - step);
 		end = std::min(end, imax + step);
+		if (step <= termcrit.epsilon) break;
 		step = std::max(termcrit.epsilon, (end - begin) / nsteps);
 	}
 	return (end + begin) / 2.0;
