@@ -119,21 +119,32 @@ bool Recon::loop()
 {
 	std::queue<WorkerData> queue;
 	m_inputs[0]->collect(queue);
+	if (queue.empty())
+		msleep(1);
 	
+	bool quit = false;
 	while (!queue.empty()) {
-		WorkerData data = queue.front();
+		WorkerData data(queue.front());
 		queue.pop();
-		if (data.type() == WORKER_DATA_IMG) {
-			ImgPtr img = data.getImg();
-			if (img->status() == FILE_STATUS_NONE) {
-				Measure m;
-				m_log.debug("%s: Reconstructing", img->name().c_str());
-				process(img);
-				m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+		switch (data.type()) {
+			case WORKER_DATA_IMG: {
+				ImgPtr img = data.get<ImgPtr>();
+				if (img->status() == FILE_STATUS_NONE) {
+					Measure m;
+					m_log.debug("%s: Reconstructing", img->name().c_str());
+					process(img);
+					m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+				}
+				break;
 			}
+			case WORKER_DATA_PKG:
+				break;
+			case WORKER_DATA_MSG:
+				if (data.get<WorkerMessage>() == WORKER_MESSAGE_QUIT)
+					quit = true;
+				break;
 		}
 		m_outputs[0]->push(data);
 	}
-	msleep(1);
-	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
+	return !quit;
 }

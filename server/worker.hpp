@@ -13,55 +13,72 @@
 #include <mutex>
 #include <queue>
 #include <string>
+#include <variant>
 #include <vector>
+
+typedef enum _worker_message {
+	WORKER_MESSAGE_QUIT = 0
+} WorkerMessage;
 
 typedef enum _worker_data_type {
 	WORKER_DATA_IMG = 0,
-	WORKER_DATA_PKG
+	WORKER_DATA_PKG,
+	WORKER_DATA_MSG
 } WorkerDataType;
 
 class WorkerData {
 private:
 	WorkerDataType m_type;
-	ImgPtr m_img;
-	PkgPtr m_pkg;
+	std::variant<ImgPtr, PkgPtr, WorkerMessage> m_data;
 
 public:
-	WorkerData(ImgPtr img) : m_type(WORKER_DATA_IMG), m_img(img) {}
-	WorkerData(PkgPtr pkg) : m_type(WORKER_DATA_PKG), m_pkg(pkg) {}
-	WorkerData(const WorkerData& data) : m_type(data.m_type), m_img(data.m_img), m_pkg(data.m_pkg) {}
+	WorkerData(ImgPtr img) : m_type(WORKER_DATA_IMG), m_data(img) {}
+	WorkerData(PkgPtr pkg) : m_type(WORKER_DATA_PKG), m_data(pkg) {}
+	WorkerData(WorkerMessage msg) : m_type(WORKER_DATA_MSG), m_data(msg) {}
+	WorkerData(const WorkerData& data) : m_type(data.m_type)
+	{
+		switch (data.m_type) {
+			case WORKER_DATA_IMG:
+				m_data = std::get<ImgPtr>(data.m_data);
+				break;
+			case WORKER_DATA_PKG:
+				m_data = std::get<PkgPtr>(data.m_data);
+				break;
+			case WORKER_DATA_MSG:
+				m_data = std::get<WorkerMessage>(data.m_data);
+				break;
+		}
+	}
 	
 	WorkerDataType type() { return m_type; }
-	ImgPtr getImg() { return m_img; }
-	PkgPtr getPkg() { return m_pkg; }
+	
+	template <class T>
+	T get() { return std::get<T>(m_data); }
 };
 
 class WorkerQueue {
 private:
 	std::queue<WorkerData> m_queue;
 	std::mutex m_mutex;
-	std::atomic<bool> m_closed;
 	size_t m_size;
 	
 	void lock() { m_mutex.lock(); }
 	void unlock() { m_mutex.unlock(); }
 
 public:
-	WorkerQueue(size_t size) : m_closed(false), m_size(size) {}
+	WorkerQueue(size_t size) : m_size(size) {}
 	void push(const WorkerData& data);
 	void collect(std::queue<WorkerData>& dst);
 	bool full();
 	bool empty();
-	void close() { m_closed.store(true); }
-	bool closed() { return m_closed.load(); }
 };
 typedef cv::Ptr<WorkerQueue> WorkerQueuePtr;
 
 class Worker {
 protected:
 	std::string m_name;
-	ICEMETServerContext* m_ctx;
 	Log m_log;
+	Arguments* m_args;
 	Config* m_cfg;
 	Database* m_db;
 	

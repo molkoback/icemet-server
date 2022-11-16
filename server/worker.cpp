@@ -48,8 +48,8 @@ bool WorkerQueue::empty()
 
 Worker::Worker(const std::string& name, ICEMETServerContext* ctx) :
 	m_name(name),
-	m_ctx(ctx),
 	m_log(name),
+	m_args(ctx->args),
 	m_cfg(ctx->cfg),
 	m_db(ctx->db) {}
 
@@ -66,12 +66,6 @@ void Worker::run()
 		m_log.critical(e.what());
 		exit(EXIT_FAILURE);
 	}
-	
-	// Close queue
-	for (const auto& queue : m_inputs)
-		queue->close();
-	for (const auto& queue : m_outputs)
-		queue->close();
 	m_log.debug("Finished");
 }
 

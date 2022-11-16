@@ -109,9 +109,10 @@ bool Watcher::loop()
 			}
 		}
 	}
-	
-	if (!m_ctx->args->waitNew)
-		return false;
-	ssleep(1);
-	return !m_outputs.empty();
+	if (m_args->waitNew) {
+		ssleep(1);
+		return true;
+	}
+	m_outputs[0]->push(WORKER_MESSAGE_QUIT);
+	return false;
 }

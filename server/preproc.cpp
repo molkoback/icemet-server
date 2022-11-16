@@ -149,25 +149,35 @@ bool Preproc::loop()
 {
 	std::queue<WorkerData> queue;
 	m_inputs[0]->collect(queue);
+	if (queue.empty())
+		msleep(1);
 	
+	bool quit = false;
 	while (!queue.empty()) {
-		WorkerData data = queue.front();
+		WorkerData data(queue.front());
 		queue.pop();
-		if (data.type() == WORKER_DATA_IMG) {
-			ImgPtr img = data.getImg();
-			img->setStatus(FILE_STATUS_NONE); // Images are marked _X before preproc
-			m_log.debug("%s: Processing", img->name().c_str());
-			Measure m;
-			ImgPtr imgDone;
-			bool ret = process(img, imgDone);
-			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
-			if (ret)
-				m_outputs[0]->push(imgDone);
-		}
-		else {
-			m_outputs[0]->push(data);
+		switch (data.type()) {
+			case WORKER_DATA_IMG: {
+				ImgPtr img = data.get<ImgPtr>();
+				img->setStatus(FILE_STATUS_NONE); // Images are marked _X before preproc
+				m_log.debug("%s: Processing", img->name().c_str());
+				Measure m;
+				ImgPtr imgDone;
+				bool ret = process(img, imgDone);
+				m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+				if (ret)
+					m_outputs[0]->push(imgDone);
+				break;
+			}
+			case WORKER_DATA_PKG:
+				m_outputs[0]->push(data);
+				break;
+			case WORKER_DATA_MSG:
+				m_outputs[0]->push(data);
+				if (data.get<WorkerMessage>() == WORKER_MESSAGE_QUIT)
+					quit = true;
+				break;
 		}
 	}
-	msleep(1);
-	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
+	return !quit;
 }

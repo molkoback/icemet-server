@@ -41,5 +41,6 @@ bool Reader::loop()
 	}
 	if (!m_img.empty())
 		push();
+	m_outputs[0]->push(WORKER_MESSAGE_QUIT);
 	return false;
 }

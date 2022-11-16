@@ -36,7 +36,7 @@ Stats::Stats(ICEMETServerContext* ctx) :
 
 bool Stats::init()
 {
-	if (m_ctx->args->statsOnly && m_cfg->stats.frames <= 0)
+	if (m_args->statsOnly && m_cfg->stats.frames <= 0)
 		throw(std::runtime_error("stats_frames required in stats only mode"));
 	return true;
 }
@@ -168,28 +168,33 @@ bool Stats::loop()
 {
 	std::queue<WorkerData> queue;
 	m_inputs[0]->collect(queue);
+	if (queue.empty())
+		msleep(1);
 	
+	bool quit = false;
 	while (!queue.empty()) {
-		WorkerData data = queue.front();
+		WorkerData data(queue.front());
 		queue.pop();
-		if (data.type() == WORKER_DATA_IMG) {
-			ImgPtr img = data.getImg();
-			m_log.debug("%s: Processing", img->name().c_str());
-			Measure m;
-			process(img);
-			m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
-		}
-		else {
-			if (m_dt != DateTime(0))
-				statsPoint();
+		switch (data.type()) {
+			case WORKER_DATA_IMG: {
+				ImgPtr img = data.get<ImgPtr>();
+				m_log.debug("%s: Processing", img->name().c_str());
+				Measure m;
+				process(img);
+				m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+				break;
+			}
+			case WORKER_DATA_PKG:
+				if (m_dt != DateTime(0))
+					statsPoint();
+				break;
+			case WORKER_DATA_MSG:
+				if (data.get<WorkerMessage>() == WORKER_MESSAGE_QUIT)
+					quit = true;
+				break;
 		}
 	}
-	
-	if (m_inputs.empty()) {
-		return false;
-	}
-	msleep(1);
-	return !m_inputs[0]->closed() || !m_inputs[0]->empty();
+	return !quit;
 }
 
 void Stats::close()
