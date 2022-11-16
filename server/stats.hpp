@@ -12,6 +12,7 @@ protected:
 	Timestamp m_len;
 	cv::Mat m_particles;
 	unsigned int m_frames;
+	unsigned int m_skipped;
 	
 	void reset();
 	void fillStatsRow(StatsRow& row) const;

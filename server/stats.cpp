@@ -45,13 +45,14 @@ void Stats::reset()
 {
 	m_particles = cv::Mat(0, 0, CV_64F);
 	m_frames = 0;
+	m_skipped = 0;
 	m_dt = DateTime(0);
 }
 
 void Stats::fillStatsRow(StatsRow& row) const
 {
 	// Use fixed frames?
-	unsigned int frames = m_cfg->stats.frames > 0 ? m_cfg->stats.frames : m_frames;
+	unsigned int frames = (m_cfg->stats.frames > 0 ? m_cfg->stats.frames : m_frames) - m_skipped;
 	
 	unsigned int particles = m_particles.rows;
 	if (!particles) {
@@ -159,8 +160,9 @@ void Stats::process(const ImgPtr& img)
 			count++;
 		}
 	}
-	if (img->status() != FILE_STATUS_SKIP)
-		m_frames++;
+	m_frames++;
+	if (img->status() == FILE_STATUS_SKIP)
+		m_skipped++;
 	m_log.debug("%s: Valid particles: %d", img->name().c_str(), count);
 }
 
