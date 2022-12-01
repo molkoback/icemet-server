@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.0 - Sonnblick
+2022-12-01
+- Improved config handling
+- Bug fixes and code base improvements
+
 ## 1.11.0 - Ufo
 2022-06-28
 - Dynamic ZRange
