@@ -81,7 +81,7 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	cv::drawContours(par->img, contours, idx, 255, cv::FILLED, cv::LINE_8);
 	
 	// Calculate diameter and apply correction
-	par->diam= par->effPxSz * Math::equivdiam(area) / scaleF;
+	par->diam = par->effPxSz * Math::equivdiam(area) / scaleF;
 	par->diamCorr = 1.0;
 	float D0 = m_cfg->diamCorr.D0;
 	float D1 = m_cfg->diamCorr.D1;
@@ -93,8 +93,8 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	}
 	
 	// Save properties
-	par->x = par->effPxSz * (segm->rect.x + center.x - m_cfg->img.border.width) / scaleF;
-	par->y = par->effPxSz * (segm->rect.y + center.y - m_cfg->img.border.height) / scaleF;
+	par->x = par->effPxSz * (segm->rect.x + center.x/scaleF - m_cfg->img.size.width/2.0);
+	par->y = par->effPxSz * -(segm->rect.y + center.y/scaleF - m_cfg->img.size.height/2.0);
 	par->z = segm->z;
 	par->circularity = Math::heywood(perim, area);
 	par->dynRange = max - min;
