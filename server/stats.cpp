@@ -46,7 +46,6 @@ void Stats::reset()
 	m_particles = cv::Mat(0, 0, CV_64F);
 	m_frames = 0;
 	m_skipped = 0;
-	m_dt = DateTime(0);
 }
 
 void Stats::fillStatsRow(StatsRow& row) const
@@ -56,7 +55,7 @@ void Stats::fillStatsRow(StatsRow& row) const
 	
 	unsigned int particles = m_particles.rows;
 	if (!particles) {
-		row = {0, m_dt, 0.0, 0.0, 0.0, frames, 0};
+		row = {0, m_dtCurr, 0.0, 0.0, 0.0, frames, 0};
 		return;
 	}
 	
@@ -109,7 +108,7 @@ void Stats::fillStatsRow(StatsRow& row) const
 	// Concentration
 	float conc = particles / Vtot;
 	
-	row = {0, m_dt, lwc, mvd, conc, frames, particles, m_cfg->stats.temp, m_cfg->stats.wind};
+	row = {0, m_dtCurr, lwc, mvd, conc, frames, particles, m_cfg->stats.temp, m_cfg->stats.wind};
 }
 
 void Stats::statsPoint()
@@ -119,11 +118,10 @@ void Stats::statsPoint()
 	m_db->writeStats(row);
 	m_log.info(
 		"[%d-%02d-%02d %02d:%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
-		m_dt.year(), m_dt.month(), m_dt.day(),
-		m_dt.hour(), m_dt.min(), m_dt.sec(),
+		m_dtCurr.year(), m_dtCurr.month(), m_dtCurr.day(),
+		m_dtCurr.hour(), m_dtCurr.min(), m_dtCurr.sec(),
 		row.lwc, row.mvd*1000000, row.conc/1000000
 	);
-	reset();
 }
 
 bool Stats::particleValid(const ParticlePtr& par) const
@@ -145,12 +143,18 @@ void Stats::process(const ImgPtr& img)
 	DateTime dt = img->dt();
 	
 	// Make sure we have datetime
-	if (m_dt.stamp() == 0)
-		m_dt.setStamp(dt.stamp() / m_len * m_len);
-	
-	// Create a new stats point if the minutes (m_len) differ
-	if (dt.stamp() - m_dt.stamp() >= m_len)
-		statsPoint();
+	if (m_dtCurr.stamp() == 0) {
+		m_dtCurr.setStamp(dt.stamp() / m_len * m_len);
+	}
+	// Create a new stats point and update datetime
+	else if (dt.stamp() - m_dtCurr.stamp() >= m_len) {
+		if (m_dtCurr != m_dtPrev) {
+			statsPoint();
+			m_dtPrev = m_dtCurr;
+			reset();
+		}
+		m_dtCurr.setStamp(dt.stamp() / m_len * m_len);
+	}
 	
 	// Get particle diameters
 	int count = 0;
@@ -187,8 +191,11 @@ bool Stats::loop()
 				break;
 			}
 			case WORKER_DATA_PKG:
-				if (m_dt != DateTime(0))
+				if (m_dtCurr != m_dtPrev) {
 					statsPoint();
+					m_dtPrev = m_dtCurr;
+					reset();
+				}
 				break;
 			case WORKER_DATA_MSG:
 				if (data.get<WorkerMessage>() == WORKER_MESSAGE_QUIT)
@@ -201,6 +208,6 @@ bool Stats::loop()
 
 void Stats::close()
 {
-	if (m_dt != DateTime(0))
+	if (m_dtCurr != m_dtPrev)
 		statsPoint();
 }

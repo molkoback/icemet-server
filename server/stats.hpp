@@ -8,7 +8,8 @@
 class Stats : public Worker {
 protected:
 	double m_V;
-	DateTime m_dt;
+	DateTime m_dtCurr;
+	DateTime m_dtPrev;
 	Timestamp m_len;
 	cv::Mat m_particles;
 	unsigned int m_frames;
