@@ -50,16 +50,17 @@ void Stats::reset()
 
 void Stats::fillStatsRow(StatsRow& row) const
 {
-	// Use fixed frames?
-	unsigned int frames = (m_cfg->stats.frames > 0 ? m_cfg->stats.frames : m_frames) - m_skipped;
-	
-	unsigned int particles = m_particles.rows;
-	if (!particles) {
-		row = {0, m_dtCurr, 0.0, 0.0, 0.0, frames, 0};
+	row.dt = m_dtCurr;
+	row.frames = (m_cfg->stats.frames > 0 ? m_cfg->stats.frames : m_frames) - m_skipped;
+	row.particles = m_particles.rows;
+	if (!row.particles) {
+		row.lwc = 0.f;
+		row.mvd = 0.f;
+		row.conc = 0.f;
 		return;
 	}
 	
-	double Vtot = m_V * frames; // Total measurement volume (m3)
+	double Vtot = m_V * row.frames; // Total measurement volume (m3)
 	
 	// Create histogram
 	cv::Mat counts, bins;
@@ -79,10 +80,10 @@ void Stats::fillStatsRow(StatsRow& row) const
 	
 	// Liquid water content
 	cv::Mat lwcs = m / Vtot; // Liquid water contents (g/m3)
-	float lwc = cv::sum(lwcs)[0]; // Liquid water content (g/m3)
+	row.lwc = cv::sum(lwcs)[0]; // Liquid water content (g/m3)
 	
 	// Median volume diameter
-	cv::Mat pros = lwcs / lwc;
+	cv::Mat pros = lwcs / row.lwc;
 	cv::Mat cums = cv::Mat(pros.size(), CV_64FC1);
 	double cumsum = 0.0;
 	int idx = -1;
@@ -92,23 +93,20 @@ void Stats::fillStatsRow(StatsRow& row) const
 		if (idx < 0 && cumsum > 0.5)
 			idx = i;
 	}
-	float mvd;
 	if (idx <= 0)
-		mvd = D.at<double>(0, 0);
+		row.mvd = D.at<double>(0, 0);
 	else if (idx >= pros.cols-1)
-		mvd = D.at<double>(0, pros.cols-1);
+		row.mvd = D.at<double>(0, pros.cols-1);
 	else {
 		double Di = D.at<double>(0, idx);
 		double Di1 = D.at<double>(0, idx+1);
 		double cumi = cums.at<double>(0, idx-1);
 		double proi = pros.at<double>(0, idx);
-		mvd = Di + (0.5-cumi) / proi * (Di1-Di);
+		row.mvd = Di + (0.5-cumi) / proi * (Di1-Di);
 	}
 	
 	// Concentration
-	float conc = particles / Vtot;
-	
-	row = {0, m_dtCurr, lwc, mvd, conc, frames, particles, m_cfg->stats.temp, m_cfg->stats.wind};
+	row.conc = row.particles / Vtot;
 }
 
 void Stats::statsPoint()
@@ -118,8 +116,8 @@ void Stats::statsPoint()
 	m_db->writeStats(row);
 	m_log.info(
 		"[%d-%02d-%02d %02d:%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
-		m_dtCurr.year(), m_dtCurr.month(), m_dtCurr.day(),
-		m_dtCurr.hour(), m_dtCurr.min(), m_dtCurr.sec(),
+		row.dt.year(), row.dt.month(), row.dt.day(),
+		row.dt.hour(), row.dt.min(), row.dt.sec(),
 		row.lwc, row.mvd*1000000, row.conc/1000000
 	);
 }

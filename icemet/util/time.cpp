@@ -10,6 +10,16 @@
 #define timegm _mkgmtime
 #endif
 
+void stampToTime(Timestamp stamp, struct tm* buf)
+{
+	time_t t = stamp / 1000;
+#ifndef _WIN32
+	gmtime_r(&t, buf);
+#else
+	gmtime_s(buf, &t);
+#endif
+}
+
 DateTime::DateTime(const std::string& str)
 {
 	DateTimeInfo info;
@@ -31,14 +41,14 @@ DateTime::DateTime(const std::string& str)
 void DateTime::setStamp(Timestamp stamp)
 {
 	m_stamp = stamp;
-	time_t t = m_stamp / 1000;
-	struct tm* timeinfo = gmtime(&t);
-	m_info.y = timeinfo->tm_year + 1900;
-	m_info.m = timeinfo->tm_mon + 1;
-	m_info.d = timeinfo->tm_mday;
-	m_info.H = timeinfo->tm_hour;
-	m_info.M = timeinfo->tm_min;
-	m_info.S = timeinfo->tm_sec;
+	struct tm timeinfo;
+	stampToTime(m_stamp, &timeinfo);
+	m_info.y = timeinfo.tm_year + 1900;
+	m_info.m = timeinfo.tm_mon + 1;
+	m_info.d = timeinfo.tm_mday;
+	m_info.H = timeinfo.tm_hour;
+	m_info.M = timeinfo.tm_min;
+	m_info.S = timeinfo.tm_sec;
 	m_info.MS = m_stamp % 1000;
 }
 
@@ -61,10 +71,10 @@ void DateTime::setInfo(const DateTimeInfo& info)
 
 std::string DateTime::str() const
 {
-	time_t t = m_stamp / 1000;
-	struct tm* timeinfo = gmtime(&t);
-	char buf[23];
-	strftime(buf, 23, "%Y-%m-%d %H:%M:%S", timeinfo);
+	struct tm timeinfo;
+	stampToTime(m_stamp, &timeinfo);
+	char buf[20];
+	strftime(buf, 20, "%Y-%m-%d %H:%M:%S", &timeinfo);
 	return strfmt("%s.%03d", buf, m_stamp % 1000);
 }
 
