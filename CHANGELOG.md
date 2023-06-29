@@ -1,14 +1,18 @@
 # Changelog
 
+## 1.13.0 - Malesia
+2023-06-29
+- Bug fixes.
+
 ## 1.12.0 - Sonnblick
 2022-12-01
-- Improved config handling
-- Bug fixes and code base improvements
+- Improved config handling.
+- Bug fixes and code base improvements.
 
 ## 1.11.0 - Ufo
 2022-06-28
-- Dynamic ZRange
-- Binary packages
+- Dynamic ZRange.
+- Binary packages.
 
 ## 1.10.0 - Tatti
 2022-03-03
