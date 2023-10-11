@@ -168,45 +168,28 @@ __kernel void stdfilt_3x3(
 	dst[y*w + x] = sqrt(var);
 }
 
-__kernel void sqrt_stdfilt_3x3(
+__kernel void gradient(
 	__global float* src,
-	__global float* dst, int step, int offset, int h, int w
+	__global float* fx,
+	__global float* fy,
+	int step, int offset, int h, int w
 )
 {
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if (x >= w || y >= h) return;
 	
-	float sum = 0.0;
-	float sqsum = 0.0;
-	int n = 0;
-	for (int xx = max(x-1, 0); xx <= min(x+1, w-1); xx++) {
-		for (int yy = max(y-1, 0); yy <= min(y+1, h-1); yy++) {
-			float val = sqrt(src[yy*w + xx]);
-			sum += val;
-			sqsum += val*val;
-			n++;
-		}
-	}
-	float mean = sum / n;
-	float var = fabs(sqsum / n - mean*mean);
-	dst[y*w + x] = sqrt(var);
-}
-
-__kernel void gradient(
-	__global cfloat* src,
-	__global float* dst, int step, int offset, int h, int w
-)
-{
-	int x = get_global_id(0);
-	int y = get_global_id(1);
-	if (x == 0 || y == 0) {
-		dst[y*w + x] = 0;
-	}
-	else if (x < w && y < h) {
-		cfloat u00 = src[y*w + x];
-		cfloat u10 = src[(y-1)*w + x];
-		cfloat u01 = src[y*w + (x-1)];
-		dst[y*w + x] = sqrt(pow(length(u00 - u10), 2) + pow(length(u00 - u01), 2));
-	}
+	float valx = 0.0;
+	float valy = 0.0;
+	if (x > 0)
+		valx -= 0.5*src[y*w + x-1];
+	if (x < w-1)
+		valx += 0.5*src[y*w + x+1];
+	if (y > 0)
+		valy -= 0.5*src[(y-1)*w + x];
+	if (y < h-1)
+		valy += 0.5*src[(y+1)*w + x];
+	
+	fx[y*w + x] = valx;
+	fy[y*w + x] = valy;
 }

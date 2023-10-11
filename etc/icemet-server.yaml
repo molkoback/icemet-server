@@ -42,7 +42,9 @@ holo_pixel_size: 3.45e-6
 holo_lambda: 660e-9
 holo_distance: 56.4e-3
 recon_step: 1515
-focus_step: 20
+focus_step: 10
+focus_method: 3
+focus_method_small: 0
 segment_th_factor: 0.60
 segment_size_min: 2
 segment_size_max: -1

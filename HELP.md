@@ -26,8 +26,7 @@ Config template: [icemet-server.yaml](etc/icemet-server.yaml)
   - `v` Preview images.
 - `save_empty <bool>` Save empty files.
 - `save_skipped <bool>` Save skipped files.
-- `type_results <str>` Result image file types.
-- `type_results_lossy <str>` Lossy result image file types (for preview images).
+- `type_results(|_lossy) <str>` File type for regular and lossy (preview) images.
 
 ### SQL server
 - `sql_host <str>` SQL server host.
@@ -57,6 +56,12 @@ Config template: [icemet-server.yaml](etc/icemet-server.yaml)
  - `holo_distance <float>` Distance between the camera and laser in meters for uncollimated beams. 0 for collimated beams.
  - `recon_step <int>` The number of frames in each reconstruction batch. Can be used to limit the memory usage.
  - `focus_step <int>` The number of frames between frames that will be used in the focusing. Can be used to speed up the focusing.
+ - `focus_method(|_small) <int>` Autofocus scoring function for regular and small segments.
+  - `0` Minimum value.
+  - `1` Maximum value.
+  - `2` Dynamic range.
+  - `3` StdDev of StdDev filter.
+  - `4` Tamura of gradient.
  - `segment_th_factor <float>` Segment threshold factor *f*:
 *th = f · Median(preproc)*
  - `segment_size_(min|max) <int>` Size range of the segments (width or height) in pixels.

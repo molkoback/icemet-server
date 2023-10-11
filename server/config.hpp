@@ -71,6 +71,8 @@ typedef struct _hologram_param {
 	float lambda;
 	int reconStep;
 	double focusStep;
+	FocusMethod focusMethod;
+	FocusMethod focusMethodSmall;
 } HologramParam;
 
 typedef struct _segment_param {

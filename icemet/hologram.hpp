@@ -17,7 +17,7 @@ typedef enum _focus_method {
 	FOCUS_RANGE,
 	FOCUS_STD,
 	FOCUS_TOG,
-	FOCUS_ICEMET
+	FOCUS_END
 } FocusMethod;
 
 typedef enum _filter_type {

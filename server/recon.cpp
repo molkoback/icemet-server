@@ -27,6 +27,8 @@ void Recon::process(ImgPtr img)
 	
 	const int reconStep = m_cfg->hologram.reconStep;
 	const double focusStep = m_cfg->hologram.focusStep;
+	const FocusMethod focusMethod = m_cfg->hologram.focusMethod;
+	const FocusMethod focusMethodSmall = m_cfg->hologram.focusMethodSmall;
 	
 	const int segmSizeMin = m_cfg->segment.sizeMin;
 	const int segmSizeMax = m_cfg->segment.sizeMax;
@@ -85,7 +87,7 @@ void Recon::process(ImgPtr img)
 			FocusMethod method = (
 				rect.width > segmSizeSmall ||
 				rect.height > segmSizeSmall
-			) ? FOCUS_ICEMET : FOCUS_MIN;
+			) ? focusMethod : focusMethodSmall;
 			
 			// Grow rect
 			rect.x = std::max(rect.x-pad, 0);
