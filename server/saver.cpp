@@ -92,7 +92,8 @@ void Saver::processImg(const ImgPtr& img) const
 			Math::adjust(imgInv, imgAdj, th, 255, 0, 255);
 			
 			// Draw
-			imgAdj.copyTo(cv::Mat(preview, segm->rect));
+			cv::Mat imgCrop(preview, segm->rectPad);
+			cv::max(imgCrop, imgAdj, imgCrop);
 		}
 		fs::path dst(img->path(m_cfg->paths.preview, m_cfg->types.lossy));
 		cv::imwrite(dst.string(), preview);
@@ -108,7 +109,7 @@ void Saver::processImg(const ImgPtr& img) const
 			par->x, par->y, par->z,
 			par->diam, par->diamCorr,
 			par->circularity, par->dynRange, par->effPxSz,
-			segm->rect
+			segm->rectPad
 		});
 	}
 }

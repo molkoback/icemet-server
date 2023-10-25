@@ -14,17 +14,18 @@ typedef struct _segment {
 	int step;
 	double score;
 	FocusMethod method;
-	cv::Rect rect;
+	cv::Rect2i rectOrig;
+	cv::Rect2i rectPad;
 	cv::Mat img;
 	
 	_segment() {}
-	_segment(float z_, int step_, double score_, FocusMethod method_, const cv::Rect& rect_, const cv::UMat& img_) :
-		z(z_), step(step_), score(score_), method(method_), rect(rect_)
+	_segment(float z_, int step_, double score_, FocusMethod method_, const cv::Rect& rectOrig_, const cv::Rect& rectPad_, const cv::UMat& img_) :
+		z(z_), step(step_), score(score_), method(method_), rectOrig(rectOrig_), rectPad(rectPad_)
 	{
 		img_.copyTo(img);
 	}
 	_segment(const _segment& s) :
-		z(s.z), step(s.step), score(s.score), method(s.method), rect(s.rect)
+		z(s.z), step(s.step), score(s.score), method(s.method), rectOrig(s.rectOrig), rectPad(s.rectPad)
 	{
 		s.img.copyTo(img);
 	}

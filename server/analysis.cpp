@@ -93,8 +93,8 @@ bool Analysis::analyse(const ImgPtr& img, const SegmentPtr& segm, ParticlePtr& p
 	}
 	
 	// Save properties
-	par->x = par->effPxSz * (segm->rect.x + center.x/scaleF - m_cfg->img.size.width/2.0);
-	par->y = par->effPxSz * -(segm->rect.y + center.y/scaleF - m_cfg->img.size.height/2.0);
+	par->x = par->effPxSz * (segm->rectPad.x + center.x/scaleF - m_cfg->img.size.width/2.0);
+	par->y = par->effPxSz * -(segm->rectPad.y + center.y/scaleF - m_cfg->img.size.height/2.0);
 	par->z = segm->z;
 	par->circularity = Math::heywood(perim, area);
 	par->dynRange = max - min;
@@ -105,9 +105,7 @@ void Analysis::process(ImgPtr img)
 {
 	// Sort by size
 	std::sort(img->segments.begin(), img->segments.end(), [](const auto& s1, const auto& s2) {
-		int A1 = s1->rect.width * s1->rect.height;
-		int A2 = s2->rect.width * s2->rect.height;
-		return A1 > A2;
+		return s1->rectOrig.area() > s2->rectOrig.area();
 	});
 	
 	// Analyse all segments
@@ -136,9 +134,9 @@ void Analysis::process(ImgPtr img)
 			const auto& parOld = particlesUnique[j];
 			
 			// Check overlap
-			if ((segm->rect & segmOld->rect).area() > 0) {
+			if ((segm->rectOrig & segmOld->rectOrig).area() > 0) {
 				// Decide the better particle
-				if ((segm->step == segmOld->step && segm->rect.area() > segmOld->rect.area()) ||
+				if ((segm->step == segmOld->step && segm->rectOrig.area() > segmOld->rectOrig.area()) ||
 				    (segm->step != segmOld->step && (
 						(segm->method == segmOld->method && segm->score > segmOld->score) ||
 						(segm->method != segmOld->method && par->dynRange > parOld->dynRange)

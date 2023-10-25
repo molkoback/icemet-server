@@ -76,29 +76,30 @@ void Recon::process(ImgPtr img)
 		// Create rects from contours
 		ncontours += contours.size();
 		for (const auto& cnt : contours) {
-			cv::Rect2i rect = cv::boundingRect(cnt);
+			cv::Rect2i rectOrig = cv::boundingRect(cnt);
 			
-			if ((segmSizeMin > 0 && (rect.width < segmSizeMin || rect.height < segmSizeMin)) ||
-			    (segmSizeMax > 0 && (rect.width > segmSizeMax || rect.height > segmSizeMax)) ||
-			    (crop & rect).area() < 0.5*rect.area())
+			if ((segmSizeMin > 0 && (rectOrig.width < segmSizeMin || rectOrig.height < segmSizeMin)) ||
+			    (segmSizeMax > 0 && (rectOrig.width > segmSizeMax || rectOrig.height > segmSizeMax)) ||
+			    (crop & rectOrig).area() < 0.5*rectOrig.area())
 				continue;
 			
 			// Select our focus method
 			FocusMethod method = (
-				rect.width > segmSizeSmall ||
-				rect.height > segmSizeSmall
+				rectOrig.width > segmSizeSmall ||
+				rectOrig.height > segmSizeSmall
 			) ? focusMethod : focusMethodSmall;
 			
-			// Grow rect
-			rect.x = std::max(rect.x-pad, 0);
-			rect.y = std::max(rect.y-pad, 0);
-			rect.width = std::min(rect.width+2*pad, size.width-rect.x);
-			rect.height = std::min(rect.height+2*pad, size.height-rect.y);
+			// Create padded rect
+			cv::Rect2i rectPad;
+			rectPad.x = std::max(rectOrig.x-pad, 0);
+			rectPad.y = std::max(rectOrig.y-pad, 0);
+			rectPad.width = std::min(rectOrig.width+2*pad, size.width-rectPad.x);
+			rectPad.height = std::min(rectOrig.height+2*pad, size.height-rectPad.y);
 			
 			// Focus
 			int idx = 0;
 			double score = 0.0;
-			Hologram::focus(m_stack, rect, idx, score, method, 0, stepRange.n()-1, focusStep);
+			Hologram::focus(m_stack, rectPad, idx, score, method, 0, stepRange.n()-1, focusStep);
 			
 			// Create segment
 			SegmentPtr segm = cv::makePtr<Segment>();
@@ -106,8 +107,9 @@ void Recon::process(ImgPtr img)
 			segm->step = step;
 			segm->score = score;
 			segm->method = method;
-			segm->rect = rect;
-			cv::UMat(m_stack[idx], rect).copyTo(segm->img);
+			segm->rectOrig = rectOrig;
+			segm->rectPad = rectPad;
+			cv::UMat(m_stack[idx], rectPad).copyTo(segm->img);
 			img->segments.push_back(segm);
 		}
 	}
