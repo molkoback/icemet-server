@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.14.0 - Pallas
+2023-10-25
+- Configurable autofocus methods.
+- Autofocus related fixes.
+
 ## 1.13.0 - Malesia
 2023-06-29
 - Bug fixes.
