@@ -36,8 +36,6 @@ Stats::Stats(ICEMETServerContext* ctx) :
 
 bool Stats::init()
 {
-	if (m_args->statsOnly && m_cfg->stats.frames <= 0)
-		throw(std::runtime_error("stats_frames required in stats only mode"));
 	return true;
 }
 
