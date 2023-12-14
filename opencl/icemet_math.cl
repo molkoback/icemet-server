@@ -14,20 +14,6 @@ __kernel void adjust(
 	dst[i] = val;
 }
 
-__kernel void hist(
-	__global float* src,
-	__global int* dst,
-	float min, float max,
-	float step
-)
-{
-	float val = src[get_global_id(0)];
-	if (val < min || val > max)
-		return;
-	int i = round((val-min) / step);
-	atomic_inc(&dst[i]);
-}
-
 __kernel void imghist(__global uchar* src, __global int* dst)
 {
 	atomic_inc(&dst[src[get_global_id(0)]]);

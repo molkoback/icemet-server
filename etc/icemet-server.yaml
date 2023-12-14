@@ -71,7 +71,6 @@ particle_z_min: 13.3e-3
 particle_z_max: 33.6e-3
 particle_diam_min: 5.0e-6
 particle_diam_max: 200.0e-6
-particle_diam_step: 0.1e-6
 particle_circ_min: 0.0
 particle_circ_max: 1.1
 particle_dynrange_min: 45

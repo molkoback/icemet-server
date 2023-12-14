@@ -132,7 +132,6 @@ void Config::load(const fs::path& fn)
 		particle.zMax = getYAMLNode(node, "particle_z_max").as<float>();
 		particle.diamMin = getYAMLNode(node, "particle_diam_min").as<float>();
 		particle.diamMax = getYAMLNode(node, "particle_diam_max").as<float>();
-		particle.diamStep = getYAMLNode(node, "particle_diam_step").as<float>();
 		particle.circMin = getYAMLNode(node, "particle_circ_min").as<float>();
 		particle.circMax = getYAMLNode(node, "particle_circ_max").as<float>();
 		particle.dynRangeMin = getYAMLNode(node, "particle_dynrange_min").as<int>();

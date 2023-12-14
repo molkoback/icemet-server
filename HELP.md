@@ -86,7 +86,6 @@ Config template: [icemet-server.yaml](etc/icemet-server.yaml)
  - `stats_wind <float>` Constant wind speed in m/s.
  - `particle_z_(min|max) <float>` Particle min/max z-position for stats calculation.
  - `particle_diam_(min|max) <float>` Particle min/max size for stats calculation.
- - `particle_diam_step <float>` Bin step used in MVD calculation.
  - `particle_circ_(min|max) <float>` Particle min/max Heywood circularity factor for stats calculation:
 *circ = perim / (2 · Sqrt(π · area))*
  - `particle_dynrange_(min|max) <int>` Particle min/max dynamic range for stats calculation.

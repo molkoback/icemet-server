@@ -91,7 +91,6 @@ typedef struct _particle_param {
 	float zMax;
 	float diamMin;
 	float diamMax;
-	float diamStep;
 	float circMin;
 	float circMax;
 	unsigned char dynRangeMin;

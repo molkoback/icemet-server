@@ -71,23 +71,6 @@ void Math::adjust(const cv::UMat& src, cv::UMat& dst, uchar a0, uchar a1, uchar 
 	).run(1, gsize, NULL, true);
 }
 
-void Math::hist(const cv::UMat& src, cv::Mat& counts, cv::Mat& bins, float min, float max, float step)
-{
-	int n = roundf((max-min) / step);
-	cv::UMat tmp = cv::UMat::zeros(1, n, CV_32SC1);
-	size_t gsize[1] = {(size_t)(src.cols * src.rows)};
-	cv::ocl::Kernel("hist", icemet_math_ocl()).args(
-		cv::ocl::KernelArg::PtrReadOnly(src),
-		cv::ocl::KernelArg::PtrReadWrite(tmp),
-		min, max, step
-	).run(1, gsize, NULL, true);
-	tmp.copyTo(counts);
-	
-	bins = cv::Mat(1, n, CV_32FC1);
-	for (int i = 0; i < n; i++)
-		bins.at<float>(0, i) = min + i*step;
-}
-
 void Math::hist(const cv::UMat& src, cv::Mat& dst)
 {
 	cv::UMat tmp = cv::UMat::zeros(1, 256, CV_32SC1);

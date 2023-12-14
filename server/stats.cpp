@@ -41,16 +41,16 @@ bool Stats::init()
 
 void Stats::reset()
 {
-	m_particles = cv::Mat(0, 0, CV_64F);
+	m_particles.clear();
 	m_frames = 0;
 	m_skipped = 0;
 }
 
-void Stats::fillStatsRow(StatsRow& row) const
+void Stats::fillStatsRow(StatsRow& row)
 {
 	row.dt = m_dtCurr;
 	row.frames = (m_cfg->stats.frames > 0 ? m_cfg->stats.frames : m_frames) - m_skipped;
-	row.particles = m_particles.rows;
+	row.particles = m_particles.size();
 	if (!row.particles) {
 		row.lwc = 0.f;
 		row.mvd = 0.f;
@@ -58,53 +58,46 @@ void Stats::fillStatsRow(StatsRow& row) const
 		return;
 	}
 	
-	double Vtot = m_V * row.frames; // Total measurement volume (m3)
+	// Total measurement volume
+	double Vmeas = m_V * row.frames;
 	
-	// Create histogram
-	cv::Mat counts, bins;
-	Math::hist(
-		m_particles.getUMat(cv::ACCESS_READ),
-		counts, bins,
-		m_cfg->particle.diamMin, m_cfg->particle.diamMax, m_cfg->particle.diamStep
-	);
-	cv::Mat N, D;
-	counts.convertTo(N, CV_64FC1);
-	bins.convertTo(D, CV_64FC1);
+	// Create particle diameter and volume matrices
+	std::sort(m_particles.begin(), m_particles.end());
+	cv::Mat D(1, m_particles.size(), CV_64FC1, m_particles.data());
+	cv::Mat V;
+	cv::divide(D, 2.0, V);
+	cv::pow(V, 3.0, V);
+	cv::multiply(V, 4.0/3.0 * Math::pi, V);
 	
-	// Calculate particle water masses
-	cv::Mat r3;
-	cv::pow(D/2.0, 3, r3);
-	cv::Mat m = N.mul(r3) * 4.0/3.0*Math::pi * 1000000; // Water masses (g)
+	// Calculate LWC
+	double Vtot = cv::sum(V)[0];
+	row.lwc =  Vtot * 1.0e+6 / Vmeas;
 	
-	// Liquid water content
-	cv::Mat lwcs = m / Vtot; // Liquid water contents (g/m3)
-	row.lwc = cv::sum(lwcs)[0]; // Liquid water content (g/m3)
-	
-	// Median volume diameter
-	cv::Mat pros = lwcs / row.lwc;
-	cv::Mat cums = cv::Mat(pros.size(), CV_64FC1);
-	double cumsum = 0.0;
-	int idx = -1;
-	for (int i = 0; i < pros.cols; i++) {
-		cumsum += pros.at<double>(0, i);
-		cums.at<double>(0, i) = cumsum;
-		if (idx < 0 && cumsum > 0.5)
-			idx = i;
+	// Create cumulative volume matrice and find the half point
+	double Vhalf = Vtot / 2.0;
+	double Vsum = 0.0;
+	cv::Mat Vcum(V.size(), CV_64FC1);
+	int i = 0;
+	for (; i < V.cols; i++) {
+		Vsum += V.at<double>(0, i);
+		Vcum.at<double>(0, i) = Vsum;
+		if (Vsum > Vhalf)
+			break;
 	}
-	if (idx <= 0)
+	
+	// Calculate MVD
+	if (i == 0)
 		row.mvd = D.at<double>(0, 0);
-	else if (idx >= pros.cols-1)
-		row.mvd = D.at<double>(0, pros.cols-1);
 	else {
-		double Di = D.at<double>(0, idx);
-		double Di1 = D.at<double>(0, idx+1);
-		double cumi = cums.at<double>(0, idx-1);
-		double proi = pros.at<double>(0, idx);
-		row.mvd = Di + (0.5-cumi) / proi * (Di1-Di);
+		double V0 = V.at<double>(0, i-1);
+		double V1 = V.at<double>(0, i);
+		double Vcum0 = Vcum.at<double>(0, i-1);
+		double Vmvd = V0 + (Vhalf-Vcum0) / V1 * (V1-V0);
+		row.mvd =  2.0 * pow(Vmvd / (4.0/3.0 * Math::pi), 1.0/3.0);
 	}
 	
 	// Concentration
-	row.conc = row.particles / Vtot;
+	row.conc = row.particles / Vmeas;
 }
 
 void Stats::statsPoint()
