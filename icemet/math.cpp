@@ -37,24 +37,17 @@ int Math::median(cv::UMat img)
 void Math::adjust(const cv::Mat& src, cv::Mat& dst, uchar a0, uchar a1, uchar b0, uchar b1)
 {
 	CV_Assert(src.type() == CV_8UC1);
-	if (dst.empty())
-		dst = cv::Mat(src.size(), CV_8UC1);
+	cv::Mat tmp;
+	src.convertTo(tmp, CV_32FC1);
 	
-	unsigned char *pSrc = (unsigned char*)src.data;
-	unsigned char *pDst = (unsigned char*)dst.data;
+	cv::max(tmp, a0, tmp);
+	cv::min(tmp, a1, tmp);
+	cv::subtract(tmp, a0, tmp);
+	cv::divide(tmp, a1-a0, tmp);
+	cv::multiply(tmp, b1-b0, tmp);
+	cv::add(tmp, b0, tmp);
 	
-	for(int y = 0; y < src.rows; y++) {
-		for(int x = 0; x < src.cols; x++) {
-			int i = src.step * y + src.channels() * x;
-			float val = pSrc[i];
-			val = val < a0 ? a0 : (val > a1 ? a1 : val);
-			val -= a0;
-			val /= a1 - a0;
-			val *= b1 - b0;
-			val += b0;
-			pDst[i] = val;
-		}
-	}
+	tmp.convertTo(dst, CV_8UC1);
 }
 
 void Math::adjust(const cv::UMat& src, cv::UMat& dst, uchar a0, uchar a1, uchar b0, uchar b1)
