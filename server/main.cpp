@@ -13,9 +13,9 @@
 
 #include <opencv2/core/ocl.hpp>
 
-#include <cstdio>
 #include <cstdlib>
 #include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -32,9 +32,15 @@ static const char* helpStr =
 "  -Q                Quit after processing all available files.\n"
 "  -d                Enable debug messages.\n";
 static const char* versionFmt =
-"ICEMET Server %s\n"
+"ICEMET Server {}\n"
 "\n"
 "Copyright (C) 2019-2023 Eero Molkoselkä <eero.molkoselka@gmail.com>\n";
+
+template <typename... Args>
+static void print(const std::string& fmt, Args... args)
+{
+	std::cout << strfmt(fmt, args...);
+}
 
 static int cvErrorHandler(int status, const char* func, const char* msg, const char* fn, int line, void* data)
 {
@@ -55,11 +61,11 @@ int main(int argc, char* argv[])
 		std::string arg(argv[i]);
 		if (arg[0] == '-') {
 			if (!arg.compare("-h")) {
-				printf("%s\n%s", usageStr, helpStr);
+				print("{}\n{}", usageStr, helpStr);
 				return EXIT_SUCCESS;
 			}
 			else if (!arg.compare("-V")) {
-				printf(versionFmt, icemetServerVersion().str().c_str());
+				print(versionFmt, icemetServerVersion().str());
 				return EXIT_SUCCESS;
 			}
 			else if (!arg.compare("-t")) {
@@ -78,7 +84,7 @@ int main(int argc, char* argv[])
 				args.loglevel = LOG_DEBUG;
 			}
 			else {
-				printf("Invalid option '%s'\n", arg.c_str());
+				print("Invalid option '{}'\n", arg);
 				return EXIT_FAILURE;
 			}
 		}
@@ -87,12 +93,12 @@ int main(int argc, char* argv[])
 		}
 	}
 	if (args.cfgFile.empty()) {
-		printf("%s", usageStr);
+		print(usageStr);
 		return EXIT_FAILURE;
 	}
 	
 	Log log("MAIN");
-	log.info("ICEMET Server %s", icemetServerVersion().str().c_str());
+	log.info("ICEMET Server {}", icemetServerVersion().str());
 	try {
 		// Suppress OpenCV errors
 		cv::redirectError(cvErrorHandler);
@@ -108,22 +114,21 @@ int main(int argc, char* argv[])
 		Log::setLevel(args.loglevel);
 		
 		// Initialize OpenCL
-		const char* device = cfg.ocl.device.c_str();
-		std::vector<char> vec = vecfmt("OPENCV_OPENCL_DEVICE=%s", device);
-		if (putenv(&vec[0]) || !cv::ocl::useOpenCL())
+		std::string str = strfmt("OPENCV_OPENCL_DEVICE={}", cfg.ocl.device);
+		if (putenv(&str[0]) || !cv::ocl::useOpenCL())
 			throw std::runtime_error("OpenCL not available");
-		log.info("OpenCL device %s:%s", device, cv::ocl::Device::getDefault().name().c_str());
+		log.info("OpenCL device {}:{}", !cfg.ocl.device.empty() ? cfg.ocl.device : "DEFAULT", cv::ocl::Device::getDefault().name());
 		
 		// Connect to database
 		if (args.particlesOnly)
 			cfg.dbInfo.statsTable.clear();
 		Database db(cfg.connInfo, cfg.dbInfo);
-		log.info("Database %s:%d/%s", cfg.connInfo.host.c_str(), cfg.connInfo.port, cfg.dbInfo.name.c_str());
-		log.info("Particles table '%s'", cfg.dbInfo.particlesTable.c_str());
+		log.info("Database {}:{}/{}", cfg.connInfo.host, cfg.connInfo.port, cfg.dbInfo.name);
+		log.info("Particles table '{}'", cfg.dbInfo.particlesTable);
 		if (!cfg.dbInfo.statsTable.empty())
-			log.info("Stats table '%s'", cfg.dbInfo.statsTable.c_str());
+			log.info("Stats table '{}'", cfg.dbInfo.statsTable);
 		if (!cfg.dbInfo.metaTable.empty()) {
-			log.info("Meta table '%s'", cfg.dbInfo.metaTable.c_str());
+			log.info("Meta table '{}'", cfg.dbInfo.metaTable);
 			db.writeMeta({
 				0, DateTime::now(),
 				cfg.dbInfo.particlesTable,
@@ -132,7 +137,6 @@ int main(int argc, char* argv[])
 				cfg.str()
 			});
 		}
-		
 		
 		// Create workers
 		ICEMETServerContext ctx{&args, &cfg, &db};
@@ -183,10 +187,10 @@ int main(int argc, char* argv[])
 		for (auto it = threads.begin(); it != threads.end(); ++it)
 			it->join();
 		log.info("Done");
-		return EXIT_SUCCESS;
 	}
 	catch (std::exception& e) {
 		log.critical(e.what());
+		return EXIT_FAILURE;
 	}
-	return EXIT_FAILURE; // NOTREACHED
+	return EXIT_SUCCESS;
 }

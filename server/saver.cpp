@@ -13,7 +13,7 @@
 Saver::Saver(ICEMETServerContext* ctx) :
 	Worker(COLOR_BRIGHT_BLUE "SAVER" COLOR_RESET, ctx)
 {
-	m_log.info("Results %s", m_cfg->paths.results.string().c_str());
+	m_log.info("Results {}", m_cfg->paths.results.string());
 }
 
 void Saver::move(const fs::path& src, const fs::path& dst) const
@@ -140,11 +140,11 @@ bool Saver::loop()
 		switch (data.type()) {
 			case WORKER_DATA_IMG: {
 				ImgPtr img = data.get<ImgPtr>();
-				m_log.debug("%s: Saving", img->name().c_str());
+				m_log.debug("{}: Saving", img->name());
 				Measure m;
 				processImg(img);
-				m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
-				m_log.info("%s", img->name().c_str());
+				m_log.debug("{}: Done ({:.2f} s)", img->name(), m.time());
+				m_log.info("{}", img->name());
 				break;
 			}
 			case WORKER_DATA_PKG:

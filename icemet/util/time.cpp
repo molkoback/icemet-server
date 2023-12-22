@@ -66,21 +66,29 @@ void DateTime::setInfo(const DateTimeInfo& info)
 	if (t < 0)
 		throw std::exception();
 	m_info = info;
-	m_stamp = (Timestamp)t*1000 + (Timestamp)info.MS % 1000;
+	m_stamp = (Timestamp)t*1000 + (Timestamp)info.MS%1000;
 }
 
-std::string DateTime::str() const
+std::string DateTime::str(const std::string& fmt) const
 {
 	struct tm timeinfo;
 	stampToTime(m_stamp, &timeinfo);
-	char buf[20];
-	strftime(buf, 20, "%Y-%m-%d %H:%M:%S", &timeinfo);
-	return strfmt("%s.%03d", buf, m_stamp % 1000);
+	
+	std::ostringstream oss;
+	if (fmt.empty()) {
+		oss << std::put_time(&timeinfo, "%Y-%m-%d %H:%M:%S");
+		oss << strfmt(".{:03d}", m_stamp % 1000);
+	}
+	else {
+		oss << std::put_time(&timeinfo, fmt.c_str());
+	}
+	
+	return oss.str();
 }
 
 DateTime DateTime::now()
 {
-	return DateTime(time(0)*1000);
+	return DateTime(std::time(0)*1000);
 }
 
 double Measure::time()

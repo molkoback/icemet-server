@@ -1,10 +1,9 @@
 #ifndef ICEMET_TIME_H
 #define ICEMET_TIME_H
 
-#include <chrono>
-#include <thread>
+#include "icemet/icemet.hpp"
 
-namespace chr = std::chrono;
+#include <thread>
 
 typedef unsigned long long Timestamp;
 
@@ -25,7 +24,7 @@ public:
 	DateTime(const std::string& str);
 	DateTime(const DateTime& dt) : m_stamp(dt.m_stamp), m_info(dt.m_info) {}
 	
-	std::string str() const;
+	std::string str(const std::string& fmt=std::string()) const;
 	
 	Timestamp stamp() const { return m_stamp; };
 	DateTimeInfo info() const { return m_info; };

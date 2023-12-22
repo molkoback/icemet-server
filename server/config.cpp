@@ -42,7 +42,7 @@ YAML::Node getYAMLNode(const YAML::Node& node, const std::string& key)
 {
 	YAML::Node ret = node[key];
 	if (!ret.IsDefined())
-		throw(std::runtime_error(strfmt("Config parameter not found: ") + key));
+		throw(std::runtime_error(strfmt("Config parameter not found: '{}'", key)));
 	return ret;
 }
 
@@ -50,7 +50,7 @@ void Config::load(const fs::path& fn)
 {
 	std::ifstream stream(fn);
 	if (!stream.is_open())
-		throw(std::runtime_error(strfmt("Could not open config file: ") + fn.string()));
+		throw(std::runtime_error(strfmt("Could not open config file: '{}'", fn.string())));
 	
 	m_str = std::string((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
 	YAML::Node node = YAML::Load(m_str);
@@ -151,6 +151,6 @@ void Config::load(const fs::path& fn)
 		ocl.device = getYAMLNode(node, "ocl_device").as<std::string>();
 	}
 	catch (YAML::Exception& e) {
-		throw(std::runtime_error(strfmt("Invalid config value at line %d", e.mark.line+1)));
+		throw(std::runtime_error(strfmt("Invalid config value at line {}", e.mark.line+1)));
 	}
 }

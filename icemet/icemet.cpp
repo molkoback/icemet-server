@@ -1,4 +1,4 @@
-#include "icemet/icemet.hpp"
+#include "icemet.hpp"
 
 #include <cstdlib>
 #include <ctime>

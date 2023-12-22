@@ -6,7 +6,7 @@ Reader::Reader(ICEMETServerContext* ctx) :
 
 void Reader::push()
 {
-	m_log.debug("%s: Read", m_img->name().c_str());
+	m_log.debug("{}: Read", m_img->name());
 	m_outputs[0]->push(m_img);
 }
 

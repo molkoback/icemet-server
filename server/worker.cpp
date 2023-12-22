@@ -1,4 +1,4 @@
-#include "worker.hpp" 
+#include "worker.hpp"
 
 #include <algorithm>
 #include <cstdlib>

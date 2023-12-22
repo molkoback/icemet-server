@@ -158,7 +158,7 @@ void Analysis::process(ImgPtr img)
 	img->particles = particlesUnique;
 	int count = img->particles.size();
 	img->setStatus(count ? FILE_STATUS_NOTEMPTY : FILE_STATUS_EMPTY);
-	m_log.debug("%s: Particles: %d", img->name().c_str(), count);
+	m_log.debug("{}: Particles: {}", img->name(), count);
 }
 
 bool Analysis::loop()
@@ -176,10 +176,10 @@ bool Analysis::loop()
 			case WORKER_DATA_IMG: {
 				ImgPtr img = data.get<ImgPtr>();
 				if (img->status() == FILE_STATUS_NONE) {
-					m_log.debug("%s: Analysing", img->name().c_str());
+					m_log.debug("{}: Analysing", img->name());
 					Measure m;
 					process(img);
-					m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+					m_log.debug("{}: Done ({:.2f} s)", img->name(), m.time());
 				}
 				break;
 			}

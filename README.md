@@ -2,7 +2,7 @@
 Digital hologram processing and cloud droplet analysis software for ICEMET project.
 
 ## Building
-Build requirements: Git, Python3, OpenCV, MariaDB, libarchive, yaml-cpp
+Build requirements: Git, Python3, fmt, libarchive, MariaDB, OpenCV, yaml-cpp
 ```bash
 $ mkdir build && cd build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..

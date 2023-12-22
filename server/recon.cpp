@@ -116,7 +116,7 @@ void Recon::process(ImgPtr img)
 	
 	if ((nsegments = img->segments.size()) == 0)
 		img->setStatus(FILE_STATUS_EMPTY);
-	m_log.debug("%s: Segments: %d, Contours: %d", img->name().c_str(), nsegments, ncontours);
+	m_log.debug("{}: Segments: {}, Contours: {}", img->name(), nsegments, ncontours);
 }
 
 bool Recon::loop()
@@ -135,9 +135,9 @@ bool Recon::loop()
 				ImgPtr img = data.get<ImgPtr>();
 				if (img->status() == FILE_STATUS_NONE) {
 					Measure m;
-					m_log.debug("%s: Reconstructing", img->name().c_str());
+					m_log.debug("{}: Reconstructing", img->name());
 					process(img);
-					m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+					m_log.debug("{}: Done ({:.2f} s)", img->name(), m.time());
 				}
 				break;
 			}

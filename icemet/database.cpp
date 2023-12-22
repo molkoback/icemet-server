@@ -3,12 +3,11 @@
 #include <stdexcept>
 
 #include "icemet/util/log.hpp"
-#include "icemet/util/strfmt.hpp"
 
-#define FLOAT_REPR "%.24f"
+#define FLOAT_REPR "{:.24f}"
 
-static const char* createDBQuery = "CREATE DATABASE IF NOT EXISTS `%s`;";
-static const char* createParticlesTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
+static const char* createDBQuery = "CREATE DATABASE IF NOT EXISTS `{}`;";
+static const char* createParticlesTableQuery = "CREATE TABLE IF NOT EXISTS `{}` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME(3) NOT NULL,"
 "Sensor TINYINT UNSIGNED NOT NULL,"
@@ -29,7 +28,7 @@ static const char* createParticlesTableQuery = "CREATE TABLE IF NOT EXISTS `%s` 
 "PRIMARY KEY (ID),"
 "INDEX (DateTime)"
 ");";
-static const char* createStatsTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
+static const char* createStatsTableQuery = "CREATE TABLE IF NOT EXISTS `{}` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME NOT NULL,"
 "LWC FLOAT NOT NULL,"
@@ -42,7 +41,7 @@ static const char* createStatsTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "PRIMARY KEY (ID),"
 "INDEX (DateTime)"
 ");";
-static const char* createMetaTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
+static const char* createMetaTableQuery = "CREATE TABLE IF NOT EXISTS `{}` ("
 "ID INT UNSIGNED NOT NULL AUTO_INCREMENT,"
 "DateTime DATETIME NOT NULL,"
 "ParticlesTable TEXT NOT NULL,"
@@ -52,24 +51,24 @@ static const char* createMetaTableQuery = "CREATE TABLE IF NOT EXISTS `%s` ("
 "PRIMARY KEY (ID),"
 "INDEX (DateTime)"
 ");";
-static const char* insertParticleQuery = "INSERT INTO `%s` ("
+static const char* insertParticleQuery = "INSERT INTO `{}` ("
 "DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH"
 ") VALUES ("
-"'%s', %u, %u, %u, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, " FLOAT_REPR ", %u, %u, %u, %u"
+"'{}', {}, {}, {}, " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", {}, " FLOAT_REPR ", {}, {}, {}, {}"
 ");";
-static const char* insertStatsQuery = "INSERT INTO `%s` ("
+static const char* insertStatsQuery = "INSERT INTO `{}` ("
 "DateTime, LWC, MVD, Conc, Frames, Particles, Temp, Wind"
 ") VALUES ("
-"'%s', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", %u, %u, %s, %s"
+"'{}', " FLOAT_REPR ", " FLOAT_REPR ", " FLOAT_REPR ", {}, {}, {}, {}"
 ");";
-static const char* insertMetaQuery = "INSERT INTO `%s` ("
+static const char* insertMetaQuery = "INSERT INTO `{}` ("
 "ID, DateTime, ParticlesTable, StatsTable, Version, Config"
 ") VALUES ("
-"NULL, '%s', '%s', '%s', '%s', '%s'"
+"NULL, '{}', '{}', '{}', '{}', '{}'"
 ");";
 static const char* selectParticlesQuery = "SELECT "
 "ID, DateTime, Sensor, Frame, Particle, X, Y, Z, EquivDiam, EquivDiamCorr, Circularity, DynRange, EffPxSz, SubX, SubY, SubW, SubH "
-"FROM `%s` ORDER BY DateTime ASC;";
+"FROM `{}` ORDER BY DateTime ASC;";
 
 Database::Database() :
 	m_mysql(NULL) {}
@@ -85,8 +84,10 @@ Database::~Database()
 	close();
 }
 
-void Database::exec(const char* fmt, va_list args)
+MYSQL_RES* Database::exec(const std::string& sql, bool storeRes)
 {
+	lock();
+	
 	// Make sure we're still connected
 	if (mysql_ping(m_mysql)) {
 		close();
@@ -95,36 +96,13 @@ void Database::exec(const char* fmt, va_list args)
 	}
 	
 	// Query
-	mysql_query(m_mysql, vstrfmt(fmt, args).c_str());
+	mysql_query(m_mysql, sql.c_str());
+	MYSQL_RES* res = storeRes ? mysql_store_result(m_mysql) : NULL;
 	
 	// Check for errors
 	std::string err = mysql_error(m_mysql);
 	if (!err.empty())
-		throw std::runtime_error(strfmt("SQL error: %s", err.c_str()));
-}
-
-void Database::query(const char* fmt, ...)
-{
-	lock();
-	
-	va_list args;
-	va_start(args, fmt);
-	exec(fmt, args);
-	va_end(args);
-	
-	unlock();
-}
-
-MYSQL_RES* Database::queryRes(const char* fmt, ...)
-{
-	lock();
-	
-	va_list args;
-	va_start(args, fmt);
-	exec(fmt, args);
-	va_end(args);
-	
-	MYSQL_RES* res = mysql_store_result(m_mysql);
+		throw std::runtime_error(strfmt("SQL error: {}", err));
 	
 	unlock();
 	return res;
@@ -150,14 +128,14 @@ void Database::connect(const ConnectionInfo& connInfo)
 void Database::open(const DatabaseInfo& dbInfo)
 {
 	query("SET sql_notes = 0;");
-	query(createDBQuery, dbInfo.name.c_str());
+	query(createDBQuery, dbInfo.name);
 	mysql_select_db(m_mysql, dbInfo.name.c_str());
 	if (!dbInfo.particlesTable.empty())
-		query(createParticlesTableQuery, dbInfo.particlesTable.c_str());
+		query(createParticlesTableQuery, dbInfo.particlesTable);
 	if (!dbInfo.statsTable.empty())
-		query(createStatsTableQuery, dbInfo.statsTable.c_str());
+		query(createStatsTableQuery, dbInfo.statsTable);
 	if (!dbInfo.metaTable.empty())
-		query(createMetaTableQuery, dbInfo.metaTable.c_str());
+		query(createMetaTableQuery, dbInfo.metaTable);
 	query("SET sql_notes = 1;");
 	m_dbInfo = dbInfo;
 }
@@ -171,8 +149,8 @@ void Database::close()
 void Database::writeParticle(const ParticleRow& row)
 {
 	query(
-		insertParticleQuery, m_dbInfo.particlesTable.c_str(),
-		row.dt.str().c_str(),
+		insertParticleQuery, m_dbInfo.particlesTable,
+		row.dt.str(),
 		row.sensor, row.frame, row.particle,
 		row.x, row.y, row.z,
 		row.diam, row.diamCorr,
@@ -186,30 +164,30 @@ void Database::writeStats(const StatsRow& row)
 	std::string temp = IS_NAN(row.temp) ? "NULL" : strfmt(FLOAT_REPR, row.temp);
 	std::string wind = IS_NAN(row.wind) ? "NULL" : strfmt(FLOAT_REPR, row.wind);
 	query(
-		insertStatsQuery, m_dbInfo.statsTable.c_str(),
-		row.dt.str().c_str(),
+		insertStatsQuery, m_dbInfo.statsTable,
+		row.dt.str(),
 		row.lwc, row.mvd, row.conc,
 		row.frames, row.particles,
-		temp.c_str(), wind.c_str()
+		temp, wind
 	);
 }
 
 void Database::writeMeta(const MetaRow& row)
 {
 	query(
-		insertMetaQuery, m_dbInfo.metaTable.c_str(),
-		row.dt.str().c_str(),
-		row.particlesTable.c_str(),
-		row.statsTable.c_str(),
-		row.version.str().c_str(),
-		row.config.c_str()
+		insertMetaQuery, m_dbInfo.metaTable,
+		row.dt.str(),
+		row.particlesTable,
+		row.statsTable,
+		row.version.str(),
+		row.config
 	);
 }
 
 bool Database::readParticles(DatabaseIterator& iter, ParticleRow& par)
 {
 	if (!iter.m_res)
-		iter.m_res = queryRes(selectParticlesQuery, m_dbInfo.particlesTable.c_str());
+		iter.m_res = queryRes(selectParticlesQuery, m_dbInfo.particlesTable);
 	
 	MYSQL_ROW row = mysql_fetch_row(iter.m_res);
 	if (row == NULL)

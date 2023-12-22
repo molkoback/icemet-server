@@ -3,13 +3,13 @@
 
 #include "icemet/file.hpp"
 #include "icemet/icemet.hpp"
+#include "icemet/util/strfmt.hpp"
 #include "icemet/util/time.hpp"
 #include "icemet/util/version.hpp"
 
 #include <mysql/mysql.h>
 #include <opencv2/core.hpp>
 
-#include <cstdarg>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -73,9 +73,13 @@ private:
 	MYSQL* m_mysql;
 	std::mutex m_mutex;
 	
-	void exec(const char *fmt, va_list args);
-	void query(const char *fmt, ...);
-	MYSQL_RES* queryRes(const char *fmt, ...);
+	MYSQL_RES* exec(const std::string& sql, bool storeRes=false);
+	
+	template <typename... Args>
+	void query(const char* fmt, Args... args) { exec(strfmt(fmt, args...)); }
+	
+	template <typename... Args>
+	MYSQL_RES* queryRes(const char* fmt, Args... args) { return exec(strfmt(fmt, args...), true); }
 
 public:
 	Database();

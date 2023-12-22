@@ -27,7 +27,7 @@ Stats::Stats(ICEMETServerContext* ctx) :
 	double AZ0 = Apx * pszZ0*pszZ0;
 	double AZ1 = Apx * pszZ1*pszZ1;
 	m_V = Math::Vcone(h, AZ0, AZ1);
-	m_log.debug("Measurement volume %.2f cm3", m_V * 1000000);
+	m_log.debug("Measurement volume {:.2f} cm3", m_V * 1e+6);
 	
 	m_len = m_cfg->stats.time * 1000;
 	
@@ -106,7 +106,7 @@ void Stats::statsPoint()
 	fillStatsRow(row);
 	m_db->writeStats(row);
 	m_log.info(
-		"[%d-%02d-%02d %02d:%02d:%02d] LWC %.2f g/m3, MVD %.2f um, Conc %.2f #/cm3",
+		"[{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}] LWC {:.2f} g/m3, MVD {:.2f} um, Conc {:.2f} #/cm3",
 		row.dt.year(), row.dt.month(), row.dt.day(),
 		row.dt.hour(), row.dt.min(), row.dt.sec(),
 		row.lwc, row.mvd*1000000, row.conc/1000000
@@ -156,7 +156,7 @@ void Stats::process(const ImgPtr& img)
 	m_frames++;
 	if (img->status() == FILE_STATUS_SKIP)
 		m_skipped++;
-	m_log.debug("%s: Valid particles: %d", img->name().c_str(), count);
+	m_log.debug("{}: Valid particles: {}", img->name(), count);
 }
 
 bool Stats::loop()
@@ -173,10 +173,10 @@ bool Stats::loop()
 		switch (data.type()) {
 			case WORKER_DATA_IMG: {
 				ImgPtr img = data.get<ImgPtr>();
-				m_log.debug("%s: Processing", img->name().c_str());
+				m_log.debug("{}: Processing", img->name());
 				Measure m;
 				process(img);
-				m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+				m_log.debug("{}: Done ({:.2f} s)", img->name(), m.time());
 				break;
 			}
 			case WORKER_DATA_PKG:

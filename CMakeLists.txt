@@ -7,6 +7,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 find_package(PkgConfig REQUIRED)
+pkg_check_modules(FMT REQUIRED fmt)
 pkg_check_modules(LIBARCHIVE REQUIRED libarchive)
 pkg_check_modules(LIBMARIADB REQUIRED libmariadb)
 pkg_check_modules(OPENCV REQUIRED opencv4)
@@ -15,6 +16,7 @@ pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
 include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_BINARY_DIR}
+	${FMT_INCLUDE_DIRS}
 	${LIBARCHIVE_INCLUDE_DIRS}
 	${OPENCV_INCLUDE_DIRS}
 	${LIBMARIADB_INCLUDE_DIRS}
@@ -30,7 +32,6 @@ set(LIBICEMET_SRC
 	icemet/math.cpp
 	icemet/pkg.cpp
 	icemet/util/log.cpp
-	icemet/util/strfmt.cpp
 	icemet/util/time.cpp
 	icemet/util/version.cpp
 )
@@ -56,7 +57,7 @@ execute_process(
 )
 message("-- Commit ${ICEMET_SERVER_COMMIT}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic -pipe -Wall -Wextra -DICEMET_SERVER_COMMIT=\\\"${ICEMET_SERVER_COMMIT}\\\"")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic -pipe -Wall -Wextra -Wfatal-errors -DICEMET_SERVER_COMMIT=\\\"${ICEMET_SERVER_COMMIT}\\\"")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -Og -ggdb -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} -DDEBUG")
@@ -68,6 +69,7 @@ add_library(${LIBICEMET_NAME} SHARED ${LIBICEMET_SRC})
 add_executable(${ICEMET_SERVER_NAME} ${ICEMET_SERVER_SRC})
 
 target_link_libraries(${LIBICEMET_NAME}
+	${FMT_LIBRARIES}
 	${LIBARCHIVE_LIBRARIES}
 	${LIBMARIADB_LIBRARIES}
 	${OPENCV_LIBRARIES}

@@ -1,7 +1,8 @@
 #ifndef ICEMET_LOG_H
 #define ICEMET_LOG_H
 
-#include <cstdarg>
+#include "icemet/util/strfmt.hpp"
+
 #include <string>
 
 #define COLOR_BLACK          "\x1b[30m"
@@ -36,20 +37,28 @@ class Log {
 private:
 	std::string m_name;
 	
-	const char* levelstr(LogLevel level) const;
-	void logsend(LogLevel level, const std::string& fmt, va_list args) const;
+	void logsend(LogLevel level, const std::string& str) const;
 
 public:
 	Log(const std::string& name);
 	
-	void debug(const std::string& fmt, ...) const;
-	void info(const std::string& fmt, ...) const;
-	void warning(const std::string& fmt, ...) const;
-	void error(const std::string& fmt, ...) const;
-	void critical(const std::string& fmt, ...) const;
+	template <typename... Args>
+	void debug(const std::string& fmt, Args... args) const { logsend(LOG_DEBUG, strfmt(fmt, args...)); }
 	
-	static void setLevel(LogLevel level);
+	template <typename... Args>
+	void info(const std::string& fmt, Args... args) const { logsend(LOG_INFO, strfmt(fmt, args...)); }
+	
+	template <typename... Args>
+	void warning(const std::string& fmt, Args... args) const { logsend(LOG_WARNING, strfmt(fmt, args...)); }
+	
+	template <typename... Args>
+	void error(const std::string& fmt, Args... args) const { logsend(LOG_ERROR, strfmt(fmt, args...)); }
+	
+	template <typename... Args>
+	void critical(const std::string& fmt, Args... args) const { logsend(LOG_CRITICAL, strfmt(fmt, args...)); }
+	
 	static LogLevel level();
+	static void setLevel(LogLevel level);
 };
 
 #endif

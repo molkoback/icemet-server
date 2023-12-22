@@ -1,20 +1,22 @@
 #include "log.hpp"
 
-#include "icemet/util/strfmt.hpp"
+#include "icemet/icemet.hpp"
+#include "icemet/util/time.hpp"
 
-#include <cstdio>
 #include <ctime>
+#include <iomanip>
+#include <iostream>
 #include <mutex>
+#include <sstream>
 
-const char *logfmt = COLOR_BRIGHT_BLACK "[" COLOR_RESET "%s" COLOR_BRIGHT_BLACK "]<" COLOR_BRIGHT_WHITE "%s" COLOR_BRIGHT_BLACK ">(" COLOR_RESET "%s" COLOR_BRIGHT_BLACK ")" COLOR_RESET " %s\n";
-
-LogLevel loglevel = LOG_INFO;
-std::mutex mutex; // Protects stdout
+static const char* logfmt = COLOR_BRIGHT_BLACK "[" COLOR_RESET "{}" COLOR_BRIGHT_BLACK "]<" COLOR_BRIGHT_WHITE "{}" COLOR_BRIGHT_BLACK ">(" COLOR_RESET "{}" COLOR_BRIGHT_BLACK ")" COLOR_RESET " {}";
+static LogLevel loglevel = LOG_INFO;
+static std::mutex mutex;
 
 Log::Log(const std::string& name) :
 	m_name(name) {}
 
-const char* Log::levelstr(LogLevel level) const
+static const char* levelstr(LogLevel level)
 {
 	switch (level) {
 	case LOG_DEBUG:
@@ -37,69 +39,25 @@ const char* Log::levelstr(LogLevel level) const
 	}
 }
 
-void Log::logsend(LogLevel level, const std::string& fmt, va_list args) const
+void Log::logsend(LogLevel level, const std::string& str) const
 {
-	if (level < loglevel)
-		return;
-	
-	time_t rawtime;
-	time(&rawtime);
-	struct tm *info = localtime(&rawtime);
-	char timebuf[9];
-	strftime(timebuf, 9, "%H:%M:%S", info);
-	
 	mutex.lock();
-	fprintf(stdout, logfmt, timebuf, m_name.c_str(), levelstr(level), vstrfmt(fmt, args).c_str());
-	fflush(stdout);
+	if (level >= loglevel)
+		std::cout << strfmt(logfmt, DateTime::now().str("%H:%M:%S"), m_name, levelstr(level), str) << std::endl;
 	mutex.unlock();
-}
-
-void Log::debug(const std::string& fmt, ...) const
-{
-	va_list args;
-	va_start(args, fmt);
-	logsend(LOG_DEBUG, fmt, args);
-	va_end(args);
-}
-
-void Log::info(const std::string& fmt, ...) const
-{
-	va_list args;
-	va_start(args, fmt);
-	logsend(LOG_INFO, fmt, args);
-	va_end(args);
-}
-
-void Log::warning(const std::string& fmt, ...) const
-{
-	va_list args;
-	va_start(args, fmt);
-	logsend(LOG_WARNING, fmt, args);
-	va_end(args);
-}
-
-void Log::error(const std::string& fmt, ...) const
-{
-	va_list args;
-	va_start(args, fmt);
-	logsend(LOG_ERROR, fmt, args);
-	va_end(args);
-}
-
-void Log::critical(const std::string& fmt, ...) const
-{
-	va_list args;
-	va_start(args, fmt);
-	logsend(LOG_CRITICAL, fmt, args);
-	va_end(args);
 }
 
 void Log::setLevel(LogLevel level)
 {
+	mutex.lock();
 	loglevel = level;
+	mutex.unlock();
 }
 
 LogLevel Log::level()
 {
-	return loglevel;
+	mutex.lock();
+	LogLevel ret = loglevel;
+	mutex.unlock();
+	return ret;
 }

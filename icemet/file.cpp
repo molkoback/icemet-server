@@ -30,7 +30,7 @@ File::File(unsigned int sensor, DateTime dt, unsigned int frame, FileStatus stat
 std::string File::name() const
 {
 	return strfmt(
-		"%02X_%02d%02d%02d_%02d%02d%02d%03d_%06u_%c",
+		"{:02X}_{:02d}{:02d}{:02d}_{:02d}{:02d}{:02d}{:03d}_{:06d}_{:c}",
 		m_sensor,
 		m_dt.day(), m_dt.month(), m_dt.year()%100,
 		m_dt.hour(), m_dt.min(), m_dt.sec(), m_dt.millis(),
@@ -75,7 +75,7 @@ void File::setName(const std::string& str)
 
 fs::path File::path(const fs::path& root, const fs::path& ext, int sub) const
 {
-	std::string end = sub > 0 ? strfmt("_%d", sub) : "";
+	std::string end = sub > 0 ? strfmt("_{}", sub) : "";
 	fs::path p = dir(root) / fs::path(name() + end);
 	p.replace_extension(ext);
 	return p;
@@ -83,7 +83,7 @@ fs::path File::path(const fs::path& root, const fs::path& ext, int sub) const
 
 fs::path File::dir(const fs::path& root) const
 {
-	fs::path p(strfmt("%02d/%02d/%02d/%02d", m_dt.year()%100, m_dt.month(), m_dt.day(), m_dt.hour()));
+	fs::path p(strfmt("{:02d}/{:02d}/{:02d}/{:02d}", m_dt.year()%100, m_dt.month(), m_dt.day(), m_dt.hour()));
 	p.make_preferred();
 	return root / p;
 }

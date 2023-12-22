@@ -29,7 +29,7 @@ bool Preproc::isEmpty(const cv::UMat& img, int th, const std::string& imgName, c
 	double minVal, maxVal;
 	minMaxLoc(img, &minVal, &maxVal);
 	int delta = maxVal - minVal;
-	m_log.debug("%s: EmptyVal %s: %d", imgName.c_str(), checkName.c_str(), delta);
+	m_log.debug("{}: EmptyVal {}: {}", imgName, checkName, delta);
 	return delta < th;
 }
 
@@ -71,7 +71,7 @@ void Preproc::finalize(ImgPtr img)
 				cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE
 			);
 			int ncontours = contours.size();
-			m_log.debug("%s: NoisyVal: %d", img->name().c_str(), ncontours);
+			m_log.debug("{}: NoisyVal: {}", img->name(), ncontours);
 			if (ncontours > m_cfg->noisyCheck.reconTh) {
 				img->setStatus(FILE_STATUS_SKIP);
 			}
@@ -160,11 +160,11 @@ bool Preproc::loop()
 			case WORKER_DATA_IMG: {
 				ImgPtr img = data.get<ImgPtr>();
 				img->setStatus(FILE_STATUS_NONE); // Images are marked _X before preproc
-				m_log.debug("%s: Processing", img->name().c_str());
+				m_log.debug("{}: Processing", img->name());
 				Measure m;
 				ImgPtr imgDone;
 				bool ret = process(img, imgDone);
-				m_log.debug("%s: Done (%.2f s)", img->name().c_str(), m.time());
+				m_log.debug("{}: Done ({:.2f} s)", img->name(), m.time());
 				if (ret)
 					m_outputs[0]->push(imgDone);
 				break;

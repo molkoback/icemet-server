@@ -12,7 +12,7 @@ Watcher::Watcher(ICEMETServerContext* ctx) :
 	Worker(COLOR_BRIGHT_CYAN "WATCHER" COLOR_RESET, ctx),
 	m_prev(cv::makePtr<File>())
 {
-	m_log.info("Watching %s", m_cfg->paths.watch.string().c_str());
+	m_log.info("Watching {}", m_cfg->paths.watch.string());
 }
 
 void Watcher::findFiles(std::queue<FilePtr>& queue)
@@ -30,7 +30,7 @@ void Watcher::findFiles(std::queue<FilePtr>& queue)
 			files.push_back(cv::makePtr<File>(path));
 		}
 		catch (std::exception& e) {
-			m_log.debug("Ignoring: '%s'", path.string().c_str());
+			m_log.debug("Ignoring: '{}'", path.string());
 		}
 	}
 	
@@ -53,12 +53,12 @@ bool Watcher::processImg(const fs::path& p)
 		img = cv::makePtr<Image>(p);
 	}
 	catch(std::exception& e) {
-		m_log.debug("Invalid image file: '%s'", p.string().c_str());
+		m_log.debug("Invalid image file: '{}'", p.string());
 		return false;
 	}
 	
 	// Push to output queue
-	m_log.debug("%s: Opened (%.2f s)", img->name().c_str(), m.time());
+	m_log.debug("{}: Opened ({:.2f} s)", img->name(), m.time());
 	m_outputs[0]->push(img);
 	return true;
 }
@@ -72,10 +72,10 @@ bool Watcher::processPkg(const fs::path& p)
 		pkg = createPackage(p);
 	}
 	catch(std::exception& e) {
-		m_log.debug("Invalid package file: '%s'", p.string().c_str());
+		m_log.debug("Invalid package file: '{}'", p.string());
 		return false;
 	}
-	m_log.debug("%s: Opened (%.2f s)", pkg->name().c_str(), m1.time());
+	m_log.debug("{}: Opened ({:.2f} s)", pkg->name(), m1.time());
 	
 	// Loop through images
 	while (true) {
@@ -83,7 +83,7 @@ bool Watcher::processPkg(const fs::path& p)
 		ImgPtr img = pkg->next();
 		if (img.empty())
 			break;
-		m_log.debug("%s: Read (%.2f s)", img->name().c_str(), m2.time());
+		m_log.debug("{}: Read ({:.2f} s)", img->name(), m2.time());
 		m_outputs[0]->push(img);
 	}
 	m_outputs[0]->push(pkg);

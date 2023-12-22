@@ -17,5 +17,5 @@ std::string VersionInfo::str() const
 		if (!m_commit.empty())
 			end += ":" + m_commit;
 	}
-	return strfmt("%d.%d.%d%s", m_major, m_minor, m_patch, end.c_str());
+	return strfmt("{}.{}.{}{}", m_major, m_minor, m_patch, end);
 }
