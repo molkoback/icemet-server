@@ -34,7 +34,7 @@ static const char* helpStr =
 static const char* versionFmt =
 "ICEMET Server {}\n"
 "\n"
-"Copyright (C) 2019-2023 Eero Molkoselkä <eero.molkoselka@gmail.com>\n";
+"Copyright (C) 2019-2024 Eero Molkoselkä <eero.molkoselka@gmail.com>\n";
 
 template <typename... Args>
 static void print(const std::string& fmt, Args... args)

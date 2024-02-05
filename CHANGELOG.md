@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.0 - Runeberg
+2024-02-05
+- More accurate LWC and MVD calculation.
+
 ## 1.14.0 - Pallas
 2023-10-25
 - Configurable autofocus methods.
