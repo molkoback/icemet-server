@@ -7,17 +7,22 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#define timegm _mkgmtime
+#define timegm_impl(timeinfo) _mkgmtime(timeinfo)
+#define gmtime_impl(t, timeinfo) gmtime_s(timeinfo, t)
+#define localtime_impl(t, timeinfo) localtime_s(timeinfo, t)
+#else
+#define timegm_impl(timeinfo) timegm(timeinfo)
+#define gmtime_impl(t, timeinfo) gmtime_r(t, timeinfo)
+#define localtime_impl(t, timeinfo) localtime_r(t, timeinfo)
 #endif
 
-void stampToTime(Timestamp stamp, struct tm* buf)
+void stampToTime(Timestamp stamp, struct tm* timeinfo, bool local=false)
 {
 	time_t t = stamp / 1000;
-#ifndef _WIN32
-	gmtime_r(&t, buf);
-#else
-	gmtime_s(buf, &t);
-#endif
+	if (local)
+		localtime_impl(&t, timeinfo);
+	else
+		gmtime_impl(&t, timeinfo);
 }
 
 DateTime::DateTime(const std::string& str)
@@ -62,17 +67,17 @@ void DateTime::setInfo(const DateTimeInfo& info)
 	timeinfo.tm_min = info.M;
 	timeinfo.tm_sec = info.S;
 	timeinfo.tm_isdst = -1;
-	int t = timegm(&timeinfo);
+	int t = timegm_impl(&timeinfo);
 	if (t < 0)
 		throw std::exception();
 	m_info = info;
 	m_stamp = (Timestamp)t*1000 + (Timestamp)info.MS%1000;
 }
 
-std::string DateTime::str(const std::string& fmt) const
+std::string DateTime::str(const std::string& fmt, bool local) const
 {
 	struct tm timeinfo;
-	stampToTime(m_stamp, &timeinfo);
+	stampToTime(m_stamp, &timeinfo, local);
 	
 	std::ostringstream oss;
 	if (fmt.empty()) {

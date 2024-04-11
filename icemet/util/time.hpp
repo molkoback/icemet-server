@@ -24,7 +24,7 @@ public:
 	DateTime(const std::string& str);
 	DateTime(const DateTime& dt) : m_stamp(dt.m_stamp), m_info(dt.m_info) {}
 	
-	std::string str(const std::string& fmt=std::string()) const;
+	std::string str(const std::string& fmt=std::string(), bool local=false) const;
 	
 	Timestamp stamp() const { return m_stamp; };
 	DateTimeInfo info() const { return m_info; };

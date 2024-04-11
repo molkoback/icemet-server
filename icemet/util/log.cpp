@@ -43,7 +43,7 @@ void Log::logsend(LogLevel level, const std::string& str) const
 {
 	mutex.lock();
 	if (level >= loglevel)
-		std::cout << strfmt(logfmt, DateTime::now().str("%H:%M:%S"), m_name, levelstr(level), str) << std::endl;
+		std::cout << strfmt(logfmt, DateTime::now().str("%H:%M:%S", true), m_name, levelstr(level), str) << std::endl;
 	mutex.unlock();
 }
 
