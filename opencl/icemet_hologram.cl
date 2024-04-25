@@ -46,7 +46,7 @@ __kernel void amplitude(
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if (x >= dst_w || y >= dst_h) return;
-	dst[y*dst_w + x] = length(src[y*src_w + x]);
+	dst[y*dst_w + x] = clamp(length(src[y*src_w + x]), 0.f, 255.f);
 }
 
 __kernel void phase(
@@ -62,10 +62,11 @@ __kernel void phase(
 	
 	// Normalization
 	cfloat phase_factor = cexp(cmul(cnum(2 * M_PI * z / lambda, 0), cnum(0, 1)));
-	cfloat H = cexp(cmul(atan2(phase_factor.y, phase_factor.x), cnum(0, -1)));
+	cfloat H = cexp(cmul(atan(phase_factor.y / phase_factor.x), cnum(0, -1)));
 	cfloat val = cmul(src[y*src_w + x], H);
 	
-	dst[y*dst_w + x] = atan2(val.y, val.x);
+	float res = 255.f * (atan(val.y / val.x) + M_PI/2) / M_PI;
+	dst[y*dst_w + x] = clamp(res, 0.f, 255.f);
 }
 
 __kernel void min_8u(
