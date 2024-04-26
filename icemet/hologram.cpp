@@ -195,49 +195,47 @@ void Hologram::recon(cv::UMat& dst, float z, ReconOutput output)
 {
 	size_t gsize[2] = {(size_t)m_sizePad.width, (size_t)m_sizePad.height};
 	propagate(z);
-	switch (output) {
-	case RECON_OUTPUT_COMPLEX:
+	
+	if (output == RECON_OUTPUT_COMPLEX) {
 		cv::UMat(m_complex, cv::Rect(cv::Point(0, 0), m_sizeOrig)).copyTo(dst);
-		return;
-	case RECON_OUTPUT_AMPLITUDE:
+	}
+	else {
+		const char* kernelName = output == RECON_OUTPUT_AMPLITUDE ? "a_f32" : "p_f32";
 		if (dst.empty())
 			dst = cv::UMat(m_sizeOrig, CV_32FC1);
-		cv::ocl::Kernel("amplitude", icemet_hologram_ocl()).args(
-			cv::ocl::KernelArg::ReadOnly(m_complex),
-			cv::ocl::KernelArg::WriteOnly(dst)
-		).run(2, gsize, NULL, true);
-		break;
-	case RECON_OUTPUT_PHASE:
-		if (dst.empty())
-			dst = cv::UMat(m_sizeOrig, CV_32FC1);
-		cv::ocl::Kernel("phase", icemet_hologram_ocl()).args(
+		cv::ocl::Kernel(kernelName, icemet_hologram_ocl()).args(
 			cv::ocl::KernelArg::ReadOnly(m_complex),
 			cv::ocl::KernelArg::WriteOnly(dst),
 			m_lambda,
 			z * magnf(m_dist, z)
 		).run(2, gsize, NULL, true);
-		break;
 	}
 }
 
-void Hologram::min(cv::UMat& dst, const ZRange& range)
+void Hologram::min(cv::UMat& dst, const ZRange& range, ReconOutput output)
 {
+	const char* kernelName = output == RECON_OUTPUT_AMPLITUDE ? "amin_8u" : "pmin_8u";
 	size_t gsize[2] = {(size_t)m_sizePad.width, (size_t)m_sizePad.height};
 	int n = range.n();
 	
 	if (dst.empty())
 		dst = cv::UMat(m_sizeOrig, CV_8UC1, cv::Scalar(255));
+	
 	for (int i = 0; i < n; i++) {
-		propagate(range.z(i));
-		cv::ocl::Kernel("min_8u", icemet_hologram_ocl()).args(
+		float z = range.z(i);
+		propagate(z);
+		cv::ocl::Kernel(kernelName, icemet_hologram_ocl()).args(
 			cv::ocl::KernelArg::ReadOnly(m_complex),
-			cv::ocl::KernelArg::WriteOnly(dst)
+			cv::ocl::KernelArg::WriteOnly(dst),
+			m_lambda,
+			z * magnf(m_dist, z)
 		).run(2, gsize, NULL, true);
 	}
 }
 
-void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, const ZRange& range)
+void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, const ZRange& range, ReconOutput output)
 {
+	const char* kernelName = output == RECON_OUTPUT_AMPLITUDE ? "a_amin_8u" : "a_pmin_8u";
 	size_t gsize[2] = {(size_t)m_sizePad.width, (size_t)m_sizePad.height};
 	int n = range.n();
 	
@@ -248,11 +246,14 @@ void Hologram::reconMin(std::vector<cv::UMat>& dst, cv::UMat& dstMin, const ZRan
 		dst.emplace_back(m_sizeOrig, CV_8UC1);
 	
 	for (int i = 0; i < n; i++) {
-		propagate(range.z(i));
-		cv::ocl::Kernel("amplitude_min_8u", icemet_hologram_ocl()).args(
+		float z = range.z(i);
+		propagate(z);
+		cv::ocl::Kernel(kernelName, icemet_hologram_ocl()).args(
 			cv::ocl::KernelArg::ReadOnly(m_complex),
 			cv::ocl::KernelArg::WriteOnly(dst[i]),
-			cv::ocl::KernelArg::PtrReadWrite(dstMin)
+			cv::ocl::KernelArg::PtrReadWrite(dstMin),
+			m_lambda,
+			z * magnf(m_dist, z)
 		).run(2, gsize, NULL, true);
 	}
 }

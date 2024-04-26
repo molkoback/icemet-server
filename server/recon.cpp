@@ -34,7 +34,8 @@ void Recon::process(ImgPtr img)
 	const int segmSizeMax = m_cfg->segment.sizeMax;
 	const int segmSizeSmall = m_cfg->segment.sizeSmall;
 	const int pad = m_cfg->segment.pad;
-	const int th = m_cfg->segment.thFact * img->bgVal;
+	const ReconOutput thMethod = m_cfg->segment.thMethod;
+	const int th = m_cfg->segment.thFact >= 0 ? m_cfg->segment.thFact * img->bgVal : m_cfg->segment.thFact * m_cfg->segment.thBg;
 	
 	int ncontours = 0;
 	int nsegments = 0;
@@ -57,7 +58,7 @@ void Recon::process(ImgPtr img)
 		
 		// Reconstruct
 		cv::UMat imgMin;
-		m_hologram->reconMin(m_stack, imgMin, stepRange);
+		m_hologram->reconMin(m_stack, imgMin, stepRange, thMethod);
 		cv::min(imgMin, img->min, img->min);
 		
 		// Threshold

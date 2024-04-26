@@ -1,3 +1,5 @@
+#define PI 3.141592653589793f
+
 typedef float2 cfloat;
 
 __attribute__((always_inline))
@@ -38,61 +40,119 @@ cfloat ccos(cfloat z)
 	return (cfloat)(cos(x) * cosh(y), -sin(x) * sinh(y));
 }
 
-__kernel void amplitude(
-	__global cfloat* src, int src_step, int src_offset, int src_h, int src_w,
-	__global float* dst, int dst_step, int dst_offset, int dst_h, int dst_w
-)
+__attribute__((always_inline))
+float limit(float val)
 {
-	int x = get_global_id(0);
-	int y = get_global_id(1);
-	if (x >= dst_w || y >= dst_h) return;
-	dst[y*dst_w + x] = clamp(length(src[y*src_w + x]), 0.f, 255.f);
+	return clamp(val, 0.f, 255.f);
 }
 
-__kernel void phase(
+__attribute__((always_inline))
+float amplitude(cfloat val)
+{
+	return limit(length(val));
+}
+
+__attribute__((always_inline))
+float phase(cfloat val)
+{
+	return limit(255.f * (atan(val.y / val.x) + PI/2) / PI);
+}
+
+__attribute__((always_inline))
+cfloat normalize_phase(cfloat val, float lambda, float z)
+{
+	cfloat f = cexp(cmul(cnum(2 * PI * z / lambda, 0), cnum(0, 1)));
+	cfloat H = cexp(cmul(atan(f.y / f.x), cnum(0, -1)));
+	return cmul(val, H);
+}
+
+__kernel void a_f32(
 	__global cfloat* src, int src_step, int src_offset, int src_h, int src_w,
 	__global float* dst, int dst_step, int dst_offset, int dst_h, int dst_w,
-	float lambda,
-	float z
+	float lambda, float z
 )
 {
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if (x >= dst_w || y >= dst_h) return;
 	
-	// Normalization
-	cfloat phase_factor = cexp(cmul(cnum(2 * M_PI * z / lambda, 0), cnum(0, 1)));
-	cfloat H = cexp(cmul(atan(phase_factor.y / phase_factor.x), cnum(0, -1)));
-	cfloat val = cmul(src[y*src_w + x], H);
-	
-	float res = 255.f * (atan(val.y / val.x) + M_PI/2) / M_PI;
-	dst[y*dst_w + x] = clamp(res, 0.f, 255.f);
+	dst[y*dst_w + x] = amplitude(src[y*src_w + x]);
 }
 
-__kernel void min_8u(
+__kernel void p_f32(
 	__global cfloat* src, int src_step, int src_offset, int src_h, int src_w,
-	__global uchar* dst, int dst_step, int dst_offset, int dst_h, int dst_w
+	__global float* dst, int dst_step, int dst_offset, int dst_h, int dst_w,
+	float lambda, float z
 )
 {
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if (x >= dst_w || y >= dst_h) return;
-	uchar val = clamp(length(src[y*src_w + x]), 0.f, 255.f);
-	dst[y*dst_w + x] = min(val, dst[y*dst_w + x]);
+	
+	dst[y*dst_w + x] = phase(normalize_phase(src[y*src_w + x], lambda, z));
 }
 
-__kernel void amplitude_min_8u(
+__kernel void amin_8u(
 	__global cfloat* src, int src_step, int src_offset, int src_h, int src_w,
 	__global uchar* dst, int dst_step, int dst_offset, int dst_h, int dst_w,
-	__global uchar* img_min
+	float lambda, float z
 )
 {
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	if (x >= dst_w || y >= dst_h) return;
-	uchar val = clamp(length(src[y*src_w + x]), 0.f, 255.f);
-	img_min[y*dst_w + x] = min(val, img_min[y*dst_w + x]);
-	dst[y*dst_w + x] = val;
+	
+	uchar a = amplitude(src[y*src_w + x]);
+	dst[y*dst_w + x] = min(dst[y*dst_w + x], a);
+}
+
+__kernel void pmin_8u(
+	__global cfloat* src, int src_step, int src_offset, int src_h, int src_w,
+	__global uchar* dst, int dst_step, int dst_offset, int dst_h, int dst_w,
+	float lambda, float z
+)
+{
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	if (x >= dst_w || y >= dst_h) return;
+	
+	uchar p = phase(normalize_phase(src[y*src_w + x], lambda, z));
+	dst[y*dst_w + x] = min(dst[y*dst_w + x], p);
+}
+
+__kernel void a_amin_8u(
+	__global cfloat* src, int src_step, int src_offset, int src_h, int src_w,
+	__global uchar* dst, int dst_step, int dst_offset, int dst_h, int dst_w,
+	__global uchar* dst_min,
+	float lambda, float z
+)
+{
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	if (x >= dst_w || y >= dst_h) return;
+	
+	cfloat val = src[y*src_w + x];
+	uchar a = amplitude(val);
+	dst[y*dst_w + x] = a;
+	dst_min[y*dst_w + x] = min(dst_min[y*dst_w + x], a);
+}
+
+__kernel void a_pmin_8u(
+	__global cfloat* src, int src_step, int src_offset, int src_h, int src_w,
+	__global uchar* dst, int dst_step, int dst_offset, int dst_h, int dst_w,
+	__global uchar* dst_min,
+	float lambda, float z
+)
+{
+	int x = get_global_id(0);
+	int y = get_global_id(1);
+	if (x >= dst_w || y >= dst_h) return;
+	
+	cfloat val = src[y*src_w + x];
+	uchar a = amplitude(val);
+	uchar p = phase(normalize_phase(val, lambda, z));
+	dst[y*dst_w + x] = a;
+	dst_min[y*dst_w + x] = min(dst_min[y*dst_w + x], p);
 }
 
 __kernel void angularspectrum(
@@ -110,7 +170,7 @@ __kernel void angularspectrum(
 	
 	// (2*pi*i)/lambda * sqrt(1 - (lambda*u)^2 - (lambda*v)^2)
 	float root = sqrt(1 - lambda*lambda * (u*u + v*v));
-	prop[y*w + x] = cmul(cnum(2 * M_PI * root / lambda, 0), cnum(0, 1));
+	prop[y*w + x] = cmul(cnum(2 * PI * root / lambda, 0), cnum(0, 1));
 }
 
 __kernel void propagate(

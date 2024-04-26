@@ -45,6 +45,8 @@ recon_step: 1515
 focus_step: 10
 focus_method: 3
 focus_method_small: 0
+segment_th_method: 0
+segment_th_bg: -1
 segment_th_factor: 0.60
 segment_size_min: 2
 segment_size_max: -1

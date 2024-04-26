@@ -76,6 +76,8 @@ typedef struct _hologram_param {
 } HologramParam;
 
 typedef struct _segment_param {
+	ReconOutput thMethod;
+	int thBg;
 	float thFact;
 	int nMax;
 	int sizeMin;

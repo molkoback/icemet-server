@@ -62,8 +62,12 @@ Config template: [icemet-server.yaml](etc/icemet-server.yaml)
   - `2` Dynamic range.
   - `3` StdDev of StdDev filter.
   - `4` Tamura of gradient.
- - `segment_th_factor <float>` Segment threshold factor *f*:
-*th = f · Median(preproc)*
+
+ - `segment_th_method <int>` Segment thresholding method. *th = f · bg*
+  - `0` Minimum of amplitude.
+  - `1` Minimum of phase.
+ - `segment_th_bg <int>` Segment thresholding background value *bg*. -1 uses preprocessed image median.
+ - `segment_th_factor <float>` Segment threshold factor *f*.
  - `segment_size_(min|max) <int>` Size range of the segments (width or height) in pixels.
  - `segment_size_small <int>` Segments smaller than this will be focused using a minimum based method.
  - `segment_pad <int>` Padding around the segments in pixels.

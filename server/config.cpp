@@ -120,6 +120,8 @@ void Config::load(const fs::path& fn)
 		hologram.focusMethod = static_cast<FocusMethod>(getYAMLNode(node, "focus_method").as<int>());
 		hologram.focusMethodSmall = static_cast<FocusMethod>(getYAMLNode(node, "focus_method_small").as<int>());
 		
+		segment.thMethod = static_cast<ReconOutput>(getYAMLNode(node, "segment_th_method").as<int>());
+		segment.thBg = getYAMLNode(node, "segment_th_bg").as<int>();
 		segment.thFact = getYAMLNode(node, "segment_th_factor").as<float>();
 		segment.sizeMin = getYAMLNode(node, "segment_size_min").as<int>();
 		segment.sizeMax = getYAMLNode(node, "segment_size_max").as<int>();
