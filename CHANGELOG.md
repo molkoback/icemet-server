@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.16.0 - Keskiviikko
+2024-08-07
+- Phase based segmentation.
+- Bug fixes.
+
 ## 1.15.0 - Runeberg
 2024-02-05
 - More accurate LWC and MVD calculation.
