@@ -29,7 +29,7 @@ void ZRange::setParam(float z0, float z1, float dz0, float dz1)
 	float b = dz0 - a * z0*z0;
 	float z = z0;
 	float dz = dz0;
-	while (z < z1) {
+	while (z < z1 + dz1/2) {
 		m_z.push_back(z);
 		m_dz.push_back(dz);
 		z += dz;
