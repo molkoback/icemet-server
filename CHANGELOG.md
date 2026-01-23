@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.17.0 - Perjantai
+2025-01-23
+- Fix floating point related ZRange bug.
+
 ## 1.16.0 - Keskiviikko
 2024-08-07
 - Phase based segmentation.
